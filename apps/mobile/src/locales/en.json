@@ -56,6 +56,18 @@
     "devicePending": "Waiting for admin approval of this phone. You cannot punch in until it is approved.",
     "checkAgain": "Check again",
     "deviceRevoked": "This phone is no longer approved for your account. Sign out and contact your admin.",
+    "deviceTitle": "This device",
+    "deviceStatus": {
+      "active": "Active",
+      "pending": "Pending approval",
+      "revoked": "Revoked",
+      "unregistered": "Not registered"
+    },
+    "deviceStatusA11y": "Device status: {{status}}",
+    "deviceCannotPunch": "You cannot punch in until an admin approves this phone.",
+    "deviceModel": "Model",
+    "deviceOs": "Operating system",
+    "deviceVersion": "App version",
     "signOut": "Sign out"
   }
 }

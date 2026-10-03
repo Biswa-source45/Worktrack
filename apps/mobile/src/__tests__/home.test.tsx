@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import HomeScreen from '@/app/(app)/index';
-import { getTokens, setTokens } from '@/lib/token-store';
+import { getDeviceInfo, getTokens, setTokens } from '@/lib/token-store';
 import { calls, meBody, mockApi } from '@/test/fake-api';
 import { renderWithAuth } from '@/test/render';
 import { resetSecureStore } from '@/test/secure-store-mock';
@@ -72,5 +72,55 @@ describe('HomeScreen', () => {
     await screen.findByText('Asha Rao');
     await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
     await waitFor(async () => expect(await getTokens()).toBeNull());
+  });
+
+  describe('This device card', () => {
+    const status = () => screen.getByTestId('device-status');
+
+    it('shows Active with the local model, OS and app version, and not the device id', async () => {
+      mockApi({ [ME]: () => Response.json(meBody()) });
+      await renderWithAuth(<HomeScreen />);
+      const info = await getDeviceInfo();
+      expect(await screen.findByText(info.os)).toBeOnTheScreen();
+      expect(screen.getByTestId('device-card')).toBeOnTheScreen();
+      expect(screen.getByText('This device')).toBeOnTheScreen();
+      expect(screen.getByText('Test Phone')).toBeOnTheScreen();
+      expect(screen.getByText(info.app_version)).toBeOnTheScreen();
+      expect(status()).toHaveTextContent('✓ Active');
+      expect(status().props.accessibilityLabel).toBe('Device status: Active');
+      expect(screen.queryByText(info.device_id)).toBeNull();
+    });
+
+    it('shows Pending approval next to the banner and updates after Check again', async () => {
+      let state = 'pending';
+      mockApi({ [ME]: () => Response.json(meBody({ device: { id: 9, status: state } })) });
+      await renderWithAuth(<HomeScreen />);
+      expect(await screen.findByText(PENDING_TEXT)).toBeOnTheScreen();
+      expect(status()).toHaveTextContent('⏳ Pending approval');
+      expect(status().props.accessibilityLabel).toBe('Device status: Pending approval');
+      expect(
+        screen.getByText('You cannot punch in until an admin approves this phone.'),
+      ).toBeOnTheScreen();
+
+      state = 'active';
+      await fireEvent.press(screen.getByRole('button', { name: 'Check again' }));
+      await waitFor(() => expect(status()).toHaveTextContent('✓ Active'));
+      expect(screen.queryByText(PENDING_TEXT)).toBeNull();
+    });
+
+    it('shows Revoked', async () => {
+      mockApi({ [ME]: () => Response.json(meBody({ device: { id: 9, status: 'revoked' } })) });
+      await renderWithAuth(<HomeScreen />);
+      await screen.findByText('Test Phone');
+      expect(status()).toHaveTextContent('✕ Revoked');
+      expect(status().props.accessibilityLabel).toBe('Device status: Revoked');
+    });
+
+    it('shows Not registered when the server returns no device', async () => {
+      mockApi({ [ME]: () => Response.json(meBody({ device: null })) });
+      await renderWithAuth(<HomeScreen />);
+      await screen.findByText('Test Phone');
+      expect(status()).toHaveTextContent('Not registered');
+    });
   });
 });

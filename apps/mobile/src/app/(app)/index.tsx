@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Button, ScrollView, Text, View } from 'react-native';
+import { DeviceCard } from '@/components/device-card';
 import { useAuth } from '@/lib/auth';
 
 export default function HomeScreen() {
@@ -68,6 +69,7 @@ export default function HomeScreen() {
           <Text style={{ fontSize: 18 }}>{value}</Text>
         </View>
       ))}
+      <DeviceCard status={me.device?.status} />
       <Button title={t('home.signOut')} onPress={() => void signOut()} />
     </ScrollView>
   );
