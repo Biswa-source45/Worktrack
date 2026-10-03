@@ -230,8 +230,12 @@ async def test_xlsx_with_numeric_and_date_cells(
     two = await by_code(db, "XL-2")
     assert one is not None
     assert two is not None
-    assert (one.mobile, one.joined_on, one.field_eligible) == ("9876543210", date(2026, 4, 5), True)
-    assert (two.mobile, two.field_eligible) == ("9876543211", False)
+    assert (one.mobile, one.joined_on, one.field_eligible) == (
+        "+919876543210",
+        date(2026, 4, 5),
+        True,
+    )
+    assert (two.mobile, two.field_eligible) == ("+919876543211", False)
 
 
 async def test_csv_with_bom_odd_headers_and_blank_lines(

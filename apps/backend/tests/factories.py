@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
 from app.modules.employees.models import Department, Designation, Role, User
+from app.modules.employees.schemas import normalize_mobile
 
 PASSWORD = "Correct-Horse-1234"
 _counter = itertools.count(1)
@@ -65,7 +66,7 @@ async def make_user(
     user = User(
         emp_code=fields.pop("emp_code", f"T{n:05d}"),
         name=fields.pop("name", f"Test User {n}"),
-        mobile=fields.pop("mobile", f"9{n:09d}"),
+        mobile=normalize_mobile(fields.pop("mobile", f"9{n:09d}")),
         email=fields.pop("email", None),
         password_hash=await hash_password(password),
         role_id=await role_id(session, role),

@@ -25,6 +25,8 @@ class UserDevice(Base):
     approved_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+    # Last login or token refresh from this phone.
+    last_seen_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
 
 # One phone per account (US-1.2): at most one active and one pending device per user.

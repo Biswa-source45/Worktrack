@@ -46,6 +46,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
 
 # (method, path as registered, concrete path to call, permission needed)
 MATRIX: list[tuple[str, str, str, str]] = [
+    ("GET", f"{P}/admin/dashboard", f"{P}/admin/dashboard", EMPLOYEES_MANAGE),
     ("GET", f"{P}/admin/employees", f"{P}/admin/employees", EMPLOYEES_MANAGE),
     ("POST", f"{P}/admin/employees", f"{P}/admin/employees", EMPLOYEES_MANAGE),
     (

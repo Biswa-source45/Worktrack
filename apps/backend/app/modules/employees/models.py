@@ -40,6 +40,8 @@ class User(Base):
     __table_args__ = (
         CheckConstraint("status IN ('active', 'inactive')", name="status"),
         CheckConstraint("failed_attempts >= 0", name="failed_attempts"),
+        # Same rule as normalize_mobile: one spelling per number, so uniqueness holds.
+        CheckConstraint(r"mobile ~ '^\+[1-9][0-9]{7,14}$'", name="mobile_e164"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

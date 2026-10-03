@@ -6,8 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_session
 from app.modules.auth.deps import AuthContext, require_permission
 from app.modules.auth.permissions import EMPLOYEES_MANAGE, ROLES_MANAGE, TEAM_VIEW
+from app.modules.devices import service as devices_service
 from app.modules.employees import importing, service
 from app.modules.employees.schemas import (
+    DashboardOut,
     EmployeeCreate,
     EmployeeCreated,
     EmployeeOut,
@@ -31,6 +33,18 @@ RoleAdmin = Annotated[AuthContext, Depends(require_permission(ROLES_MANAGE))]
 TeamViewer = Annotated[AuthContext, Depends(require_permission(TEAM_VIEW))]
 Limit = Annotated[int, Query(ge=1, le=200)]
 Kind = Literal["departments", "designations"]
+
+
+@router.get("/admin/dashboard", response_model=DashboardOut)
+async def dashboard(session: Session, _: Manager) -> DashboardOut:
+    active, inactive = await service.employee_status_counts(session)
+    pending = (await devices_service.device_counts(session)).pending
+    return DashboardOut(
+        employees_total=active + inactive,
+        employees_active=active,
+        employees_inactive=inactive,
+        pending_devices=pending,
+    )
 
 
 # --- employees -----------------------------------------------------------------------------

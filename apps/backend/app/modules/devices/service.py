@@ -1,6 +1,6 @@
 from typing import cast
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
@@ -15,7 +15,7 @@ from app.modules.devices.models import (
     DEVICE_REVOKED,
     UserDevice,
 )
-from app.modules.devices.schemas import DeviceOut, DevicePage
+from app.modules.devices.schemas import DeviceCounts, DeviceOut, DevicePage
 from app.modules.employees.models import STATUS_ACTIVE, User
 from app.modules.employees.service import ensure_can_manage, parse_cursor
 
@@ -34,6 +34,20 @@ def _out(device: UserDevice, user: User) -> DeviceOut:
         approved_by=device.approved_by,
         created_at=device.created_at,
         updated_at=device.updated_at,
+        last_seen_at=device.last_seen_at,
+    )
+
+
+async def device_counts(session: AsyncSession) -> DeviceCounts:
+    """Devices per status over the whole table (one grouped query), whatever the list filters."""
+    result = await session.execute(
+        select(UserDevice.status, func.count()).group_by(UserDevice.status)
+    )
+    by_status = dict(result.all())
+    return DeviceCounts(
+        pending=by_status.get(DEVICE_PENDING, 0),
+        active=by_status.get(DEVICE_ACTIVE, 0),
+        revoked=by_status.get(DEVICE_REVOKED, 0),
     )
 
 
@@ -58,7 +72,11 @@ async def list_devices(
         stmt = stmt.where(UserDevice.user_id == user_id)
     rows = (await session.execute(stmt)).all()
     next_cursor = str(rows[limit - 1][0].id) if len(rows) > limit else None
-    return DevicePage(items=[_out(d, u) for d, u in rows[:limit]], next_cursor=next_cursor)
+    return DevicePage(
+        items=[_out(d, u) for d, u in rows[:limit]],
+        counts=await device_counts(session),
+        next_cursor=next_cursor,
+    )
 
 
 async def decide(

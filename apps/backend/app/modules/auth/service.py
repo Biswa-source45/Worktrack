@@ -147,6 +147,7 @@ async def _bind_device(
     ).scalar_one_or_none()
     if current is not None:
         current.model, current.os, current.app_version = info.model, info.os, info.app_version
+        current.last_seen_at = utcnow()
         return current
 
     has_active = (
@@ -182,6 +183,7 @@ async def _bind_device(
         os=info.os,
         app_version=info.app_version,
         status=status,
+        last_seen_at=utcnow(),
     )
     session.add(device)
     await session.flush()
@@ -292,6 +294,8 @@ async def refresh(
     ):
         raise _invalid_refresh()
     row.revoked_at = utcnow()
+    if device is not None:
+        device.last_seen_at = row.revoked_at
     tokens = await _issue_tokens(session, settings, user, row.client, device, row.family_id)
     await session.commit()
     return tokens

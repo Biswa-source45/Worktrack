@@ -140,6 +140,23 @@ export interface paths {
         patch: operations["decide_api_v1_admin_devices__device_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Dashboard */
+        get: operations["dashboard_api_v1_admin_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/employees": {
         parameters: {
             query?: never;
@@ -349,6 +366,26 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /** DashboardOut */
+        DashboardOut: {
+            /** Employees Total */
+            employees_total: number;
+            /** Employees Active */
+            employees_active: number;
+            /** Employees Inactive */
+            employees_inactive: number;
+            /** Pending Devices */
+            pending_devices: number;
+        };
+        /** DeviceCounts */
+        DeviceCounts: {
+            /** Pending */
+            pending: number;
+            /** Active */
+            active: number;
+            /** Revoked */
+            revoked: number;
+        };
         /** DeviceDecision */
         DeviceDecision: {
             /**
@@ -403,11 +440,17 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
         };
         /** DevicePage */
         DevicePage: {
             /** Items */
             items: components["schemas"]["DeviceOut"][];
+            counts: components["schemas"]["DeviceCounts"];
             /** Next Cursor */
             next_cursor: string | null;
         };
@@ -984,6 +1027,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    dashboard_api_v1_admin_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardOut"];
                 };
             };
         };

@@ -157,6 +157,13 @@ async def _check_unique(
         )
 
 
+async def employee_status_counts(session: AsyncSession) -> tuple[int, int]:
+    """(active, inactive) employees in one grouped query."""
+    result = await session.execute(select(User.status, func.count()).group_by(User.status))
+    by_status = dict(result.all())
+    return by_status.get(STATUS_ACTIVE, 0), by_status.get(STATUS_INACTIVE, 0)
+
+
 async def _ensure_not_last_super_admin(session: AsyncSession, target: User) -> None:
     if target.role.name != SUPER_ADMIN_ROLE or target.status != STATUS_ACTIVE:
         return

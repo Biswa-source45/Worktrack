@@ -19,10 +19,18 @@ class DeviceOut(BaseModel):
     approved_by: int | None
     created_at: datetime
     updated_at: datetime
+    last_seen_at: datetime
+
+
+class DeviceCounts(BaseModel):
+    pending: int
+    active: int
+    revoked: int
 
 
 class DevicePage(BaseModel):
     items: list[DeviceOut]
+    counts: DeviceCounts
     next_cursor: str | None
 
 
