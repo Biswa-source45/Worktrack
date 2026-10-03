@@ -53,6 +53,11 @@ describe('AppShell', () => {
     expect(screen.queryByText('page content')).not.toBeInTheDocument();
   });
 
+  it('shows the backend health indicator in the header', async () => {
+    shell(makeMe());
+    expect(await screen.findByTestId('health-indicator')).toBeInTheDocument();
+  });
+
   it('signs out through the logout route and returns to /login', async () => {
     const calls = shell(makeMe());
     await userEvent.click(await screen.findByRole('button', { name: 'Sign out' }));

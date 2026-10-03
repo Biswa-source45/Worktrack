@@ -1,5 +1,5 @@
-import { HealthStatus } from '@/components/health-status';
+import { DashboardPage } from '@/components/dashboard/dashboard-page';
 
 export default function Home() {
-  return <HealthStatus />;
+  return <DashboardPage />;
 }

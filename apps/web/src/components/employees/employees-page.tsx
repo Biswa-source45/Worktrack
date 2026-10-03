@@ -1,13 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { RequirePermission } from '@/components/require-permission';
+import { StatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input, Select } from '@/components/ui/input';
 import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
@@ -19,6 +26,8 @@ import { useLookups } from './use-lookups';
 
 const PAGE_SIZE = 50;
 const col = columnHelper<Employee>();
+// Shown only from the 2xl breakpoint so the table fits at 1280px; the Edit dialog still has them.
+const WIDE_ONLY = ['mobile', 'department', 'manager', 'field'];
 
 const employeeCall = (employee: Employee) => ({ params: { path: { employee_id: employee.id } } });
 
@@ -27,6 +36,12 @@ type Dialog =
   | { kind: 'status'; employee: Employee }
   | { kind: 'reset'; employee: Employee }
   | { kind: 'import' };
+
+const truncated = (text: string) => (
+  <span className="block max-w-40 truncate" title={text}>
+    {text}
+  </span>
+);
 
 function useDebounced(value: string, ms: number) {
   const [debounced, setDebounced] = useState(value);
@@ -68,6 +83,8 @@ function EmployeesView() {
         }),
       ),
     getNextPageParam: (page) => page.next_cursor ?? undefined,
+    // Typing in the search box keeps the current rows (and any open row menu) until the result arrives.
+    placeholderData: keepPreviousData,
   });
   const rows = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
 
@@ -117,11 +134,15 @@ function EmployeesView() {
     const names = new Map((lookups.employees ?? []).map((e) => [e.id, e.name]));
     return col.columns([
       col.accessor('emp_code', { header: t('employees.col.code') }),
-      col.accessor('name', { header: t('employees.col.name') }),
+      col.accessor('name', {
+        header: t('employees.col.name'),
+        cell: ({ getValue }) => truncated(getValue()),
+      }),
       col.accessor('mobile', { header: t('employees.col.mobile') }),
       col.accessor((e) => e.designation.name, {
         id: 'designation',
         header: t('employees.col.designation'),
+        cell: ({ getValue }) => truncated(getValue()),
       }),
       col.accessor((e) => e.department?.name ?? '', {
         id: 'department',
@@ -144,9 +165,12 @@ function EmployeesView() {
         header: t('employees.col.status'),
         cell: ({ row: { original: e } }) => (
           <span className="flex gap-1">
-            <Badge variant={e.status === 'active' ? 'secondary' : 'outline'}>
-              {t(`employees.status.${e.status}`)}
-            </Badge>
+            <StatusBadge
+              testId={`status-${e.status}`}
+              icon={e.status === 'active' ? 'check-circle' : 'minus-circle'}
+              variant={e.status === 'active' ? 'secondary' : 'outline'}
+              label={t(`employees.status.${e.status}`)}
+            />
             {e.locked_until && Date.parse(e.locked_until) > now && (
               <Badge variant="destructive">{t('employees.locked')}</Badge>
             )}
@@ -157,36 +181,35 @@ function EmployeesView() {
         id: 'actions',
         header: t('employees.col.actions'),
         cell: ({ row: { original: e } }) => (
-          <span className="flex gap-1">
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => setDialog({ kind: 'form', employee: e })}
-            >
-              {t('common.edit')}
-            </Button>
-            {e.id !== me?.id && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
-                size="xs"
-                variant="outline"
-                onClick={() => setDialog({ kind: 'status', employee: e })}
+                variant="ghost"
+                aria-label={t('employees.actionsFor', { name: e.name })}
+                className="size-11 md:size-9"
               >
-                {e.status === 'active' ? t('employees.deactivate') : t('employees.reactivate')}
+                <span aria-hidden="true">⋯</span>
               </Button>
-            )}
-            {e.locked_until && Date.parse(e.locked_until) > now && (
-              <Button size="xs" variant="outline" onClick={() => void unlock(e)}>
-                {t('employees.unlock')}
-              </Button>
-            )}
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => setDialog({ kind: 'reset', employee: e })}
-            >
-              {t('employees.resetPassword')}
-            </Button>
-          </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onSelect={() => setDialog({ kind: 'form', employee: e })}>
+                {t('common.edit')}
+              </DropdownMenuItem>
+              {e.id !== me?.id && (
+                <DropdownMenuItem onSelect={() => setDialog({ kind: 'status', employee: e })}>
+                  {e.status === 'active' ? t('employees.deactivate') : t('employees.reactivate')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onSelect={() => setDialog({ kind: 'reset', employee: e })}>
+                {t('employees.resetPassword')}
+              </DropdownMenuItem>
+              {e.locked_until && Date.parse(e.locked_until) > now && (
+                <DropdownMenuItem onSelect={() => void unlock(e)}>
+                  {t('employees.unlock')}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         ),
       }),
     ]);
@@ -228,7 +251,12 @@ function EmployeesView() {
       {list.isPending ? (
         <p>{t('common.loading')}</p>
       ) : (
-        <DataTable columns={columns} data={rows} empty={t('employees.empty')} />
+        <DataTable
+          columns={columns}
+          data={rows}
+          empty={t('employees.empty')}
+          wideOnly={WIDE_ONLY}
+        />
       )}
       {list.hasNextPage && (
         <Button

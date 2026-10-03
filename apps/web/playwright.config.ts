@@ -35,7 +35,13 @@ export default defineConfig({
       // normal dev server runs. Cookies are Secure there, which browsers allow on localhost.
       command: `pnpm exec next build && pnpm exec next start -p ${WEB_PORT}`,
       cwd: __dirname,
-      env: { API_URL: `http://127.0.0.1:${BACKEND_PORT}` },
+      // NEXT_PUBLIC_API_URL is inlined at build time: without it the browser would call the dev
+      // backend on :8000 (health indicator) instead of this stack's own backend.
+      env: {
+        NEXT_DIST_DIR: '.next-e2e',
+        API_URL: `http://127.0.0.1:${BACKEND_PORT}`,
+        NEXT_PUBLIC_API_URL: `http://127.0.0.1:${BACKEND_PORT}`,
+      },
       url: `http://localhost:${WEB_PORT}/login`,
       reuseExistingServer: false,
       timeout: 240_000,

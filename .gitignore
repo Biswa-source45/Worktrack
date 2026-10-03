@@ -12,6 +12,7 @@ __pycache__/
 
 # js / expo / next
 .next/
+.next-e2e/
 .expo/
 dist/
 coverage/

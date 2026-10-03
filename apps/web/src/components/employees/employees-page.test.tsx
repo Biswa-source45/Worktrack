@@ -50,6 +50,17 @@ function setup({ me = makeMe(), list, routes = {} }: Options = {}) {
 
 const row = (name: RegExp) => screen.getByRole('row', { name });
 
+type User = ReturnType<typeof userEvent.setup>;
+// Row actions live in a per-row menu; the trigger is named after the employee.
+async function openMenu(user: User, name: RegExp, employee: string) {
+  await user.click(within(row(name)).getByRole('button', { name: `Actions for ${employee}` }));
+  return screen.findByRole('menu');
+}
+async function choose(user: User, name: RegExp, employee: string, item: string) {
+  const menu = await openMenu(user, name, employee);
+  await user.click(within(menu).getByRole('menuitem', { name: item }));
+}
+
 describe('EmployeesPage table', () => {
   it('renders the employees with manager name, role, field flag and status', async () => {
     setup();
@@ -87,6 +98,30 @@ describe('EmployeesPage table', () => {
     );
   });
 
+  it('keeps the current rows on screen while a new search is loading', async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const { user } = setup({
+      list: async (call) => {
+        if (call.search.get('q') !== 'ravi') return { items: [asha], next_cursor: null };
+        await gate;
+        return { items: [ravi], next_cursor: null };
+      },
+    });
+    await screen.findByText('Asha Rao');
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search by name, code or mobile' }),
+      'ravi',
+    );
+    // The request for "ravi" is held open: the old table (and its row menus) must stay in place.
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    expect(screen.getByText('Asha Rao')).toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    release();
+    expect(await screen.findByText('Ravi Kumar')).toBeInTheDocument();
+    expect(screen.queryByText('Asha Rao')).not.toBeInTheDocument();
+  });
+
   it('loads the next page with the cursor', async () => {
     const { calls, user } = setup({
       list: (call) =>
@@ -103,17 +138,44 @@ describe('EmployeesPage table', () => {
   });
 
   it('shows row actions by state: unlock only when locked, no deactivate on your own row', async () => {
-    setup();
+    const { user } = setup();
     await screen.findByText('Locked Larry');
-    const names = (r: HTMLElement) =>
-      within(r)
-        .getAllByRole('button')
-        .map((b) => b.textContent);
-    expect(names(row(/EMP-001/))).toEqual(['Edit', 'Deactivate', 'Reset password']);
-    expect(names(row(/EMP-002/))).toEqual(['Edit', 'Reactivate', 'Reset password']);
-    expect(names(row(/EMP-003/))).toEqual(['Edit', 'Deactivate', 'Unlock', 'Reset password']);
-    expect(names(row(/ADMIN-1/))).toEqual(['Edit', 'Reset password']);
+    const items = async (name: RegExp, employee: string) => {
+      const menu = await openMenu(user, name, employee);
+      const names = within(menu)
+        .getAllByRole('menuitem')
+        .map((i) => i.textContent);
+      await user.keyboard('{Escape}');
+      await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+      return names;
+    };
+    expect(await items(/EMP-001/, 'Asha Rao')).toEqual(['Edit', 'Deactivate', 'Reset password']);
+    expect(await items(/EMP-002/, 'Ravi Kumar')).toEqual(['Edit', 'Reactivate', 'Reset password']);
+    expect(await items(/EMP-003/, 'Locked Larry')).toEqual([
+      'Edit',
+      'Deactivate',
+      'Reset password',
+      'Unlock',
+    ]);
+    expect(await items(/ADMIN-1/, 'Demo Admin')).toEqual(['Edit', 'Reset password']);
     expect(within(row(/EMP-003/)).getByText('Locked')).toBeInTheDocument();
+  });
+
+  it('puts only the menu trigger in the actions cell and marks wide columns for 2xl', async () => {
+    setup();
+    const ashaRow = await screen.findByRole('row', { name: /EMP-001/ });
+    expect(within(ashaRow).getAllByRole('button')).toHaveLength(1);
+    expect(within(ashaRow).getByRole('button')).toHaveAccessibleName('Actions for Asha Rao');
+    const hidden = (el: HTMLElement) => el.className.includes('hidden 2xl:table-cell');
+    const heads = screen.getAllByRole('columnheader');
+    expect(heads.filter(hidden).map((h) => h.textContent)).toEqual([
+      'Mobile',
+      'Department',
+      'Manager',
+      'Field-eligible',
+    ]);
+    expect(within(ashaRow).getAllByRole('cell').filter(hidden)).toHaveLength(4);
+    expect(within(ashaRow).getByTestId('status-active')).toHaveTextContent('Active');
   });
 
   it('shows a no-access message without the employees.manage permission', async () => {
@@ -127,7 +189,7 @@ describe('EmployeesPage row actions', () => {
   it('deactivates after confirmation', async () => {
     const { calls, user } = setup({ routes: { 'PATCH /admin/employees/2': asha } });
     await screen.findByText('Asha Rao');
-    await user.click(within(row(/EMP-001/)).getByRole('button', { name: 'Deactivate' }));
+    await choose(user, /EMP-001/, 'Asha Rao', 'Deactivate');
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -138,7 +200,7 @@ describe('EmployeesPage row actions', () => {
   it('reactivates an inactive employee', async () => {
     const { calls, user } = setup({ routes: { 'PATCH /admin/employees/3': ravi } });
     await screen.findByText('Ravi Kumar');
-    await user.click(within(row(/EMP-002/)).getByRole('button', { name: 'Reactivate' }));
+    await choose(user, /EMP-002/, 'Ravi Kumar', 'Reactivate');
     await user.click(
       within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reactivate' }),
     );
@@ -151,7 +213,7 @@ describe('EmployeesPage row actions', () => {
       routes: { 'PATCH /admin/employees/2': () => apiError(409, 'HAS_REPORTS') },
     });
     await screen.findByText('Asha Rao');
-    await user.click(within(row(/EMP-001/)).getByRole('button', { name: 'Deactivate' }));
+    await choose(user, /EMP-001/, 'Asha Rao', 'Deactivate');
     const dialog = await screen.findByRole('dialog');
     await user.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('still has active reports');
@@ -160,7 +222,7 @@ describe('EmployeesPage row actions', () => {
   it('unlocks a locked account', async () => {
     const { calls, user } = setup({ routes: { 'POST /admin/employees/4/unlock': locked } });
     await screen.findByText('Locked Larry');
-    await user.click(within(row(/EMP-003/)).getByRole('button', { name: 'Unlock' }));
+    await choose(user, /EMP-003/, 'Locked Larry', 'Unlock');
     await waitFor(() =>
       expect(calls.some((c) => c.path.endsWith('/employees/4/unlock'))).toBe(true),
     );
@@ -171,7 +233,7 @@ describe('EmployeesPage row actions', () => {
       routes: { 'POST /admin/employees/2/reset-password': { temporary_password: 'Zk7mPq2xVb9n' } },
     });
     await screen.findByText('Asha Rao');
-    await user.click(within(row(/EMP-001/)).getByRole('button', { name: 'Reset password' }));
+    await choose(user, /EMP-001/, 'Asha Rao', 'Reset password');
     await user.click(
       within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reset password' }),
     );
@@ -198,7 +260,7 @@ describe('EmployeesPage row actions', () => {
       routes: { 'POST /admin/employees/2/reset-password': { temporary_password: 'Zk7mPq2xVb9n' } },
     });
     await screen.findByText('Asha Rao');
-    await user.click(within(row(/EMP-001/)).getByRole('button', { name: 'Reset password' }));
+    await choose(user, /EMP-001/, 'Asha Rao', 'Reset password');
     await user.click(
       within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reset password' }),
     );
@@ -326,7 +388,7 @@ describe('Employee create and edit dialogs', () => {
   it('edits an employee and sends only the changed fields', async () => {
     const { calls, user } = setup({ routes: { 'PATCH /admin/employees/2': asha } });
     await screen.findByText('Asha Rao');
-    await user.click(within(row(/EMP-001/)).getByRole('button', { name: 'Edit' }));
+    await choose(user, /EMP-001/, 'Asha Rao', 'Edit');
     const dialog = await screen.findByRole('dialog', { name: 'Edit employee' });
     expect(within(dialog).queryByLabelText('Employee code')).not.toBeInTheDocument();
     expect(within(dialog).queryByLabelText('Password (optional)')).not.toBeInTheDocument();

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { HealthIndicator } from '@/components/health-status';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
@@ -71,6 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
+          <HealthIndicator />
           <span className="text-sm text-muted-foreground">{me.name}</span>
           <Button
             variant="outline"

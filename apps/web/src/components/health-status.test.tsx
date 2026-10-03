@@ -2,50 +2,49 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import '@/lib/i18n';
-import { HealthStatus } from './health-status';
+import { HealthIndicator } from './health-status';
 
 const body = (status: 'ok' | 'error', database: 'ok' | 'error' = 'ok') => ({
   status,
   checks: { database, redis: 'ok', storage: 'ok' },
 });
 
-function renderStatus() {
+function renderIndicator() {
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <HealthStatus />
+      <HealthIndicator />
     </QueryClientProvider>,
   );
 }
 
-describe('HealthStatus', () => {
-  it('shows loading, then ok with every component', async () => {
+describe('HealthIndicator', () => {
+  it('shows checking, then connected with an icon', async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(body('ok')));
-    renderStatus();
-    expect(screen.getByRole('status')).toHaveTextContent('Checking backend...');
-    expect(await screen.findByText('All systems operational')).toBeInTheDocument();
-    for (const name of ['database', 'redis', 'storage']) {
-      expect(screen.getByTestId(`check-${name}`)).toHaveTextContent('OK');
-    }
+    renderIndicator();
+    const indicator = screen.getByTestId('health-indicator');
+    expect(indicator).toHaveTextContent('Backend: checking...');
+    expect(await screen.findByText('Backend: connected')).toBeInTheDocument();
+    expect(indicator).toHaveAttribute('data-state', 'connected');
+    expect(indicator.querySelector('svg')).not.toBeNull();
   });
 
-  it('shows which component failed on a 503', async () => {
+  it('shows degraded on a 503 with the same body shape', async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json(body('error', 'error'), { status: 503 }));
-    renderStatus();
-    expect(await screen.findByText('Backend degraded')).toBeInTheDocument();
-    expect(screen.getByTestId('check-database')).toHaveTextContent('Database: Failing');
-    expect(screen.getByTestId('check-redis')).toHaveTextContent('Redis: OK');
+    renderIndicator();
+    expect(await screen.findByText('Backend: degraded')).toBeInTheDocument();
+    expect(screen.getByTestId('health-indicator')).toHaveAttribute('data-state', 'degraded');
   });
 
   it('shows unreachable on a network error', async () => {
     vi.mocked(fetch).mockRejectedValue(new TypeError('Failed to fetch'));
-    renderStatus();
-    expect(await screen.findByText('Backend unreachable')).toBeInTheDocument();
-    expect(screen.queryByTestId('check-database')).not.toBeInTheDocument();
+    renderIndicator();
+    expect(await screen.findByText('Backend: unreachable')).toBeInTheDocument();
+    expect(screen.getByTestId('health-indicator')).toHaveAttribute('data-state', 'unreachable');
   });
 
   it('shows unreachable on an unexpected status', async () => {
     vi.mocked(fetch).mockResolvedValue(Response.json({ detail: 'boom' }, { status: 500 }));
-    renderStatus();
-    expect(await screen.findByText('Backend unreachable')).toBeInTheDocument();
+    renderIndicator();
+    expect(await screen.findByText('Backend: unreachable')).toBeInTheDocument();
   });
 });

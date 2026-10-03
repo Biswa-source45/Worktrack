@@ -119,7 +119,8 @@
       "fieldEligible": "Field-eligible (can be assigned field tasks)",
       "password": "Password (optional)",
       "passwordHint": "Leave empty to generate a temporary password."
-    }
+    },
+    "actionsFor": "Actions for {{name}}"
   },
   "temporaryPassword": {
     "title": "Temporary password",
@@ -146,7 +147,12 @@
   },
   "devices": {
     "title": "Devices",
-    "empty": "No devices found.",
+    "empty": {
+      "all": "No devices found.",
+      "pending": "No pending devices found.",
+      "active": "No active devices found.",
+      "revoked": "No revoked devices found."
+    },
     "approve": "Approve",
     "reject": "Reject",
     "revoke": "Revoke",
@@ -154,7 +160,7 @@
     "rejectConfirm": "Reject the request for {{model}} from {{name}}?",
     "revokeConfirm": "Revoke {{model}} for {{name}}? The phone is signed out and cannot punch in.",
     "status": {
-      "all": "All statuses",
+      "all": "All",
       "pending": "Pending",
       "active": "Active",
       "revoked": "Revoked"
@@ -165,25 +171,25 @@
       "os": "OS",
       "appVersion": "App version",
       "status": "Status",
-      "requestedAt": "Requested at (IST)",
-      "actions": "Actions"
+      "actions": "Actions",
+      "lastSeen": "Last seen (IST)"
     }
   },
   "health": {
-    "heading": "Backend status",
-    "loading": "Checking backend...",
-    "ok": "All systems operational",
-    "degraded": "Backend degraded",
-    "unreachable": "Backend unreachable",
-    "retry": "Check again",
-    "components": {
-      "database": "Database",
-      "redis": "Redis",
-      "storage": "Storage"
-    },
-    "state": {
-      "ok": "OK",
-      "error": "Failing"
-    }
+    "checking": "Backend: checking...",
+    "connected": "Backend: connected",
+    "degraded": "Backend: degraded",
+    "unreachable": "Backend: unreachable"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Welcome, {{name}}",
+    "stats": "Overview",
+    "noStats": "Overview numbers are available to administrators who manage employees.",
+    "total": "Total employees",
+    "active": "Active employees",
+    "inactive": "Inactive employees",
+    "pendingDevices": "Pending devices",
+    "review": "Review"
   }
 }

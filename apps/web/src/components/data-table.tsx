@@ -22,9 +22,17 @@ const features = tableFeatures({});
 export type Columns<T extends RowData> = ColumnDef<typeof features, T>[];
 export const columnHelper = <T extends RowData>() => createColumnHelper<typeof features, T>();
 
-type Props<T extends RowData> = { columns: Columns<T>; data: T[]; empty: string };
+type Props<T extends RowData> = {
+  columns: Columns<T>;
+  data: T[];
+  empty: string;
+  /** Column ids that only fit on very wide screens (2xl and up). */
+  wideOnly?: string[];
+};
 
-export function DataTable<T extends RowData>({ columns, data, empty }: Props<T>) {
+const WIDE_ONLY = 'hidden 2xl:table-cell';
+
+export function DataTable<T extends RowData>({ columns, data, empty, wideOnly = [] }: Props<T>) {
   const table = useTable({ features, columns, data });
   const rows = table.getRowModel().rows;
   return (
@@ -33,7 +41,10 @@ export function DataTable<T extends RowData>({ columns, data, empty }: Props<T>)
         {table.getHeaderGroups().map((group) => (
           <TableRow key={group.id} className="hover:bg-transparent">
             {group.headers.map((header) => (
-              <TableHead key={header.id}>
+              <TableHead
+                key={header.id}
+                className={wideOnly.includes(header.column.id) ? WIDE_ONLY : undefined}
+              >
                 {header.isPlaceholder ? null : <table.FlexRender header={header} />}
               </TableHead>
             ))}
@@ -51,7 +62,10 @@ export function DataTable<T extends RowData>({ columns, data, empty }: Props<T>)
           rows.map((row) => (
             <TableRow key={row.id}>
               {row.getAllCells().map((cell) => (
-                <TableCell key={cell.id}>
+                <TableCell
+                  key={cell.id}
+                  className={wideOnly.includes(cell.column.id) ? WIDE_ONLY : undefined}
+                >
                   <table.FlexRender cell={cell} />
                 </TableCell>
               ))}

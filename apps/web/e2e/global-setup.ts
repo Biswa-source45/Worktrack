@@ -1,20 +1,14 @@
 import { execFileSync } from 'node:child_process';
-import { randomInt } from 'node:crypto';
 import { BACKEND_DIR, backendEnv } from './env';
+import { apiLogin, changePassword, uniqueMobile, uniqueSuffix } from './helpers';
 
-const ADMIN_PASSWORD = 'E2e-Initial-Pass-1';
+const INITIAL_PASSWORD = 'E2e-Initial-Pass-1';
+const READY_PASSWORD = 'E2e-Ready-Pass-3';
+const READY_NAME = 'E2E Ready Admin';
 
-function uv(args: string[], env: NodeJS.ProcessEnv) {
-  execFileSync('uv', args, { cwd: BACKEND_DIR, env, stdio: 'inherit' });
-}
-
-// Bootstraps a fresh Super Admin in the e2e database (created and migrated by the config).
-export default function globalSetup() {
-  const env = { ...process.env, ...backendEnv() };
-
-  const code = `E2E${Date.now().toString(36).toUpperCase()}`;
-  const mobile = `9${String(randomInt(0, 1_000_000_000)).padStart(9, '0')}`;
-  uv(
+function createAdmin(code: string, name: string) {
+  execFileSync(
+    'uv',
     [
       'run',
       'python',
@@ -22,13 +16,35 @@ export default function globalSetup() {
       '--emp-code',
       code,
       '--name',
-      'E2E Admin',
+      name,
       '--mobile',
-      mobile,
+      uniqueMobile(),
     ],
-    { ...env, WORKTRACK_ADMIN_PASSWORD: ADMIN_PASSWORD },
+    {
+      cwd: BACKEND_DIR,
+      env: { ...process.env, ...backendEnv(), WORKTRACK_ADMIN_PASSWORD: INITIAL_PASSWORD },
+      stdio: 'inherit',
+    },
   );
+}
+
+// Bootstraps two Super Admins in the e2e database (created and migrated by the config):
+// one still on its bootstrap password (the smoke test walks the forced change in the browser),
+// and one whose forced change was already done through the API, for every other spec.
+export default async function globalSetup() {
+  const suffix = uniqueSuffix();
+  const smokeCode = `E2E${suffix}`;
+  const readyCode = `E2R${suffix}`;
+  createAdmin(smokeCode, 'E2E Admin');
+  createAdmin(readyCode, READY_NAME);
+
+  const first = await apiLogin(readyCode, INITIAL_PASSWORD);
+  await changePassword(first.access_token, INITIAL_PASSWORD, READY_PASSWORD);
+
   // Workers start after this and inherit these.
-  process.env.E2E_ADMIN_CODE = code;
-  process.env.E2E_ADMIN_PASSWORD = ADMIN_PASSWORD;
+  process.env.E2E_ADMIN_CODE = smokeCode;
+  process.env.E2E_ADMIN_PASSWORD = INITIAL_PASSWORD;
+  process.env.E2E_READY_ADMIN_CODE = readyCode;
+  process.env.E2E_READY_ADMIN_PASSWORD = READY_PASSWORD;
+  process.env.E2E_READY_ADMIN_NAME = READY_NAME;
 }
