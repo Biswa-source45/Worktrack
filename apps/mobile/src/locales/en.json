@@ -8,10 +8,54 @@
     "unreachable": "Backend: unreachable",
     "failing": "Not working: {{components}}",
     "retry": "Retry",
+    "open": "Check backend connection",
     "components": {
       "database": "Database",
       "redis": "Redis",
       "storage": "Storage"
     }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "passwordMin": "Use at least 10 characters.",
+    "passwordMismatch": "The passwords do not match."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Cannot reach the server. Check your connection and try again.",
+    "invalidCredentials": "Invalid employee ID or password.",
+    "invalidCurrentPassword": "The current password is incorrect.",
+    "rateLimited": "Too many attempts. Please wait a moment and try again.",
+    "accountLocked_one": "Too many failed attempts. Try again in {{count}} minute.",
+    "accountLocked_other": "Too many failed attempts. Try again in {{count}} minutes.",
+    "accountLockedNoTime": "Too many failed attempts. Try again later."
+  },
+  "login": {
+    "title": "Sign in",
+    "identifier": "Employee ID or mobile number",
+    "password": "Password",
+    "submit": "Sign in",
+    "retry": "Try again"
+  },
+  "changePassword": {
+    "title": "Set a new password",
+    "intro": "You must change your temporary password before you continue.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "submit": "Change password"
+  },
+  "home": {
+    "loadFailed": "Could not load your profile.",
+    "retry": "Retry",
+    "employeeCode": "Employee ID",
+    "designation": "Designation",
+    "role": "Role",
+    "department": "Department",
+    "noDepartment": "Not assigned",
+    "devicePending": "Waiting for admin approval of this phone. You cannot punch in until it is approved.",
+    "checkAgain": "Check again",
+    "deviceRevoked": "This phone is no longer approved for your account. Sign out and contact your admin.",
+    "signOut": "Sign out"
   }
 }

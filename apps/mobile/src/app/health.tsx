@@ -1,5 +1,5 @@
 import { HealthStatus } from '@/components/health-status';
 
-export default function HomeScreen() {
+export default function HealthScreen() {
   return <HealthStatus />;
 }
