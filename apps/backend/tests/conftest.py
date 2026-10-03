@@ -22,10 +22,16 @@ os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
 os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret-test-only-jwt-secret")
 
+from argon2 import PasswordHasher  # noqa: E402
+
+from app.core import security  # noqa: E402
 from app.core.config import Settings, get_settings  # noqa: E402
 from app.core.db import get_session  # noqa: E402
 from app.main import create_app  # noqa: E402
 from tests.helpers import run_alembic  # noqa: E402
+
+# Tests create hundreds of users: use the cheapest Argon2 parameters (verify reads the hash).
+security._hasher = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
 
 _ip_counter = itertools.count(1)
 

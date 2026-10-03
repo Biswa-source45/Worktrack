@@ -40,7 +40,7 @@ COLUMNS = (
     "field_eligible",
 )
 REQUIRED = ("emp_code", "name", "mobile", "designation", "role", "joined_on")
-_EXAMPLE = "EMP-001,Asha Rao,9876543210,asha@example.com,Engineer,Operations,Field Employee,,"
+_EXAMPLE = "EMP-001,Asha Rao,9876543210,asha@example.com,Engineer,,Field Employee,,"
 TEMPLATE_CSV = ",".join(COLUMNS) + "\n" + _EXAMPLE + "2026-01-15,yes\n"
 
 

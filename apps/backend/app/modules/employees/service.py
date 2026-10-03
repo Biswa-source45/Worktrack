@@ -175,13 +175,8 @@ async def create_employee(
     actor: AuthContext | None,
     ctx: AuditCtx,
     data: EmployeeCreate,
-    password_hash: str | None = None,
-    temp_password: str | None = None,
 ) -> tuple[User, str | None]:
-    """Create one employee. Returns the user and the generated temporary password, if any.
-
-    `password_hash`/`temp_password` let the bulk import hash many passwords in one thread.
-    """
+    """Create one employee. Returns the user and the generated temporary password, if any."""
     await _role_for_assignment(session, actor, data.role_id)
     await _require(session, Designation, data.designation_id)
     if data.department_id is not None:
@@ -190,9 +185,8 @@ async def create_employee(
         await _check_manager(session, data.manager_id, None)
     await _check_unique(session, data.emp_code, data.mobile, data.email)
 
-    if password_hash is None:
-        temp_password = None if data.password else generate_temp_password()
-        password_hash = await hash_password(data.password or temp_password or "")
+    temp_password = None if data.password else generate_temp_password()
+    password_hash = await hash_password(data.password or temp_password or "")
     user = User(
         **data.model_dump(exclude={"password"}),
         password_hash=password_hash,
