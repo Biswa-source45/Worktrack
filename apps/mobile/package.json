@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "dotenv -e ../../.env -- expo start --dev-client",
+    "start:go": "dotenv -e ../../.env -- expo start --go",
     "test": "jest",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"

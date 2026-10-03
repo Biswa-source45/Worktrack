@@ -22,9 +22,9 @@ jobs:
       # The dev compose stack is the single source of truth for Postgres/PostGIS, Redis and MinIO
       # (the official MinIO image is withdrawn, so its Chainguard digest lives only in that file).
       - run: cp ../../.env.example ../../.env
-      - run: docker compose -f ../../infra/docker-compose.dev.yml up -d --wait
+      - run: docker compose -f infra/docker-compose.dev.yml up -d --wait
         working-directory: .
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
           cache-dependency-glob: apps/backend/uv.lock
@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
           cache-dependency-glob: apps/backend/uv.lock

@@ -1,3 +1,10 @@
 {
-  "expo": {}
+  "expo": {
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "423fd888-aea8-4828-b991-be7c4183922f"
+      }
+    }
+  }
 }
