@@ -1,0 +1,23 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# python
+.venv/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# js / expo / next
+.next/
+.expo/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# face models are downloaded, never committed
+apps/backend/models/*
+!apps/backend/models/.gitkeep

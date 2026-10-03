@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "WorkTrack Admin"
+  },
+  "health": {
+    "heading": "Backend status",
+    "loading": "Checking backend...",
+    "ok": "All systems operational",
+    "degraded": "Backend degraded",
+    "unreachable": "Backend unreachable",
+    "retry": "Check again",
+    "components": {
+      "database": "Database",
+      "redis": "Redis",
+      "storage": "Storage"
+    },
+    "state": {
+      "ok": "OK",
+      "error": "Failing"
+    }
+  }
+}

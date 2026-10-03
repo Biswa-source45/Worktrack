@@ -1,0 +1,12 @@
+node_modules
+.next
+.expo
+dist
+coverage
+pnpm-lock.yaml
+apps/backend
+docs
+*.md
+packages/api-types/src/schema.d.ts
+expo-env.d.ts
+next-env.d.ts

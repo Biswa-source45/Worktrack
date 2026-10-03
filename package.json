@@ -1,0 +1,19 @@
+{
+  "name": "worktrack",
+  "private": true,
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "format:check": "prettier --check . --ignore-path .gitignore --ignore-path .prettierignore --ignore-path .git/info/exclude",
+    "dev:all": "node scripts/dev-all.mjs",
+    "ngrok": "node scripts/ngrok.mjs",
+    "check": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5",
+    "dotenv-cli": "^11.0.0",
+    "prettier": "^3.6.0"
+  }
+}

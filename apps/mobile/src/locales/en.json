@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "WorkTrack"
+  },
+  "health": {
+    "loading": "Checking backend...",
+    "connected": "Backend: connected",
+    "unreachable": "Backend: unreachable",
+    "failing": "Not working: {{components}}",
+    "retry": "Retry",
+    "components": {
+      "database": "Database",
+      "redis": "Redis",
+      "storage": "Storage"
+    }
+  }
+}

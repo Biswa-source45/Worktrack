@@ -1,0 +1,15 @@
+packages:
+  - apps/web
+  - apps/mobile
+  - packages/*
+
+# pnpm 10 blocks dependency build scripts by default; these two are not needed.
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+
+# Expo SDK 57 (React Native 0.86) requires exactly this React; web is pinned to match.
+# Without it, auto-installed optional peers pull a second react-dom into node_modules.
+overrides:
+  react: 19.2.3
+  react-dom: 19.2.3

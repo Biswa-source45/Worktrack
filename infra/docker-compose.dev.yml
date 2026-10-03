@@ -1,0 +1,73 @@
+# Local development stack. Dev-only credentials, published on 127.0.0.1 only.
+name: worktrack
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_USER: worktrack
+      POSTGRES_PASSWORD: worktrack
+      POSTGRES_DB: worktrack
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U worktrack -d worktrack']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Host port 6380: Memurai already owns 6379 on the dev machine.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '127.0.0.1:6380:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # The official minio/minio images and binaries were withdrawn (Docker Hub, quay.io, dl.min.io all gone),
+  # so this is Chainguard's source-built MinIO, pinned by digest. -dev variant for sh and mc.
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:7c248c1d7832ff65a6345cb6ff7bf9cf081ccf88527f8d6f25bb9227801a5121
+    entrypoint: ['minio']
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: worktrack
+      MINIO_ROOT_PASSWORD: worktrack-dev-secret
+    ports:
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    volumes:
+      - minio_data:/data
+    # The healthcheck also creates the bucket (idempotent), so a one-shot init service
+    # is not needed; `up --wait` treats an exited container as a failure.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mc ready local &&
+          mc alias set local http://localhost:9000 worktrack worktrack-dev-secret >/dev/null &&
+          mc mb --ignore-existing local/worktrack >/dev/null
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.24
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pg_data:
+  minio_data:
