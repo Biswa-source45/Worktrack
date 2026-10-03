@@ -7,7 +7,10 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk",
+        "env": { "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a" }
+      }
     },
     "preview": {
       "distribution": "internal",
