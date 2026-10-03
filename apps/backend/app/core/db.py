@@ -1,7 +1,10 @@
 from collections.abc import AsyncIterator
+from datetime import datetime
+from typing import Any, ClassVar
 
 from fastapi import Request
-from sqlalchemy import MetaData
+from sqlalchemy import DateTime, MetaData
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
@@ -17,6 +20,12 @@ NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+    # Invariant 1: every timestamp is timezone-aware (stored as UTC).
+    type_annotation_map: ClassVar[dict[Any, Any]] = {
+        datetime: DateTime(timezone=True),
+        dict[str, Any]: JSONB,
+        list[str]: JSONB,
+    }
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:

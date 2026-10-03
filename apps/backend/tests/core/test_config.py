@@ -11,6 +11,7 @@ BASE = {
     "s3_access_key": "k",
     "s3_secret_key": "s",
     "s3_bucket": "b",
+    "jwt_secret": "x" * 40,
 }
 
 
@@ -43,3 +44,13 @@ def test_unknown_environment_is_rejected() -> None:
 def test_cors_origins_are_split_on_commas() -> None:
     settings = make(cors_origins="http://localhost:3000, https://admin.example.com")
     assert settings.cors_origins == ["http://localhost:3000", "https://admin.example.com"]
+
+
+def test_short_jwt_secret_is_rejected() -> None:
+    with pytest.raises(ValidationError, match="JWT_SECRET"):
+        make(jwt_secret="short")
+
+
+def test_production_rejects_the_example_jwt_secret() -> None:
+    with pytest.raises(ValidationError, match="placeholder"):
+        make(app_env="production", jwt_secret="dev-only-" + "x" * 40)
