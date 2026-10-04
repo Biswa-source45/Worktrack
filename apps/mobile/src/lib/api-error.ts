@@ -31,3 +31,33 @@ export function apiErrorMessage(t: TFunction, body: unknown): string {
       return t('errors.generic');
   }
 }
+
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+const serverError = z.object({ error: z.object({ code: z.string(), message: z.string() }) });
+
+/** Resolves to the data of an api call; a failed call throws the server's own error. */
+export async function unwrap<T>(
+  call: Promise<{ data?: T; error?: unknown; response: Response }>,
+): Promise<T> {
+  const { data, error, response } = await call;
+  if (response.ok) return data as T;
+  const parsed = serverError.safeParse(error);
+  throw parsed.success
+    ? new ApiError(response.status, parsed.data.error.code, parsed.data.error.message)
+    : new ApiError(response.status, `HTTP_${response.status}`, '');
+}
+
+/** The server's message for a failed admin or session call (403, 409 and so on). */
+export function errorText(t: TFunction, error: unknown): string {
+  if (error instanceof ApiError && error.message) return error.message;
+  return error instanceof TypeError ? t('errors.network') : t('errors.generic');
+}

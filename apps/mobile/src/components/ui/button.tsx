@@ -15,6 +15,8 @@ type Props = {
   disabled?: boolean;
   /** Shows a spinner next to the label and blocks presses. */
   loading?: boolean;
+  /** Read instead of the label when several buttons on a screen share it. */
+  accessibilityLabel?: string;
 };
 
 export function Button({
@@ -24,6 +26,7 @@ export function Button({
   icon: Icon,
   disabled = false,
   loading = false,
+  accessibilityLabel,
 }: Props) {
   const { colors, radius, space, motion, minTouchTarget } = useTheme();
   const reduced = useReducedMotion();
@@ -53,7 +56,7 @@ export function Button({
     <Animated.View style={{ transform: [{ scale }] }}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={accessibilityLabel ?? label}
         accessibilityState={{ disabled: blocked, busy: loading }}
         disabled={blocked}
         onPress={onPress}

@@ -1,3 +1,4 @@
+import type { Status } from 'design-tokens';
 import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
@@ -5,7 +6,7 @@ import { useTheme } from '@/lib/theme';
 import { AppText } from './app-text';
 
 type Props = {
-  status: 'warning' | 'danger';
+  status: Status;
   icon: LucideIcon;
   message: string;
   /** Actions shown under the message. */

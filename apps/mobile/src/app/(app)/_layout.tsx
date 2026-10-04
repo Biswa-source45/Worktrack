@@ -1,14 +1,19 @@
 import { Tabs } from 'expo-router/js-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import { House, UserRound } from '@/components/icons';
+import { House, ShieldCheck, UserRound } from '@/components/icons';
 import type { LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/ui/app-text';
+import { can, useAuth } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 
-const ICONS: Record<string, LucideIcon> = { index: House, profile: UserRound };
+const ICONS: Record<string, LucideIcon> = {
+  index: House,
+  profile: UserRound,
+  admin: ShieldCheck,
+};
 
 function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, radius, space, minTouchTarget } = useTheme();
@@ -82,6 +87,8 @@ function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 export default function AppLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { me } = useAuth();
+  const admin = can(me, 'devices.manage') || can(me, 'employees.manage');
 
   return (
     <Tabs
@@ -96,6 +103,13 @@ export default function AppLayout() {
         name="profile"
         options={{ title: t('tabs.profile'), tabBarAccessibilityLabel: t('tabs.profile') }}
       />
+      {/* Without the permission the tab is not built at all, and its route leads back to Home. */}
+      <Tabs.Protected guard={admin}>
+        <Tabs.Screen
+          name="admin"
+          options={{ title: t('tabs.admin'), tabBarAccessibilityLabel: t('tabs.admin') }}
+        />
+      </Tabs.Protected>
     </Tabs>
   );
 }
