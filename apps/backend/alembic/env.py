@@ -16,8 +16,11 @@ if config.config_file_name is not None:
 # Model modules are imported here as they are added, so autogenerate sees them.
 from app.modules.audit import models as _audit  # noqa: E402, F401
 from app.modules.auth import models as _auth  # noqa: E402, F401
+from app.modules.branches import models as _branches  # noqa: E402, F401
 from app.modules.devices import models as _devices  # noqa: E402, F401
 from app.modules.employees import models as _employees  # noqa: E402, F401
+from app.modules.org_settings import models as _org_settings  # noqa: E402, F401
+from app.modules.shifts import models as _shifts  # noqa: E402, F401
 
 target_metadata = Base.metadata
 database_url = get_settings().database_url

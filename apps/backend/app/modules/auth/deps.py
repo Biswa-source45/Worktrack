@@ -98,6 +98,17 @@ def require_permission(*permissions: str) -> Callable[..., Awaitable[AuthContext
     return dependency
 
 
+def require_any_permission(*permissions: str) -> Callable[..., Awaitable[AuthContext]]:
+    """For helpers shared by several admin screens: holding one of the permissions is enough."""
+
+    async def dependency(ctx: Annotated[AuthContext, Depends(authenticated)]) -> AuthContext:
+        if not set(permissions) & ctx.permissions:
+            raise AppError("FORBIDDEN", "You do not have permission to do this.", 403)
+        return ctx
+
+    return dependency
+
+
 async def require_active_device(
     ctx: Annotated[AuthContext, Depends(authenticated)],
     session: Annotated[AsyncSession, Depends(get_session)],
