@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
   { href: '/employees', permission: 'employees.manage', label: 'nav.employees' },
   { href: '/devices', permission: 'devices.manage', label: 'nav.devices' },
+  { href: '/sessions', permission: 'devices.manage', label: 'nav.sessions' },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -72,7 +73,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link href="/" className="rounded-sm text-large font-bold">
             {t('app.title')}
           </Link>
-          <nav aria-label={t('nav.label')} className="flex flex-1 gap-1">
+          {/* min-w-max: on a narrow screen the header wraps to a second row instead of squeezing
+              the links into a column. */}
+          <nav aria-label={t('nav.label')} className="flex min-w-max flex-1 gap-1">
             {items.map((item) => {
               const active = pathname.startsWith(item.href);
               return (

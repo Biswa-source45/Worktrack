@@ -20,7 +20,11 @@ async function call<T>(method: string, path: string, token?: string, body?: Json
   return (response.status === 204 ? undefined : await response.json()) as T;
 }
 
-export type Tokens = { access_token: string; must_change_password: boolean };
+export type Tokens = {
+  access_token: string;
+  refresh_token: string;
+  must_change_password: boolean;
+};
 export type Device = { device_id: string; model: string; os: string; app_version: string };
 export type Counts = { pending: number; active: number; revoked: number };
 export type Dashboard = {
@@ -104,6 +108,25 @@ export const dashboard = (token: string) => call<Dashboard>('GET', '/admin/dashb
 
 export const deviceCounts = async (token: string) =>
   (await call<{ counts: Counts }>('GET', '/admin/devices?limit=1', token)).counts;
+
+export const sessionCounts = async (token: string) =>
+  (
+    await call<{ counts: { active: number; ended: number } }>(
+      'GET',
+      '/admin/sessions?limit=1',
+      token,
+    )
+  ).counts;
+
+/** HTTP status of trying to refresh with this token (401 once its session is over). */
+export const refreshStatus = async (refreshToken: string) =>
+  (
+    await fetch(`${API}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    })
+  ).status;
 
 export const listEmployees = (token: string, q: string) =>
   call<{ items: { emp_code: string }[] }>(

@@ -106,6 +106,10 @@ for (const theme of THEMES) {
       await page.getByRole('tab', { name: /^Pending/ }).click();
       await expect(page.getByText(/already active for/).first()).toBeVisible();
       await shot('devices-pending');
+
+      await page.getByRole('link', { name: 'Sessions' }).click();
+      await expect(page.getByRole('tabpanel').getByRole('row').nth(1)).toBeVisible();
+      await shot('sessions');
     });
   }
 }

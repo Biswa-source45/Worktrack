@@ -22,6 +22,7 @@
     "label": "Main",
     "employees": "Employees",
     "devices": "Devices",
+    "sessions": "Sessions",
     "logout": "Sign out"
   },
   "theme": {
@@ -187,6 +188,57 @@
       "status": "Status",
       "actions": "Actions",
       "lastSeen": "Last seen (IST)"
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "empty": {
+      "all": "No sessions found.",
+      "active": "No active sessions found.",
+      "ended": "No ended sessions found."
+    },
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "type": {
+      "all": "All types",
+      "web": "Web",
+      "mobile": "Mobile"
+    },
+    "col": {
+      "employee": "Employee",
+      "type": "Type",
+      "device": "Browser / phone",
+      "os": "OS",
+      "ip": "IP",
+      "signedIn": "Signed in (IST)",
+      "lastSeen": "Last seen (IST)",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "unknownBrowser": "Unknown browser",
+    "notRecorded": "Not recorded",
+    "current": "This session",
+    "signOut": "Sign out",
+    "signOutOf": "Sign out session of {{name}}",
+    "signOutTitle": "Sign out this session",
+    "signOutConfirm": "Sign out {{name}} on {{device}}? They must sign in again to continue.",
+    "signOutSelf": "This is the session you are using now: you will be signed out yourself.",
+    "reason": {
+      "signed_out": "Signed out",
+      "revoked_by_admin": "Signed out by an admin",
+      "signed_out_elsewhere": "Signed out from another session",
+      "password_changed": "Password changed",
+      "password_reset": "Password reset by an admin",
+      "device_revoked": "Phone revoked",
+      "device_replaced": "Phone replaced",
+      "account_changed": "Account changed",
+      "token_reuse": "Security: reused token",
+      "expired": "Expired",
+      "before_tracking": "Ended before tracking",
+      "other": "Ended"
     }
   },
   "health": {
