@@ -2,21 +2,194 @@
   "app": {
     "title": "WorkTrack Admin"
   },
-  "health": {
-    "heading": "Backend status",
-    "loading": "Checking backend...",
-    "ok": "All systems operational",
-    "degraded": "Backend degraded",
-    "unreachable": "Backend unreachable",
-    "retry": "Check again",
-    "components": {
-      "database": "Database",
-      "redis": "Redis",
-      "storage": "Storage"
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "closeDialog": "Close dialog",
+    "save": "Save",
+    "edit": "Edit",
+    "retry": "Try again",
+    "loading": "Loading...",
+    "loadMore": "Load more",
+    "select": "Select...",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "nav": {
+    "label": "Main",
+    "employees": "Employees",
+    "devices": "Devices",
+    "logout": "Sign out"
+  },
+  "shell": {
+    "noAccess": "You do not have access to any admin screens. Ask your administrator to update your role."
+  },
+  "login": {
+    "title": "Sign in",
+    "identifier": "Employee ID or mobile number",
+    "password": "Password",
+    "submit": "Sign in"
+  },
+  "changePassword": {
+    "title": "Change your password",
+    "intro": "You must choose a new password before you continue.",
+    "current": "Current password",
+    "new": "New password (at least 10 characters)",
+    "confirm": "Confirm new password",
+    "submit": "Change password"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "tooLong": "This is too long.",
+    "passwordMin": "Use at least 10 characters.",
+    "passwordMax": "Use at most 128 characters.",
+    "passwordMismatch": "The passwords do not match.",
+    "passwordLength": "Use 10 to 128 characters, or leave empty to generate one.",
+    "empCode": "Use letters, digits, '-', '_' or '/' (up to 32 characters).",
+    "mobile": "Enter a valid mobile number (10 to 15 digits).",
+    "email": "Enter a valid email address."
+  },
+  "errors": {
+    "GENERIC": "Something went wrong. Please try again.",
+    "NETWORK": "Could not reach the server. Check your connection and try again.",
+    "UPSTREAM_UNAVAILABLE": "The server could not be reached. Please try again shortly.",
+    "INVALID_CREDENTIALS": "Invalid employee ID or password.",
+    "ACCOUNT_LOCKED": "Too many failed attempts. Try again in {{minutes}} minute(s), or ask your administrator to unlock the account.",
+    "RATE_LIMITED": "Too many attempts. Try again in {{minutes}} minute(s).",
+    "PASSWORD_CHANGE_REQUIRED": "Change your password to continue.",
+    "INVALID_CURRENT_PASSWORD": "The current password is incorrect.",
+    "PASSWORD_UNCHANGED": "Choose a password different from the current one.",
+    "DUPLICATE": "That employee code, mobile number or email is already in use.",
+    "HAS_REPORTS": "This employee still has active reports. Reassign them before deactivating.",
+    "LAST_SUPER_ADMIN": "There must be at least one active Super Admin.",
+    "MANAGER_CYCLE": "An employee cannot report to themselves or to their own team.",
+    "IN_USE": "This item is still in use.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "VALIDATION_ERROR": "Some of the details are not valid. Check the form and try again.",
+    "INVALID_REFERENCE": "One of the selected options no longer exists. Reload and try again.",
+    "INVALID_FILE": "The file could not be read. Upload a UTF-8 CSV or an Excel (.xlsx) file.",
+    "CONFLICT": "This action is no longer possible. Reload and try again.",
+    "NOT_FOUND": "Not found. It may have been removed.",
+    "UNAUTHENTICATED": "Your session has expired. Sign in again."
+  },
+  "employees": {
+    "title": "Employees",
+    "search": "Search by name, code or mobile",
+    "create": "New employee",
+    "createTitle": "New employee",
+    "createHint": "If you leave the password empty, a temporary one is generated.",
+    "editTitle": "Edit employee",
+    "empty": "No employees found.",
+    "locked": "Locked",
+    "unlock": "Unlock",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "deactivateConfirm": "Deactivate {{name}}? They will be signed out and cannot sign in again until reactivated.",
+    "reactivateConfirm": "Reactivate {{name}}? They will be able to sign in again.",
+    "resetPassword": "Reset password",
+    "resetConfirm": "Generate a new temporary password for {{name}}? Their current password stops working and they are signed out.",
+    "status": {
+      "all": "All statuses",
+      "active": "Active",
+      "inactive": "Inactive"
     },
-    "state": {
-      "ok": "OK",
-      "error": "Failing"
+    "col": {
+      "code": "Code",
+      "name": "Name",
+      "mobile": "Mobile",
+      "designation": "Designation",
+      "department": "Department",
+      "role": "Role",
+      "manager": "Manager",
+      "field": "Field-eligible",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "empCode": "Employee code",
+      "name": "Full name",
+      "mobile": "Mobile number",
+      "email": "Email (optional)",
+      "designation": "Designation",
+      "department": "Department (optional)",
+      "role": "Role",
+      "manager": "Manager (optional)",
+      "joinedOn": "Joined on",
+      "fieldEligible": "Field-eligible (can be assigned field tasks)",
+      "password": "Password (optional)",
+      "passwordHint": "Leave empty to generate a temporary password."
+    },
+    "actionsFor": "Actions for {{name}}"
+  },
+  "temporaryPassword": {
+    "title": "Temporary password",
+    "label": "Temporary password",
+    "warning": "Share this temporary password with the employee securely. It is shown only once and cannot be retrieved later. The employee must change it at first sign in.",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "import": {
+    "open": "Import employees",
+    "title": "Import employees",
+    "description": "Upload an Excel (.xlsx) or CSV file. The file is checked first; nothing is created until you confirm.",
+    "downloadTemplate": "Download template",
+    "file": "File",
+    "preview": "Preview",
+    "totalRows": "{{count}} row(s) found.",
+    "row": "Row",
+    "problem": "Problem",
+    "confirm": "Import {{count}} employees",
+    "created": "{{count}} employee(s) imported.",
+    "temporaryPassword": "Temporary password",
+    "downloadCsv": "Download CSV",
+    "passwordWarning": "This file contains temporary passwords. Delete the downloaded file after you have distributed the passwords. The passwords are shown only once, are not stored by the system and cannot be retrieved later."
+  },
+  "devices": {
+    "title": "Devices",
+    "empty": {
+      "all": "No devices found.",
+      "pending": "No pending devices found.",
+      "active": "No active devices found.",
+      "revoked": "No revoked devices found."
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "revoke": "Revoke",
+    "approveConfirm": "Approve {{model}} for {{name}}? This revokes the employee's current phone, which is signed out at once.",
+    "rejectConfirm": "Reject the request for {{model}} from {{name}}?",
+    "revokeConfirm": "Revoke {{model}} for {{name}}? The phone is signed out and cannot punch in.",
+    "status": {
+      "all": "All",
+      "pending": "Pending",
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "col": {
+      "employee": "Employee",
+      "model": "Model",
+      "os": "OS",
+      "appVersion": "App version",
+      "status": "Status",
+      "actions": "Actions",
+      "lastSeen": "Last seen (IST)"
     }
+  },
+  "health": {
+    "checking": "Backend: checking...",
+    "connected": "Backend: connected",
+    "degraded": "Backend: degraded",
+    "unreachable": "Backend: unreachable"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Welcome, {{name}}",
+    "stats": "Overview",
+    "noStats": "Overview numbers are available to administrators who manage employees.",
+    "total": "Total employees",
+    "active": "Active employees",
+    "inactive": "Inactive employees",
+    "pendingDevices": "Pending devices",
+    "review": "Review"
   }
 }

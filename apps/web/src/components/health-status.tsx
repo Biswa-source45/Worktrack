@@ -2,48 +2,58 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
 
-const COMPONENTS = ['database', 'redis', 'storage'] as const;
+const POLL_MS = 30_000;
 
 async function fetchHealth() {
   const { data, error, response } = await api.GET('/health');
   if (data) return data;
-  // /health answers 503 with the same body shape, so a degraded backend still shows which part failed.
+  // /health answers 503 with the same body shape, so a degraded backend is told apart from an unreachable one.
   if (response.status === 503 && error) return error;
   throw new Error(`Unexpected /health response: ${response.status}`);
 }
 
-export function HealthStatus() {
-  const { t } = useTranslation();
-  const { data, isPending, isFetching, refetch } = useQuery({
+export function useHealth() {
+  return useQuery({
     queryKey: ['health'],
     queryFn: fetchHealth,
     retry: false,
+    refetchInterval: POLL_MS,
   });
+}
 
-  let summary = t('health.unreachable');
-  if (isPending) summary = t('health.loading');
-  else if (data) summary = data.status === 'ok' ? t('health.ok') : t('health.degraded');
+const TONE = {
+  connected: 'text-muted-foreground',
+  degraded: 'text-foreground',
+  unreachable: 'text-destructive',
+} as const;
+
+// Text plus a dot icon, so the state is never conveyed by colour alone.
+export function HealthIndicator() {
+  const { t } = useTranslation();
+  const { data, isPending } = useHealth();
+  const state = data ? (data.status === 'ok' ? 'connected' : 'degraded') : 'unreachable';
 
   return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('app.title')}</h1>
-      <h2 className="text-lg font-medium">{t('health.heading')}</h2>
-      <p role="status">{summary}</p>
-      {data && (
-        <ul className="space-y-1">
-          {COMPONENTS.map((name) => (
-            <li key={name} data-testid={`check-${name}`}>
-              {t(`health.components.${name}`)}: {t(`health.state.${data.checks[name]}`)}
-            </li>
-          ))}
-        </ul>
+    <span
+      role="status"
+      data-testid="health-indicator"
+      data-state={isPending ? 'checking' : state}
+      className={cn(
+        'inline-flex items-center gap-1 text-xs',
+        isPending ? 'text-muted-foreground' : TONE[state],
       )}
-      <Button variant="outline" onClick={() => void refetch()} disabled={isFetching}>
-        {t('health.retry')}
-      </Button>
-    </section>
+    >
+      <svg aria-hidden="true" viewBox="0 0 8 8" className="size-2">
+        {state === 'connected' && !isPending ? (
+          <circle cx="4" cy="4" r="4" fill="currentColor" />
+        ) : (
+          <circle cx="4" cy="4" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        )}
+      </svg>
+      {isPending ? t('health.checking') : t(`health.${state}`)}
+    </span>
   );
 }

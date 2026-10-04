@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # One .env at the repo root is shared by every app.
 ROOT_ENV = Path(__file__).resolve().parents[4] / ".env"
+PLACEHOLDER_PREFIX = "dev-only-"
 
 
 class Settings(BaseSettings):
@@ -22,6 +23,13 @@ class Settings(BaseSettings):
     s3_region: str = "us-east-1"
     cors_origins: Annotated[list[str], NoDecode] = []
     allow_mock_location: bool = False
+    jwt_secret: str
+    access_token_minutes: int = 15
+    refresh_token_days: int = 30
+    login_max_failures: int = 5
+    login_lock_minutes: int = 15
+    login_ip_limit: int = 20
+    login_ip_window_minutes: int = 15
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -35,6 +43,15 @@ class Settings(BaseSettings):
         # Invariant 8: dev-only switches must never be on in production.
         if self.app_env == "production" and self.allow_mock_location:
             raise ValueError("ALLOW_MOCK_LOCATION must be false when APP_ENV=production")
+        return self
+
+    @model_validator(mode="after")
+    def _strong_jwt_secret(self) -> Self:
+        # HS256 needs a 256-bit key; the .env.example placeholder must never reach production.
+        if len(self.jwt_secret) < 32:
+            raise ValueError("JWT_SECRET must be at least 32 characters")
+        if self.app_env == "production" and self.jwt_secret.startswith(PLACEHOLDER_PREFIX):
+            raise ValueError("JWT_SECRET must be changed from the .env.example placeholder")
         return self
 
 

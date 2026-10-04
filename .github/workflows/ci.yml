@@ -84,3 +84,24 @@ jobs:
       - run: uv sync --frozen
         working-directory: apps/backend
       - run: node scripts/api-types-check.mjs
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: cp .env.example .env
+      - run: docker compose -f infra/docker-compose.dev.yml up -d --wait
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --frozen
+        working-directory: apps/backend
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web e2e

@@ -17,3 +17,4 @@ for (const app of ['web', 'mobile']) {
   run(`pnpm --filter ${app} typecheck`);
   run(`pnpm --filter ${app} test`);
 }
+run('pnpm --filter web e2e');
