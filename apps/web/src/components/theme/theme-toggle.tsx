@@ -29,7 +29,9 @@ export function ThemeToggle({ className }: { className?: string }) {
           className={cn(
             'inline-flex h-7 items-center gap-1.5 rounded-full px-2 text-caption font-medium transition-transform active:scale-(--wt-press-scale)',
             theme === option
-              ? 'bg-raised font-semibold text-foreground'
+              ? // The raised fill alone is too faint to mark the choice (about 1.1:1), so the
+                // selected segment also gets a control-strength edge (3:1).
+                'bg-raised font-semibold text-foreground ring-1 ring-input'
               : 'text-muted-foreground hover:text-foreground',
           )}
         >
