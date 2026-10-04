@@ -4,6 +4,7 @@ import {
   adminToken,
   apiLogin,
   createEmployee,
+  stubMapTiles,
   uiLoginAsReadyAdmin,
   uniqueMobile,
   uniqueSuffix,
@@ -17,12 +18,14 @@ const THEMES = (process.env.SHOTS_THEMES ?? 'light,dark').split(',') as ('light'
 const WIDTHS = [1280, 768];
 
 let fresh: Created; // an Admin/HR account still on its temporary password
+let planned: Created; // an employee whose schedule and home location page is captured
 
 test.beforeAll(async () => {
   const token = await adminToken();
   fresh = await createEmployee(token, undefined, 'Admin/HR');
   // One phone signed in to by two employees: a pending row with its reason for the devices page.
   const [holder, mover] = [await createEmployee(token), await createEmployee(token)];
+  planned = holder;
   const phone = {
     device_id: `e2e-shot-${holder.code}`.toLowerCase(),
     model: 'Pixel 8',
@@ -47,6 +50,7 @@ for (const theme of THEMES) {
           fullPage,
         });
       };
+      await stubMapTiles(page);
       await page.setViewportSize({ width, height: 800 });
       await page.emulateMedia({ colorScheme: theme });
       await page.addInitScript((value) => localStorage.setItem('wt-theme', value), theme);
@@ -110,6 +114,47 @@ for (const theme of THEMES) {
       await page.getByRole('link', { name: 'Sessions' }).click();
       await expect(page.getByRole('tabpanel').getByRole('row').nth(1)).toBeVisible();
       await shot('sessions');
+
+      await page.getByRole('link', { name: 'Branches' }).click();
+      await expect(page.getByRole('row').nth(1)).toBeVisible();
+      await shot('branches');
+      await page.getByRole('button', { name: 'Add branch' }).click();
+      const branch = page.getByRole('dialog', { name: 'Add branch' });
+      await branch.getByRole('spinbutton', { name: 'Latitude' }).fill('28.6129');
+      await branch.getByRole('spinbutton', { name: 'Longitude' }).fill('77.2295');
+      await expect(branch.locator('.leaflet-marker-icon')).toBeVisible();
+      await shot('branch-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(branch).toBeHidden();
+
+      await page.getByRole('link', { name: 'Shifts' }).click();
+      await expect(page.getByRole('tabpanel').getByRole('row').nth(1)).toBeVisible();
+      await shot('shifts');
+      await page.getByRole('button', { name: 'Add shift' }).click();
+      const shift = page.getByRole('dialog', { name: 'Add shift' });
+      await shift
+        .getByLabel('Saturday', { exact: true })
+        .selectOption({ label: 'Off on selected weeks' });
+      await shot('shift-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(shift).toBeHidden();
+      await page.getByRole('tab', { name: 'Holidays' }).click();
+      await expect(page.getByRole('button', { name: 'Add holiday' })).toBeVisible();
+      await shot('holidays');
+
+      await page.getByRole('link', { name: 'Settings' }).click();
+      await expect(page.getByLabel('GPS maximum accuracy (m)')).toHaveValue(/\d+/);
+      await shot('settings');
+
+      await page.goto(`/employees/${planned.id}`);
+      await expect(page.getByRole('region', { name: 'Weekly schedule' })).toBeVisible();
+      await expect(page.getByRole('region', { name: 'Home work location' })).toBeVisible();
+      await shot('employee-schedule-home');
+
+      await page.getByRole('link', { name: 'Employees' }).first().click();
+      await page.getByRole('tab', { name: /^Home requests/ }).click();
+      await expect(page.getByRole('tabpanel')).toBeVisible();
+      await shot('home-requests');
     });
   }
 }

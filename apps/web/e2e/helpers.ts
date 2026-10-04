@@ -5,7 +5,13 @@ export const API = 'http://127.0.0.1:8001/api/v1';
 
 type Json = Record<string, unknown>;
 
-async function call<T>(method: string, path: string, token?: string, body?: Json): Promise<T> {
+/** One call to the e2e backend's API; throws on any non-2xx answer. */
+export async function api<T = unknown>(
+  method: string,
+  path: string,
+  token?: string,
+  body?: Json,
+): Promise<T> {
   const response = await fetch(`${API}${path}`, {
     method,
     headers: {
@@ -40,10 +46,10 @@ export const apiLogin = (
   password: string,
   client: 'web' | 'mobile' = 'web',
   device?: Device,
-) => call<Tokens>('POST', '/auth/login', undefined, { identifier, password, client, device });
+) => api<Tokens>('POST', '/auth/login', undefined, { identifier, password, client, device });
 
 export const changePassword = (token: string, current: string, next: string) =>
-  call<Tokens>('POST', '/auth/change-password', token, {
+  api<Tokens>('POST', '/auth/change-password', token, {
     current_password: current,
     new_password: next,
   });
@@ -72,8 +78,8 @@ export async function createEmployee(
   roleName = 'Office Employee',
 ): Promise<Created> {
   const [designations, roles] = await Promise.all([
-    call<{ id: number }[]>('GET', '/admin/masters/designations', token),
-    call<{ id: number; name: string }[]>('GET', '/admin/roles', token),
+    api<{ id: number }[]>('GET', '/admin/masters/designations', token),
+    api<{ id: number; name: string }[]>('GET', '/admin/roles', token),
   ]);
   const role = roles.find((r) => r.name === roleName);
   if (!role || designations.length === 0) throw new Error('Seed roles or designations missing');
@@ -81,7 +87,7 @@ export async function createEmployee(
   const code = `EMP${uniqueSuffix()}`;
   const full = name ?? `E2E Employee ${code}`;
   const mobile = uniqueMobile();
-  const created = await call<{
+  const created = await api<{
     employee: { id: number; mobile: string };
     temporary_password: string;
   }>('POST', '/admin/employees', token, {
@@ -102,16 +108,16 @@ export async function createEmployee(
 }
 
 export const setEmployeeStatus = (token: string, id: number, status: 'active' | 'inactive') =>
-  call('PATCH', `/admin/employees/${id}`, token, { status });
+  api('PATCH', `/admin/employees/${id}`, token, { status });
 
-export const dashboard = (token: string) => call<Dashboard>('GET', '/admin/dashboard', token);
+export const dashboard = (token: string) => api<Dashboard>('GET', '/admin/dashboard', token);
 
 export const deviceCounts = async (token: string) =>
-  (await call<{ counts: Counts }>('GET', '/admin/devices?limit=1', token)).counts;
+  (await api<{ counts: Counts }>('GET', '/admin/devices?limit=1', token)).counts;
 
 export const sessionCounts = async (token: string) =>
   (
-    await call<{ counts: { active: number; ended: number } }>(
+    await api<{ counts: { active: number; ended: number } }>(
       'GET',
       '/admin/sessions?limit=1',
       token,
@@ -129,7 +135,7 @@ export const refreshStatus = async (refreshToken: string) =>
   ).status;
 
 export const listEmployees = (token: string, q: string) =>
-  call<{ items: { emp_code: string }[] }>(
+  api<{ items: { emp_code: string }[] }>(
     'GET',
     `/admin/employees?q=${encodeURIComponent(q)}`,
     token,
@@ -147,3 +153,14 @@ export async function uiLoginAsReadyAdmin(page: Page) {
   const { code, password } = readyAdmin();
   await uiLogin(page, code, password);
 }
+
+// A 1x1 light grey PNG stands in for every map tile, so no run depends on the tile server.
+const BLANK_TILE = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGO4c/MSAAUcAoi4e3lxAAAAAElFTkSuQmCC',
+  'base64',
+);
+
+export const stubMapTiles = (page: Page) =>
+  page.route('https://tile.openstreetmap.org/**', (route) =>
+    route.fulfill({ contentType: 'image/png', body: BLANK_TILE }),
+  );

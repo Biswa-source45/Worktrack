@@ -183,7 +183,7 @@ export function ShiftDialog({ shift, onClose }: { shift?: Shift; onClose: () => 
               return (
                 <div
                   key={weekday}
-                  className="grid items-center gap-x-4 gap-y-1 sm:grid-cols-[6rem_12rem_1fr]"
+                  className="grid items-center gap-x-4 gap-y-1 sm:grid-cols-[5.5rem_13.5rem_1fr]"
                 >
                   <label htmlFor={`off-${weekday}`} className="text-small">
                     {day}

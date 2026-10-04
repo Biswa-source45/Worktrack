@@ -111,7 +111,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             disabled={logout.isPending}
           >
             <LogOut aria-hidden="true" />
-            {t('nav.logout')}
+            {/* Six nav links fill a 1280 px header: the label stays for screen readers only there. */}
+            <span className="sr-only 2xl:not-sr-only">{t('nav.logout')}</span>
           </Button>
         </div>
       </header>
