@@ -46,7 +46,7 @@ function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         return (
           <Pressable
             key={route.key}
-            accessibilityRole="button"
+            accessibilityRole="tab"
             accessibilityLabel={tabBarAccessibilityLabel}
             accessibilityState={{ selected: focused }}
             onPress={onPress}

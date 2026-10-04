@@ -68,7 +68,7 @@ function signIn(routes: Routes = {}) {
 async function openEmployees() {
   await renderRouter('./src/app');
   await screen.findByText('Test Phone');
-  await fireEvent.press(button('Admin'));
+  await fireEvent.press(screen.getByRole('tab', { name: 'Admin' }));
   await screen.findByRole('header', { name: 'Employees' });
   await screen.findByRole('button', { name: /^Asha Rao \(EMP-7\)/ });
 }
@@ -90,7 +90,7 @@ describe('Admin employees', () => {
   // so the next test does not start with this test's employees. (Inside the describe so that it
   // runs before the testing library unmounts the app.)
   afterEach(async () => {
-    await fireEvent.press(button('Profile & Settings'));
+    await fireEvent.press(screen.getByRole('tab', { name: 'Profile & Settings' }));
     await fireEvent.press(await screen.findByRole('button', { name: 'Sign out' }));
     await screen.findByLabelText('Employee ID or mobile number');
   });

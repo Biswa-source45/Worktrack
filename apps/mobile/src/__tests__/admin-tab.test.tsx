@@ -6,8 +6,11 @@ import { setTokens } from '@/lib/token-store';
 import { calls, meBody, mockApi } from '@/test/fake-api';
 import { resetSecureStore } from '@/test/secure-store-mock';
 
-const tab = (name: string) => screen.getByRole('button', { name });
+const tab = (name: string) => screen.getByRole('tab', { name });
 const selected = (name: string) => tab(name).props.accessibilityState.selected;
+// Bottom tabs have the tab role; the section switcher inside Admin is made of buttons.
+const segment = (name: string) => screen.getByRole('button', { name });
+const chosen = (name: string) => segment(name).props.accessibilityState.selected;
 const adminCalls = () => calls.filter((call) => call.url.includes('/api/v1/admin/'));
 
 const EMPTY = { items: [], next_cursor: null };
@@ -50,7 +53,7 @@ describe('Admin tab', () => {
   it('does not exist for an employee without admin permissions', async () => {
     signInWith([]);
     await openApp();
-    const names = screen.getAllByRole('button').map((button) => button.props.accessibilityLabel);
+    const names = screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel);
     expect(names).toEqual(['Home', 'Profile & Settings']);
     expect(screen.queryByText('Admin')).toBeNull();
   });
@@ -63,7 +66,7 @@ describe('Admin tab', () => {
 
     expect(screen.getByText('Welcome back')).toBeOnTheScreen();
     expect(selected('Home')).toBe(true);
-    expect(screen.queryByRole('button', { name: 'Admin' })).toBeNull();
+    expect(screen.queryByRole('tab', { name: 'Admin' })).toBeNull();
     expect(screen.queryByRole('header', { name: 'Admin' })).toBeNull();
     expect(adminCalls()).toEqual([]);
   });
@@ -81,7 +84,7 @@ describe('Admin tab', () => {
   it('offers Devices and Sessions, not Employees, with devices.manage', async () => {
     signInWith(['devices.manage']);
     await openApp();
-    expect(screen.getAllByRole('button').map((button) => button.props.accessibilityLabel)).toEqual([
+    expect(screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel)).toEqual([
       'Home',
       'Profile & Settings',
       'Admin',
@@ -91,14 +94,14 @@ describe('Admin tab', () => {
     expect(await screen.findByRole('header', { name: 'Admin' })).toBeOnTheScreen();
     expect(selected('Admin')).toBe(true);
     expect(selected('Home')).toBe(false);
-    expect(selected('Devices')).toBe(true);
-    expect(selected('Sessions')).toBe(false);
+    expect(chosen('Devices')).toBe(true);
+    expect(chosen('Sessions')).toBe(false);
     expect(screen.queryByRole('button', { name: 'Employees' })).toBeNull();
     expect(await screen.findByText('No devices found.')).toBeOnTheScreen();
 
-    await fireEvent.press(tab('Sessions'));
+    await fireEvent.press(segment('Sessions'));
     expect(await screen.findByText('No active sessions found.')).toBeOnTheScreen();
-    expect(selected('Sessions')).toBe(true);
+    expect(chosen('Sessions')).toBe(true);
     expect(adminCalls().some((call) => call.url.includes('/admin/employees'))).toBe(false);
   });
 
@@ -121,13 +124,13 @@ describe('Admin tab', () => {
 
     expect(await screen.findByRole('header', { name: 'Admin' })).toBeOnTheScreen();
     for (const name of ['Devices', 'Employees', 'Sessions']) {
-      expect(tab(name)).toBeOnTheScreen();
+      expect(segment(name)).toBeOnTheScreen();
     }
     expect(await screen.findByText('No devices found.')).toBeOnTheScreen();
 
-    await fireEvent.press(tab('Employees'));
+    await fireEvent.press(segment('Employees'));
     expect(await screen.findByText('No employees found.')).toBeOnTheScreen();
-    expect(selected('Employees')).toBe(true);
+    expect(chosen('Employees')).toBe(true);
     expect(screen.getByLabelText('Search by name, code or mobile')).toBeOnTheScreen();
   });
 

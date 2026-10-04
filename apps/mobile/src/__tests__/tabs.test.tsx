@@ -5,8 +5,9 @@ import { getTokens, setTokens } from '@/lib/token-store';
 import { meBody, mockApi } from '@/test/fake-api';
 import { resetSecureStore, secureStoreContents } from '@/test/secure-store-mock';
 
-const tab = (name: string) => screen.getByRole('button', { name });
+const tab = (name: string) => screen.getByRole('tab', { name });
 const selected = (name: string) => tab(name).props.accessibilityState.selected;
+const segment = (name: string) => screen.getByRole('button', { name });
 
 // Renders the real root layout, so this covers the tab shell as the app mounts it.
 describe('tab shell', () => {
@@ -23,8 +24,7 @@ describe('tab shell', () => {
     await renderRouter('./src/app');
     expect(await screen.findByText('Welcome back')).toBeOnTheScreen();
     await screen.findByText('Test Phone');
-    // With an active device Home has no other button, so every button here is a tab.
-    const names = screen.getAllByRole('button').map((button) => button.props.accessibilityLabel);
+    const names = screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel);
     expect(names).toEqual(['Home', 'Profile & Settings']);
     expect(selected('Home')).toBe(true);
     expect(selected('Profile & Settings')).toBe(false);
@@ -40,7 +40,7 @@ describe('tab shell', () => {
     expect(selected('Home')).toBe(false);
 
     await fireEvent.press(screen.getByRole('button', { name: 'Dark' }));
-    expect(selected('Dark')).toBe(true);
+    expect(segment('Dark').props.accessibilityState.selected).toBe(true);
     await waitFor(() => expect(secureStoreContents()[THEME_KEY]).toBe('dark'));
 
     await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));

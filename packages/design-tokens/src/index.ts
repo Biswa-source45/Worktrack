@@ -122,5 +122,5 @@ export const typography = {
 
 export type TypeToken = keyof typeof typography.web;
 
-/** Smallest touch target on mobile, in points. */
-export const minTouchTarget = 44;
+/** Smallest touch target on mobile: Android asks for 48dp, which also covers the 44pt of iOS. */
+export const minTouchTarget = 48;

@@ -95,7 +95,7 @@ export default function EmployeeScreen() {
           width: minTouchTarget,
           height: minTouchTarget,
           justifyContent: 'center',
-          // Pulls the arrow to the screen edge of the padded column; the target stays 44 wide.
+          // Pulls the arrow to the screen edge of the padded column; the target keeps its full width.
           marginLeft: -space[2],
           alignItems: 'center',
         }}

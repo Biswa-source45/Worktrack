@@ -36,11 +36,11 @@ describe('PasswordField', () => {
     expect(screen.getByRole('button', { name: 'Show password' })).toBeOnTheScreen();
   });
 
-  it('has a 44 point toggle', async () => {
+  it('has a 48 point toggle', async () => {
     await renderWithTheme(<Form />);
     expect(screen.getByRole('button', { name: 'Show password' })).toHaveStyle({
-      width: 44,
-      height: 44,
+      width: 48,
+      height: 48,
     });
   });
 
