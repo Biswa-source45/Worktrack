@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 
-type IconName = 'check-circle' | 'clock' | 'x-circle' | 'minus-circle';
+type IconName = 'check-circle' | 'clock' | 'x-circle' | 'minus-circle' | 'alert-circle';
 
 // Status is never conveyed by colour alone: every badge pairs one of these icons with its text label.
 const PATHS: Record<IconName, ReactNode> = {
@@ -9,6 +9,7 @@ const PATHS: Record<IconName, ReactNode> = {
   clock: <path d="M8 4.5V8l2.2 1.4" />,
   'x-circle': <path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4" />,
   'minus-circle': <path d="M5.2 8h5.6" />,
+  'alert-circle': <path d="M8 5v3.4m0 2.3v.1" />,
 };
 
 export function StatusIcon({ name }: { name: IconName }) {

@@ -72,6 +72,7 @@ export function makeDevice(overrides: Partial<Schemas['DeviceOut']> = {}): Schem
     created_at: '2026-01-15T04:30:00Z',
     updated_at: '2026-01-15T04:30:00Z',
     last_seen_at: '2026-01-15T04:30:00Z',
+    conflict: null,
     ...overrides,
   };
 }

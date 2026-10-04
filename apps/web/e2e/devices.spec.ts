@@ -107,3 +107,48 @@ test('admin approves and revokes phones from the devices page', async ({ page })
   });
   await expect(rowOf(b).getByRole('button', { name: 'Revoke' })).toHaveCount(0);
 });
+
+test('a phone that is active for another employee waits with the reason until approved', async ({
+  page,
+}) => {
+  const token = await adminToken();
+  const [holder, mover] = [await createEmployee(token), await createEmployee(token)];
+  const shared: Device = {
+    device_id: `e2e-shared-${holder.code}`.toLowerCase(),
+    model: `Shared phone ${holder.code}`,
+    os: 'Android 14',
+    app_version: '1.0.0',
+  };
+  // The holder's first sign-in makes the phone Active; the second employee must wait.
+  await apiLogin(holder.code, holder.password, 'mobile', shared);
+  await apiLogin(mover.code, mover.password, 'mobile', shared);
+  const start = await deviceCounts(token);
+
+  await uiLoginAsReadyAdmin(page);
+  await page.getByRole('link', { name: 'Devices' }).click();
+  const rowOf = (name: string) =>
+    page.getByRole('tabpanel').getByRole('row').filter({ hasText: name });
+
+  await reveal(rowOf(mover.name), page);
+  await expect(rowOf(holder.name).getByTestId('status-active')).toBeVisible();
+  await expect(rowOf(mover.name).getByTestId('status-pending')).toBeVisible();
+  await expect(rowOf(mover.name)).toContainText(
+    `This phone is already active for ${holder.name} (${holder.code})`,
+  );
+
+  await rowOf(mover.name).getByRole('button', { name: 'Approve' }).click();
+  const approve = page.getByRole('dialog', { name: 'Approve' });
+  await expect(approve).toContainText(`This phone is active for ${holder.name} (${holder.code})`);
+  await approve.getByRole('button', { name: 'Approve' }).click();
+  await expect(approve).toBeHidden();
+
+  // The phone moved: the new employee is Active, the previous holder Revoked, reason gone.
+  await expect(rowOf(mover.name).getByTestId('status-active')).toBeVisible();
+  await expect(rowOf(holder.name).getByTestId('status-revoked')).toBeVisible();
+  await expect(rowOf(mover.name)).not.toContainText('already active for');
+  await expectCounts(page, token, {
+    pending: start.pending - 1,
+    active: start.active,
+    revoked: start.revoked + 1,
+  });
+});

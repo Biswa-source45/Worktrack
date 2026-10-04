@@ -16,6 +16,14 @@ const active = makeDevice({
   last_seen_at: '2026-02-01T18:45:00Z',
 });
 const revoked = makeDevice({ id: 9, model: 'Old Nokia', status: 'revoked' });
+// Signed in on a phone that is active for Ravi: it waits, with the reason shown to the admin.
+const conflicting = makeDevice({
+  id: 10,
+  user_name: 'Meena Iyer',
+  emp_code: 'EMP-003',
+  model: 'iPhone 15',
+  conflict: { user_id: 5, emp_code: 'EMP-002', name: 'Ravi Kumar' },
+});
 
 function setup(me = makeMe()) {
   let counts = { pending: 1, active: 1, revoked: 1 };
@@ -121,6 +129,35 @@ describe('DevicesPage', () => {
     expect(jsonBody(patches(calls)[0])).toEqual({ action: 'approve' });
     await waitFor(() => expect(screen.getByTestId('count-pending')).toHaveTextContent('0'));
     expect(screen.getByTestId('count-active')).toHaveTextContent('2');
+  });
+
+  it('shows why a phone that is active for another employee waits, and what approving does', async () => {
+    const calls = mockApi({
+      'GET /me': makeMe(),
+      'GET /admin/devices': {
+        items: [pending, conflicting],
+        counts: { pending: 2, active: 0, revoked: 0 },
+        next_cursor: null,
+      },
+      'PATCH /admin/devices/10': { ...conflicting, status: 'active', conflict: null },
+    });
+    renderWithClient(<DevicesPage />);
+    const user = userEvent.setup();
+    const reason = await screen.findByTestId('conflict-10');
+    expect(reason).toHaveTextContent('This phone is already active for Ravi Kumar (EMP-002)');
+    expect(reason.querySelector('svg')).not.toBeNull();
+    // An ordinary phone change carries no reason.
+    expect(screen.queryByTestId('conflict-7')).not.toBeInTheDocument();
+
+    const row = screen.getByRole('row', { name: /Meena Iyer/ });
+    await user.click(within(row).getByRole('button', { name: 'Approve' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('This phone is active for Ravi Kumar (EMP-002)');
+    expect(dialog).toHaveTextContent('signed out at once');
+    await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
+    await waitFor(() => expect(patches(calls)).toHaveLength(1));
+    expect(patches(calls)[0].path).toBe('/api/proxy/api/v1/admin/devices/10');
+    expect(jsonBody(patches(calls)[0])).toEqual({ action: 'approve' });
   });
 
   it('sends reject', async () => {

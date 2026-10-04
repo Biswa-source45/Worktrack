@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { RequirePermission } from '@/components/require-permission';
-import { StatusBadge } from '@/components/status-badge';
+import { StatusBadge, StatusIcon } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { errorMessage, proxyApi, unwrap, type Schemas } from '@/lib/api-client';
 import { formatIst } from '@/lib/ist';
@@ -52,9 +52,23 @@ function DevicesView() {
   const columns = useMemo(
     () =>
       col.columns([
-        col.accessor((d) => `${d.user_name} (${d.emp_code})`, {
+        col.display({
           id: 'employee',
           header: t('devices.col.employee'),
+          cell: ({ row: { original: d } }) => (
+            <>
+              {`${d.user_name} (${d.emp_code})`}
+              {d.conflict && (
+                <p
+                  data-testid={`conflict-${d.id}`}
+                  className="mt-1 flex items-center text-xs text-muted-foreground"
+                >
+                  <StatusIcon name="alert-circle" />
+                  {t('devices.conflict', { name: d.conflict.name, code: d.conflict.emp_code })}
+                </p>
+              )}
+            </>
+          ),
         }),
         col.accessor('model', { header: t('devices.col.model') }),
         col.accessor('os', { header: t('devices.col.os') }),
@@ -165,10 +179,19 @@ function DevicesView() {
       {pending && (
         <ConfirmDialog
           title={t(`devices.${pending.action}`)}
-          description={t(`devices.${pending.action}Confirm`, {
-            name: pending.device.user_name,
-            model: pending.device.model,
-          })}
+          description={
+            pending.action === 'approve' && pending.device.conflict
+              ? t('devices.approveConflictConfirm', {
+                  name: pending.device.user_name,
+                  model: pending.device.model,
+                  other: pending.device.conflict.name,
+                  code: pending.device.conflict.emp_code,
+                })
+              : t(`devices.${pending.action}Confirm`, {
+                  name: pending.device.user_name,
+                  model: pending.device.model,
+                })
+          }
           confirmLabel={t(`devices.${pending.action}`)}
           destructive={pending.action !== 'approve'}
           onConfirm={() => decide(pending)}
