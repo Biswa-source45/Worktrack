@@ -18,6 +18,15 @@ for _key, _value in {**dotenv_values(_root_env), **os.environ}.items():
         os.environ[_key] = _value
 if "TEST_DATABASE_URL" not in os.environ:
     pytest.exit("TEST_DATABASE_URL is not set (see .env.example)", returncode=2)
+# Tests drop and recreate tables, so they must never be pointed at the development database.
+_test_db_name = os.environ["TEST_DATABASE_URL"].rsplit("/", 1)[-1].split("?")[0]
+if not _test_db_name.endswith("_test") or os.environ["TEST_DATABASE_URL"] == os.environ.get(
+    "DATABASE_URL"
+):
+    pytest.exit(
+        "TEST_DATABASE_URL must name a database ending in '_test' and differ from DATABASE_URL",
+        returncode=2,
+    )
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
 os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret-test-only-jwt-secret")
