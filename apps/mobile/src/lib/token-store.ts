@@ -43,11 +43,21 @@ async function getDeviceId(): Promise<string> {
   return id;
 }
 
+// "iOS 27.0.1", "Android 13". Shown on the device card and stored by the server, whose column
+// holds 64 characters.
+function osLabel(): string {
+  if (Device.osName && Device.osVersion) return `${Device.osName} ${Device.osVersion}`.slice(0, 64);
+  // Only when the native module reports nothing; on Android Platform.Version is the API level.
+  const name =
+    Platform.OS === 'ios' ? 'iOS' : Platform.OS.charAt(0).toUpperCase() + Platform.OS.slice(1);
+  return `${name} ${Platform.Version}`.slice(0, 64);
+}
+
 export async function getDeviceInfo() {
   return {
     device_id: await getDeviceId(),
     model: Device.modelName ?? Device.deviceName ?? 'Unknown',
-    os: `${Platform.OS} ${Platform.Version}`,
+    os: osLabel(),
     app_version: Constants.expoConfig?.version ?? '0',
   };
 }

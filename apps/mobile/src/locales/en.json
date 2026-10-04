@@ -1,6 +1,27 @@
 {
   "app": {
-    "title": "WorkTrack"
+    "title": "WorkTrack",
+    "tagline": "Attendance and field tasks for your team.",
+    "version": "WorkTrack version {{version}}"
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "signOut": "Sign out"
+  },
+  "tabs": {
+    "home": "Home",
+    "profile": "Profile & Settings"
+  },
+  "theme": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "password": {
+    "show": "Show password",
+    "hide": "Hide password"
   },
   "health": {
     "loading": "Checking backend...",
@@ -45,14 +66,17 @@
     "confirm": "Confirm new password",
     "submit": "Change password"
   },
-  "home": {
-    "loadFailed": "Could not load your profile.",
-    "retry": "Retry",
+  "profile": {
+    "details": "Your details",
     "employeeCode": "Employee ID",
     "designation": "Designation",
     "role": "Role",
     "department": "Department",
-    "noDepartment": "Not assigned",
+    "noDepartment": "Not assigned"
+  },
+  "home": {
+    "greeting": "Welcome back",
+    "loadFailed": "Could not load your profile.",
     "devicePending": "Waiting for admin approval of this phone. You cannot punch in until it is approved.",
     "devicePendingInUse": "This phone is registered to another employee. Ask your admin to approve this phone. You cannot punch in until it is approved.",
     "checkAgain": "Check again",
@@ -68,7 +92,6 @@
     "deviceCannotPunch": "You cannot punch in until an admin approves this phone.",
     "deviceModel": "Model",
     "deviceOs": "Operating system",
-    "deviceVersion": "App version",
-    "signOut": "Sign out"
+    "deviceVersion": "App version"
   }
 }

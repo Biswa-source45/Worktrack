@@ -21,6 +21,25 @@ beforeEach(async () => {
 });
 
 describe('ChangePasswordScreen', () => {
+  it('hides all three passwords, each with its own Show password button', async () => {
+    mockApi({ 'GET /api/v1/me': me });
+    await renderWithAuth(<ChangePasswordScreen />);
+    const labels = ['Current password', 'New password', 'Confirm new password'];
+    for (const label of labels) {
+      expect(screen.getByLabelText(label).props.secureTextEntry).toBe(true);
+    }
+    expect(screen.getByLabelText('Current password').props.autoComplete).toBe('password');
+    expect(screen.getByLabelText('New password').props.autoComplete).toBe('new-password');
+    expect(screen.getByLabelText('Confirm new password').props.autoComplete).toBe('new-password');
+
+    const toggles = screen.getAllByRole('button', { name: 'Show password' });
+    expect(toggles).toHaveLength(3);
+    await fireEvent.press(toggles[1]);
+    expect(screen.getByLabelText('New password').props.secureTextEntry).toBe(false);
+    expect(screen.getByLabelText('Current password').props.secureTextEntry).toBe(true);
+    expect(screen.getByLabelText('Confirm new password').props.secureTextEntry).toBe(true);
+  });
+
   it('rejects a short password and sends nothing', async () => {
     mockApi({ 'GET /api/v1/me': me });
     await renderWithAuth(<ChangePasswordScreen />);

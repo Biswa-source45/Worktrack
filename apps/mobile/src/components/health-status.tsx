@@ -1,9 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { ActivityIndicator, Button, Text, View } from 'react-native';
+import { CircleCheck, CircleX, Clock, RefreshCw, TriangleAlert } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { HeroDecor } from '@/components/decor/hero-decor';
+import { AppText } from '@/components/ui/app-text';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Screen } from '@/components/ui/screen';
 import { api } from '@/lib/api';
 
 const COMPONENTS = ['database', 'redis', 'storage'] as const;
+
+const LOOKS = {
+  connected: { badge: 'success', icon: CircleCheck, label: 'health.connected' },
+  checking: { badge: 'warning', icon: Clock, label: 'health.loading' },
+  // The backend answered but a part of it is down: same wording, a warning rather than an error.
+  degraded: { badge: 'warning', icon: TriangleAlert, label: 'health.unreachable' },
+  unreachable: { badge: 'danger', icon: CircleX, label: 'health.unreachable' },
+} as const;
 
 async function fetchHealth() {
   const { data, error, response } = await api.GET('/health');
@@ -22,27 +35,42 @@ export function HealthStatus() {
   });
 
   const failing = data ? COMPONENTS.filter((name) => data.checks[name] !== 'ok') : [];
+  const state = isPending
+    ? 'checking'
+    : data?.status === 'ok'
+      ? 'connected'
+      : data
+        ? 'degraded'
+        : 'unreachable';
+  const look = LOOKS[state];
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 }}>
-      <Text accessibilityRole="header" style={{ fontSize: 28, fontWeight: '600' }}>
+    <Screen contentStyle={{ alignItems: 'center', justifyContent: 'center' }}>
+      <HeroDecor />
+      <AppText variant="h1" accessibilityRole="header">
         {t('app.title')}
-      </Text>
-      {isPending ? (
-        <ActivityIndicator accessibilityLabel={t('health.loading')} />
-      ) : (
-        <Text style={{ fontSize: 18 }}>
-          {data?.status === 'ok' ? t('health.connected') : t('health.unreachable')}
-        </Text>
-      )}
+      </AppText>
+      <Badge
+        testID="health-state"
+        iconTestID={`health-icon-${state}`}
+        status={look.badge}
+        icon={look.icon}
+        label={t(look.label)}
+      />
       {failing.length > 0 && (
-        <Text>
+        <AppText color="muted" style={{ textAlign: 'center' }}>
           {t('health.failing', {
             components: failing.map((name) => t(`health.components.${name}`)).join(', '),
           })}
-        </Text>
+        </AppText>
       )}
-      <Button title={t('health.retry')} onPress={() => void refetch()} disabled={isFetching} />
-    </View>
+      <Button
+        variant="secondary"
+        icon={RefreshCw}
+        label={t('health.retry')}
+        onPress={() => void refetch()}
+        disabled={isFetching}
+      />
+    </Screen>
   );
 }

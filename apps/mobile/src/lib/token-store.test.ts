@@ -1,5 +1,6 @@
 import * as Crypto from 'expo-crypto';
 import * as Device from 'expo-device';
+import { Platform } from 'react-native';
 import { resetSecureStore, secureStoreContents } from '@/test/secure-store-mock';
 import { clearTokens, getDeviceInfo, getTokens, setTokens } from './token-store';
 
@@ -41,8 +42,43 @@ describe('getDeviceInfo', () => {
   it('fills every field with a non-empty value', async () => {
     const info = await getDeviceInfo();
     expect(info.model).toBe('Test Phone');
-    expect(info.os).toMatch(/^(ios|android) \S+/);
+    expect(info.os).toMatch(/^(iOS|Android) \S+/);
     expect(info.app_version.length).toBeGreaterThan(0);
+  });
+
+  describe('os', () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it('is the iOS name and version', async () => {
+      expect((await getDeviceInfo()).os).toBe('iOS 27.0.1');
+    });
+
+    it('is the Android name and release, not the API level', async () => {
+      jest.replaceProperty(Device, 'osName', 'Android');
+      jest.replaceProperty(Device, 'osVersion', '13');
+      jest.replaceProperty(Platform, 'OS', 'android');
+      jest.spyOn(Platform, 'Version', 'get').mockReturnValue(33);
+      expect((await getDeviceInfo()).os).toBe('Android 13');
+    });
+
+    it('never exceeds the 64 characters the server accepts', async () => {
+      jest.replaceProperty(Device, 'osVersion', '9'.repeat(80));
+      expect((await getDeviceInfo()).os).toHaveLength(64);
+    });
+
+    it.each([
+      ['ios', '27.0', 'iOS 27.0'],
+      ['android', 33, 'Android 33'],
+    ] as const)(
+      'falls back to a capitalised %s when the device reports nothing',
+      async (os, version, expected) => {
+        jest.replaceProperty(Device, 'osName', null);
+        jest.replaceProperty(Device, 'osVersion', null);
+        jest.replaceProperty(Platform, 'OS', os);
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue(version);
+        expect((await getDeviceInfo()).os).toBe(expected);
+      },
+    );
   });
 
   it('falls back to the device name, then Unknown, for the model', async () => {
