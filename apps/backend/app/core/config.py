@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     login_lock_minutes: int = 15
     login_ip_limit: int = 20
     login_ip_window_minutes: int = 15
+    # Ended sign-in sessions are kept this long for the admin's sessions list, then deleted.
+    session_retention_days: int = 90
 
     @field_validator("cors_origins", mode="before")
     @classmethod

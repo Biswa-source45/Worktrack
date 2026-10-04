@@ -67,7 +67,12 @@ def hash_token(token: str) -> str:
 
 
 def create_access_token(
-    settings: Settings, *, user_id: int, device_row_id: int | None, client: str
+    settings: Settings,
+    *,
+    user_id: int,
+    device_row_id: int | None,
+    client: str,
+    session_id: str | None = None,
 ) -> tuple[str, int]:
     """Return (jwt, lifetime in seconds)."""
     now = utcnow()
@@ -81,6 +86,8 @@ def create_access_token(
     }
     if device_row_id is not None:
         claims["dev"] = device_row_id
+    if session_id is not None:
+        claims["sid"] = session_id
     return jwt.encode(claims, settings.jwt_secret, algorithm=_JWT_ALGORITHM), int(
         lifetime.total_seconds()
     )

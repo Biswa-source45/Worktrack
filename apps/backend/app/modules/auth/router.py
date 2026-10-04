@@ -23,16 +23,22 @@ def _ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
+def _user_agent(request: Request) -> str | None:
+    return request.headers.get("user-agent")
+
+
 @router.post("/auth/login", response_model=TokenResponse)
 async def login(body: LoginRequest, request: Request, session: Session) -> TokenResponse:
     state = request.app.state
-    return await service.login(session, state.redis, state.settings, body, _ip(request))
+    return await service.login(
+        session, state.redis, state.settings, body, _ip(request), _user_agent(request)
+    )
 
 
 @router.post("/auth/refresh", response_model=TokenResponse)
 async def refresh(body: RefreshRequest, request: Request, session: Session) -> TokenResponse:
     return await service.refresh(
-        session, request.app.state.settings, body.refresh_token, _ip(request)
+        session, request.app.state.settings, body.refresh_token, _ip(request), _user_agent(request)
     )
 
 
@@ -50,7 +56,7 @@ async def change_password(
     auth: Annotated[AuthContext, Depends(current_user)],
 ) -> TokenResponse:
     return await service.change_password(
-        session, request.app.state.settings, auth, body, auth.audit(request)
+        session, request.app.state.settings, auth, body, auth.audit(request), _user_agent(request)
     )
 
 

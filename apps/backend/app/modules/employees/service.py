@@ -267,7 +267,7 @@ async def update_employee(
     except IntegrityError:
         raise AppError("DUPLICATE", "Mobile or email is already in use.", 409) from None
     if revoke_sessions:
-        await revoke_tokens(session, user_id=user.id)
+        await revoke_tokens(session, user_id=user.id, reason="account_changed")
     after = snapshot(user)
     audit.record(session, ctx, "employee.update", "user", user.id, before=before, after=after)
     await session.commit()
@@ -285,7 +285,7 @@ async def reset_password(
     user.must_change_password = True
     user.failed_attempts = 0
     user.locked_until = None
-    await revoke_tokens(session, user_id=user.id)
+    await revoke_tokens(session, user_id=user.id, reason="password_reset")
     audit.record(session, ctx, "employee.reset_password", "user", user.id)
     await session.commit()
     return temp

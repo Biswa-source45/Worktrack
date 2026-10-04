@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from app.core.errors import AppError
+from app.core.os_name import format_os
 from app.modules.audit import service as audit
 from app.modules.audit.service import AuditCtx
 from app.modules.auth.deps import AuthContext
@@ -29,7 +30,7 @@ def _out(device: UserDevice, user: User, holder: User | None = None) -> DeviceOu
         user_name=user.name,
         device_id=device.device_id,
         model=device.model,
-        os=device.os,
+        os=format_os(device.os),
         app_version=device.app_version,
         status=cast(DeviceStatus, device.status),
         approved_by=device.approved_by,
@@ -135,7 +136,7 @@ async def decide(
             await session.execute(
                 update(UserDevice).where(UserDevice.id == old_id).values(status=DEVICE_REVOKED)
             )
-            await revoke_tokens(session, device_row_id=old_id)
+            await revoke_tokens(session, device_row_id=old_id, reason="device_revoked")
             after: dict[str, object] = {"status": DEVICE_REVOKED}
             if owner_id != user.id:
                 after |= {"reason": "phone_reassigned", "new_user_id": user.id}
@@ -149,7 +150,7 @@ async def decide(
         if action == "reject" and device.status != DEVICE_PENDING:
             raise AppError("CONFLICT", "Only a pending device can be rejected.", 409)
         device.status = DEVICE_REVOKED
-        await revoke_tokens(session, device_row_id=device.id)
+        await revoke_tokens(session, device_row_id=device.id, reason="device_revoked")
         audit_action = "device.rejected" if action == "reject" else "device.revoked"
 
     audit.record(

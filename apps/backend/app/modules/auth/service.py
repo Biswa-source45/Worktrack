@@ -23,7 +23,7 @@ from app.core.security import (
 from app.modules.audit import service as audit
 from app.modules.audit.service import AuditCtx
 from app.modules.auth.deps import AuthContext
-from app.modules.auth.models import RefreshToken
+from app.modules.auth.models import AuthSession, RefreshToken
 from app.modules.auth.permissions import WEB_ACCESS
 from app.modules.auth.schemas import (
     ChangePasswordRequest,
@@ -43,6 +43,7 @@ from app.modules.devices.models import (
 )
 from app.modules.employees.models import STATUS_ACTIVE, User
 from app.modules.employees.schemas import Ref, normalize_mobile
+from app.modules.sessions.user_agent import parse_user_agent
 
 logger = logging.getLogger(__name__)
 
@@ -62,16 +63,30 @@ async def revoke_tokens(
     user_id: int | None = None,
     device_row_id: int | None = None,
     family_id: uuid.UUID | None = None,
+    reason: str,
 ) -> None:
-    """Revoke every live refresh token matching the filters. The caller commits."""
-    stmt = update(RefreshToken).where(RefreshToken.revoked_at.is_(None)).values(revoked_at=utcnow())
+    """Revoke every live refresh token matching the filters and end their sessions.
+
+    `reason` is recorded on the ended sessions. The caller commits.
+    """
+    now = utcnow()
+    tokens = update(RefreshToken).where(RefreshToken.revoked_at.is_(None)).values(revoked_at=now)
+    ended = (
+        update(AuthSession)
+        .where(AuthSession.ended_at.is_(None))
+        .values(ended_at=now, end_reason=reason)
+    )
     if user_id is not None:
-        stmt = stmt.where(RefreshToken.user_id == user_id)
+        tokens = tokens.where(RefreshToken.user_id == user_id)
+        ended = ended.where(AuthSession.user_id == user_id)
     if device_row_id is not None:
-        stmt = stmt.where(RefreshToken.device_row_id == device_row_id)
+        tokens = tokens.where(RefreshToken.device_row_id == device_row_id)
+        ended = ended.where(AuthSession.device_row_id == device_row_id)
     if family_id is not None:
-        stmt = stmt.where(RefreshToken.family_id == family_id)
-    await session.execute(stmt)
+        tokens = tokens.where(RefreshToken.family_id == family_id)
+        ended = ended.where(AuthSession.family_id == family_id)
+    await session.execute(tokens)
+    await session.execute(ended)
 
 
 async def _check_ip_limit(redis: Redis, settings: Settings, ip: str | None) -> None:
@@ -193,7 +208,7 @@ async def _bind_device(
             await session.execute(
                 update(UserDevice).where(UserDevice.id == device_id).values(status=DEVICE_REVOKED)
             )
-            await revoke_tokens(session, device_row_id=device_id)
+            await revoke_tokens(session, device_row_id=device_id, reason="device_replaced")
     device = UserDevice(
         user_id=user.id,
         device_id=info.device_id,
@@ -228,23 +243,54 @@ async def _issue_tokens(
     client: str,
     device: UserDevice | None,
     family_id: uuid.UUID | None = None,
+    *,
+    ip: str | None,
+    user_agent: str | None,
 ) -> TokenResponse:
+    """Issue a token pair. Without `family_id` this is a new sign-in and starts a session."""
     token, token_hash = new_refresh_token()
+    now = utcnow()
+    expires_at = now + timedelta(days=settings.refresh_token_days)
+    device_row_id = None if device is None else device.id
+    if family_id is None:
+        family_id = uuid.uuid4()
+        browser, os = parse_user_agent(user_agent)
+        session.add(
+            AuthSession(
+                family_id=family_id,
+                user_id=user.id,
+                client=client,
+                device_row_id=device_row_id,
+                user_agent=None if user_agent is None else user_agent[:512],
+                browser=browser,
+                os=os,
+                ip=ip,
+                last_seen_at=now,
+                expires_at=expires_at,
+            )
+        )
+    else:
+        await session.execute(
+            update(AuthSession)
+            .where(AuthSession.family_id == family_id)
+            .values(last_seen_at=now, expires_at=expires_at, ip=ip)
+        )
     session.add(
         RefreshToken(
             user_id=user.id,
-            device_row_id=None if device is None else device.id,
-            family_id=family_id or uuid.uuid4(),
+            device_row_id=device_row_id,
+            family_id=family_id,
             token_hash=token_hash,
             client=client,
-            expires_at=utcnow() + timedelta(days=settings.refresh_token_days),
+            expires_at=expires_at,
         )
     )
     access, lifetime = create_access_token(
         settings,
         user_id=user.id,
-        device_row_id=None if device is None else device.id,
+        device_row_id=device_row_id,
         client=client,
+        session_id=str(family_id),
     )
     return TokenResponse(
         access_token=access,
@@ -261,6 +307,7 @@ async def login(
     settings: Settings,
     body: LoginRequest,
     ip: str | None,
+    user_agent: str | None = None,
 ) -> TokenResponse:
     await _check_ip_limit(redis, settings, ip)
     user = await _find_user(session, body.identifier)
@@ -288,14 +335,20 @@ async def login(
     user.failed_attempts = 0
     user.locked_until = None
     device = None if body.device is None else await _bind_device(session, user, body.device, ctx)
-    tokens = await _issue_tokens(session, settings, user, body.client, device)
+    tokens = await _issue_tokens(
+        session, settings, user, body.client, device, ip=ip, user_agent=user_agent
+    )
     audit.record(session, ctx, "auth.login", "user", user.id, after={"client": body.client})
     await session.commit()
     return tokens
 
 
 async def refresh(
-    session: AsyncSession, settings: Settings, refresh_token: str, ip: str | None
+    session: AsyncSession,
+    settings: Settings,
+    refresh_token: str,
+    ip: str | None,
+    user_agent: str | None = None,
 ) -> TokenResponse:
     row = (
         await session.execute(
@@ -309,7 +362,7 @@ async def refresh(
     ctx = AuditCtx(row.user_id, ip)
     if row.revoked_at is not None:
         # A rotated token came back: someone holds a stolen copy. Kill the whole login.
-        await revoke_tokens(session, family_id=row.family_id)
+        await revoke_tokens(session, family_id=row.family_id, reason="token_reuse")
         audit.record(session, ctx, "auth.refresh_reuse", "user", row.user_id)
         await session.commit()
         raise _invalid_refresh()
@@ -325,7 +378,9 @@ async def refresh(
     row.revoked_at = utcnow()
     if device is not None:
         device.last_seen_at = row.revoked_at
-    tokens = await _issue_tokens(session, settings, user, row.client, device, row.family_id)
+    tokens = await _issue_tokens(
+        session, settings, user, row.client, device, row.family_id, ip=ip, user_agent=user_agent
+    )
     await session.commit()
     return tokens
 
@@ -338,7 +393,7 @@ async def logout(session: AsyncSession, refresh_token: str, ip: str | None) -> N
     ).scalar_one_or_none()
     if row is None:
         return
-    await revoke_tokens(session, family_id=row.family_id)
+    await revoke_tokens(session, family_id=row.family_id, reason="signed_out")
     audit.record(session, AuditCtx(row.user_id, ip), "auth.logout", "user", row.user_id)
     await session.commit()
 
@@ -349,6 +404,7 @@ async def change_password(
     auth: AuthContext,
     body: ChangePasswordRequest,
     audit_ctx: AuditCtx,
+    user_agent: str | None = None,
 ) -> TokenResponse:
     user = auth.user
     if not await verify_password(user.password_hash, body.current_password):
@@ -361,11 +417,13 @@ async def change_password(
         )
     user.password_hash = await hash_password(body.new_password)
     user.must_change_password = False
-    await revoke_tokens(session, user_id=user.id)
+    await revoke_tokens(session, user_id=user.id, reason="password_changed")
     device = (
         None if auth.device_row_id is None else await session.get(UserDevice, auth.device_row_id)
     )
-    tokens = await _issue_tokens(session, settings, user, auth.client, device)
+    tokens = await _issue_tokens(
+        session, settings, user, auth.client, device, ip=audit_ctx.ip, user_agent=user_agent
+    )
     audit.record(session, audit_ctx, "auth.password_changed", "user", user.id)
     await session.commit()
     return tokens

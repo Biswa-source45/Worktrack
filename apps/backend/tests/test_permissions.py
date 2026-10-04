@@ -101,12 +101,21 @@ MATRIX: list[tuple[str, str, str, str]] = [
     ("DELETE", f"{P}/admin/roles/{{role_id}}", f"{P}/admin/roles/{MISSING}", ROLES_MANAGE),
     ("GET", f"{P}/admin/devices", f"{P}/admin/devices", DEVICES_MANAGE),
     ("PATCH", f"{P}/admin/devices/{{device_id}}", f"{P}/admin/devices/{MISSING}", DEVICES_MANAGE),
+    ("GET", f"{P}/admin/sessions", f"{P}/admin/sessions", DEVICES_MANAGE),
+    (
+        "POST",
+        f"{P}/admin/sessions/{{session_id}}/revoke",
+        f"{P}/admin/sessions/{MISSING}/revoke",
+        DEVICES_MANAGE,
+    ),
 ]
 
 # Signed-in users of any role, scoped to themselves.
 SELF_ONLY = [
     ("GET", f"{P}/me"),
     ("POST", f"{P}/auth/change-password"),
+    ("GET", f"{P}/me/sessions"),
+    ("POST", f"{P}/me/sessions/revoke-others"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [

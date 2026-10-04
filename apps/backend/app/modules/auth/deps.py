@@ -22,6 +22,8 @@ class AuthContext:
     permissions: frozenset[str]
     device_row_id: int | None
     client: str
+    # The sign-in this token belongs to; None only for tokens issued before sessions existed.
+    session_id: str | None = None
 
     def audit(self, request: Request) -> AuditCtx:
         device = None if self.device_row_id is None else str(self.device_row_id)
@@ -47,6 +49,7 @@ async def current_user(
         permissions=frozenset(user.role.permissions),
         device_row_id=claims.get("dev"),
         client=claims["cli"],
+        session_id=claims.get("sid"),
     )
 
 
