@@ -62,12 +62,16 @@ export const uniqueMobile = () => `9${String(randomInt(0, 1_000_000_000)).padSta
 export const uniqueSuffix = () =>
   `${Date.now().toString(36).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
 
-export async function createEmployee(token: string, name?: string): Promise<Created> {
+export async function createEmployee(
+  token: string,
+  name?: string,
+  roleName = 'Office Employee',
+): Promise<Created> {
   const [designations, roles] = await Promise.all([
     call<{ id: number }[]>('GET', '/admin/masters/designations', token),
     call<{ id: number; name: string }[]>('GET', '/admin/roles', token),
   ]);
-  const role = roles.find((r) => r.name === 'Office Employee');
+  const role = roles.find((r) => r.name === roleName);
   if (!role || designations.length === 0) throw new Error('Seed roles or designations missing');
 
   const code = `EMP${uniqueSuffix()}`;
