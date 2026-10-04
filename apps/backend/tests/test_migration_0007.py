@@ -78,7 +78,9 @@ async def test_one_schedule_per_employee_and_date_with_exactly_seven_days() -> N
 async def test_one_approved_and_one_pending_home_location_per_employee() -> None:
     insert = (
         "INSERT INTO home_locations (user_id, location, radius_m, source, status)"
-        " VALUES ($1, ST_GeogFromText('POINT(77.2295 28.6129)'), $2, $3, $4)"
+        # From 0008 on, only a pending or approved row holds a location.
+        " VALUES ($1, CASE WHEN $4 IN ('pending', 'approved')"
+        " THEN ST_GeogFromText('POINT(77.2295 28.6129)') END, $2, $3, $4)"
     )
     async with _user() as (conn, user_id):
         for status in ("approved", "pending", "rejected", "rejected", "replaced", "removed"):

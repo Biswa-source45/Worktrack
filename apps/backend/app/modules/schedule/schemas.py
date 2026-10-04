@@ -107,8 +107,9 @@ class HomeRequestPage(BaseModel):
 
 
 class HomeRequestDetail(HomeRequestItem):
-    lat: float
-    lng: float
+    # Null once the request is decided against or superseded: the place is no longer kept.
+    lat: float | None
+    lng: float | None
     radius_m: int
     decided_at: dt.datetime | None
     reject_reason: str | None

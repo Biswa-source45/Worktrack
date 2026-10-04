@@ -5,9 +5,10 @@ own view, audit rows and logs never carry them.
 """
 
 from typing import Any
+from typing import cast as cast_type
 
-from geoalchemy2 import Geometry
-from sqlalchemy import Float, cast, func, literal, select
+from geoalchemy2 import Geometry, WKBElement, WKTElement
+from sqlalchemy import ColumnElement, Float, cast, func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
@@ -66,6 +67,12 @@ def _audit_view(row: HomeLocation, replaced: HomeLocation | None = None) -> dict
     return view
 
 
+def _close(row: HomeLocation, status: str) -> None:
+    """End a row's use. Its coordinates go with it: only who, when and why are kept."""
+    row.status = status
+    row.location = None
+
+
 async def _current(session: AsyncSession, user_id: int, status: str) -> HomeLocation | None:
     return await session.scalar(
         select(HomeLocation).where(HomeLocation.user_id == user_id, HomeLocation.status == status)
@@ -76,7 +83,7 @@ async def _retire(session: AsyncSession, user_id: int, status: str) -> HomeLocat
     """Mark the employee's approved (or pending) row as replaced, ahead of its successor."""
     row = await _current(session, user_id, status)
     if row is not None:
-        row.status = HOME_REPLACED
+        _close(row, HOME_REPLACED)
         # Flushed now: only one approved and one pending row may exist per employee.
         await session.flush()
     return row
@@ -109,7 +116,8 @@ def home_candidate(user_id: int) -> Candidates:
         literal("home").label("kind"),
         HomeLocation.id,
         literal("Home").label("name"),
-        HomeLocation.location,
+        # An approved row always has its location (a database check guarantees it).
+        cast_type("ColumnElement[WKBElement | WKTElement]", HomeLocation.location),
         HomeLocation.radius_m,
     ).where(HomeLocation.user_id == user_id, HomeLocation.status == HOME_APPROVED)
 
@@ -182,7 +190,7 @@ async def remove_approved(session: AsyncSession, ctx: AuditCtx, user: User) -> N
     if row is None:
         raise AppError("NOT_FOUND", "This employee has no approved home location.", 404)
     before = _audit_view(row)
-    row.status = HOME_REMOVED
+    _close(row, HOME_REMOVED)
     audit.record(
         session,
         ctx,
@@ -305,7 +313,8 @@ async def reject(
 ) -> HomeRequestItem:
     row, user = await _pending_request(session, actor, request_id)
     before = _audit_view(row)
-    row.status, row.reject_reason = HOME_REJECTED, reason
+    _close(row, HOME_REJECTED)
+    row.reject_reason = reason
     row.decided_by, row.decided_at = actor.user.id, utcnow()
     audit.record(
         session,

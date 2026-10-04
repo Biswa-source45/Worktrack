@@ -529,3 +529,68 @@ async def test_every_admin_endpoint_needs_employees_manage_and_a_manageable_targ
     assert await statuses(db, boss) == ["pending"]
     assert await statuses(db, user) == ["pending"]
     assert (await client.post(f"{REQUESTS}/{request_id}/approve", headers=hr)).status_code == 200
+
+
+# --- coordinates are forgotten once a location is no longer in use ----------------------------
+
+
+async def kept_locations(db: AsyncSession, user: User) -> list[tuple[str, bool]]:
+    """Each row's status and whether it still holds coordinates, oldest first."""
+    rows = await db.execute(
+        select(HomeLocation.status, HomeLocation.location.is_not(None))
+        .where(HomeLocation.user_id == user.id)
+        .order_by(HomeLocation.id)
+    )
+    return [(status, kept) for status, kept in rows]
+
+
+async def test_a_replaced_and_a_removed_home_location_forget_where_they_were(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    _, admin_headers = await actor(client, db)
+    user = await make_user(db, FIELD)
+    url = home_url(user.id)
+    assert (await client.put(url, json=HERE, headers=admin_headers)).status_code == 200
+    assert (await client.put(url, json=ELSEWHERE, headers=admin_headers)).status_code == 200
+    assert await kept_locations(db, user) == [("replaced", False), ("approved", True)]
+
+    assert (await client.delete(url, headers=admin_headers)).status_code == 204
+    assert await kept_locations(db, user) == [("replaced", False), ("removed", False)]
+    view = (await client.get(url, headers=admin_headers)).json()
+    assert view == {"approved": None, "pending": None}
+
+
+async def test_a_rejected_or_superseded_request_forgets_where_it_was(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    _, admin_headers = await actor(client, db)
+    user, headers = await phone(client, db)
+    await ask(client, headers)
+    await ask(client, headers, **ELSEWHERE)
+    assert await kept_locations(db, user) == [("replaced", False), ("pending", True)]
+
+    request_id = await pending_id(client, admin_headers)
+    rejected = await client.post(
+        f"{REQUESTS}/{request_id}/reject", json={"reason": "Not your home"}, headers=admin_headers
+    )
+    assert rejected.status_code == 200, rejected.text
+    assert await kept_locations(db, user) == [("replaced", False), ("rejected", False)]
+    # The admin can still see that it was rejected and why, but no longer where it was.
+    detail = (await client.get(f"{REQUESTS}/{request_id}", headers=admin_headers)).json()
+    assert (detail["status"], detail["lat"], detail["lng"]) == ("rejected", None, None)
+    assert detail["reject_reason"] == "Not your home"
+
+
+async def test_approving_a_request_forgets_the_home_it_replaces(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    _, admin_headers = await actor(client, db)
+    user, headers = await phone(client, db)
+    assert (
+        await client.put(home_url(user.id), json=ELSEWHERE, headers=admin_headers)
+    ).status_code == 200
+    await ask(client, headers)
+    request_id = await pending_id(client, admin_headers)
+    approved = await client.post(f"{REQUESTS}/{request_id}/approve", headers=admin_headers)
+    assert approved.status_code == 200, approved.text
+    assert await kept_locations(db, user) == [("replaced", False), ("approved", True)]

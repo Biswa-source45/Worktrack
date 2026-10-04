@@ -37,7 +37,8 @@ class HomeLocation(Base):
     """Where an employee may punch from on a work-from-home day.
 
     The coordinates are personal data: they leave the server only through the admin detail
-    endpoints, and never appear in lists, audit rows or logs.
+    endpoints, and never appear in lists, audit rows or logs. They are kept only while the row is
+    pending or approved; a rejected, replaced or removed row keeps who, when and why, not where.
     """
 
     __tablename__ = "home_locations"
@@ -47,12 +48,16 @@ class HomeLocation(Base):
         CheckConstraint(
             "status IN ('pending', 'approved', 'rejected', 'replaced', 'removed')", name="status"
         ),
+        CheckConstraint(
+            "(status IN ('pending', 'approved')) = (location IS NOT NULL)",
+            name="location_only_in_use",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     # Always looked up by user, so no spatial index.
-    location: Mapped[WKBElement | WKTElement] = mapped_column(
+    location: Mapped[WKBElement | WKTElement | None] = mapped_column(
         Geography("POINT", srid=4326, spatial_index=False)
     )
     radius_m: Mapped[int]

@@ -64,6 +64,9 @@ function ReviewForm({ detail, onClose }: { detail: Detail; onClose: () => void }
     resolver: zodResolver(schema),
     defaultValues: { radius_m: String(detail.radius_m), reason: '' },
   });
+  // A request decided in the meantime no longer holds its coordinates.
+  const center =
+    detail.lat === null || detail.lng === null ? null : { lat: detail.lat, lng: detail.lng };
   const radiusM = useWatch({ control, name: 'radius_m' });
 
   const decide = useMutation({
@@ -117,9 +120,11 @@ function ReviewForm({ detail, onClose }: { detail: Detail; onClose: () => void }
             : t('home.metres', { value: Math.round(detail.accuracy_m) })}
         </dd>
         <dt className="text-muted-foreground">{t('home.coordinates')}</dt>
-        <dd className="tabular-nums">{`${detail.lat}, ${detail.lng}`}</dd>
+        <dd className="tabular-nums">
+          {center ? `${center.lat}, ${center.lng}` : t('home.notRecorded')}
+        </dd>
       </dl>
-      <GeofenceMap center={{ lat: detail.lat, lng: detail.lng }} radiusM={Number(radiusM)} />
+      <GeofenceMap center={center} radiusM={Number(radiusM)} />
       <Field id="radius_m" label={t('home.radius')} error={errors.radius_m?.message}>
         <Input
           id="radius_m"

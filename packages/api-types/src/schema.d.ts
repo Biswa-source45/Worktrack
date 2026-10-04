@@ -1180,9 +1180,9 @@ export interface components {
              */
             created_at: string;
             /** Lat */
-            lat: number;
+            lat: number | null;
             /** Lng */
-            lng: number;
+            lng: number | null;
             /** Radius M */
             radius_m: number;
             /** Decided At */

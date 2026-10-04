@@ -128,6 +128,20 @@ describe('Home request review dialog', () => {
     expect(within(dialog).getByText('20.4567, 85.9123')).toBeVisible();
   });
 
+  it('shows no pin for a request whose coordinates are no longer kept', async () => {
+    const { user } = setup({
+      'GET /admin/home-location-requests/31': {
+        ...DETAIL,
+        status: 'rejected',
+        lat: null,
+        lng: null,
+      },
+    });
+    const dialog = await openReview(user);
+    expect(within(dialog).getByText('Not recorded')).toBeVisible();
+    expect(within(dialog).getByTestId('map')).not.toHaveAttribute('data-center', '20.4567,85.9123');
+  });
+
   it('approves with the chosen radius and refreshes the list', async () => {
     const { calls, user } = setup();
     const dialog = await openReview(user);

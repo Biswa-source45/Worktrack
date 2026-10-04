@@ -33,7 +33,10 @@ async def add_home(db: AsyncSession, user: User, status: str = "approved", **at:
     db.add(
         HomeLocation(
             user_id=user.id,
-            location=WKTElement(f"POINT({place['lng']} {place['lat']})", srid=4326),
+            # Only a pending or approved row holds a location; the others have forgotten it.
+            location=WKTElement(f"POINT({place['lng']} {place['lat']})", srid=4326)
+            if status in ("pending", "approved")
+            else None,
             radius_m=100,
             source="admin",
             status=status,
