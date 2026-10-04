@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { Field } from '@/components/field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { errorMessage, postJson } from '@/lib/api-client';
 
 // Mirrors the server rule (SRS: 10 to 128 characters); the server stays the authority.
@@ -46,41 +46,38 @@ export function ChangePasswordForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-4">
-      <h1 className="text-2xl font-semibold">{t('changePassword.title')}</h1>
-      <p className="text-sm text-muted-foreground">{t('changePassword.intro')}</p>
+      <h1 className="text-h2">{t('changePassword.title')}</h1>
+      <p className="text-muted-foreground">{t('changePassword.intro')}</p>
       <Field
         id="current_password"
         label={t('changePassword.current')}
         error={errors.current_password?.message}
       >
-        <Input
+        <PasswordInput
           id="current_password"
-          type="password"
           autoComplete="current-password"
           invalid={!!errors.current_password}
           {...register('current_password')}
         />
       </Field>
       <Field id="new_password" label={t('changePassword.new')} error={errors.new_password?.message}>
-        <Input
+        <PasswordInput
           id="new_password"
-          type="password"
           autoComplete="new-password"
           invalid={!!errors.new_password}
           {...register('new_password')}
         />
       </Field>
       <Field id="confirm" label={t('changePassword.confirm')} error={errors.confirm?.message}>
-        <Input
+        <PasswordInput
           id="confirm"
-          type="password"
           autoComplete="new-password"
           invalid={!!errors.confirm}
           {...register('confirm')}
         />
       </Field>
       {serverError && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-small text-danger">
           {serverError}
         </p>
       )}

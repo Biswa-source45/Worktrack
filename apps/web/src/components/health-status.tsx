@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { CircleCheck, CircleX, Clock, TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -24,36 +25,35 @@ export function useHealth() {
   });
 }
 
-const TONE = {
-  connected: 'text-muted-foreground',
-  degraded: 'text-foreground',
-  unreachable: 'text-destructive',
+// Icon, label and status colour together, so the state is never conveyed by colour alone.
+const STATE = {
+  checking: { Icon: Clock, tone: 'text-warning' },
+  connected: { Icon: CircleCheck, tone: 'text-success' },
+  degraded: { Icon: TriangleAlert, tone: 'text-warning' },
+  unreachable: { Icon: CircleX, tone: 'text-danger' },
 } as const;
 
-// Text plus a dot icon, so the state is never conveyed by colour alone.
 export function HealthIndicator() {
   const { t } = useTranslation();
   const { data, isPending } = useHealth();
-  const state = data ? (data.status === 'ok' ? 'connected' : 'degraded') : 'unreachable';
+  const state = isPending
+    ? 'checking'
+    : data
+      ? data.status === 'ok'
+        ? 'connected'
+        : 'degraded'
+      : 'unreachable';
+  const { Icon, tone } = STATE[state];
 
   return (
     <span
       role="status"
       data-testid="health-indicator"
-      data-state={isPending ? 'checking' : state}
-      className={cn(
-        'inline-flex items-center gap-1 text-xs',
-        isPending ? 'text-muted-foreground' : TONE[state],
-      )}
+      data-state={state}
+      className={cn('inline-flex items-center gap-1 text-caption font-medium', tone)}
     >
-      <svg aria-hidden="true" viewBox="0 0 8 8" className="size-2">
-        {state === 'connected' && !isPending ? (
-          <circle cx="4" cy="4" r="4" fill="currentColor" />
-        ) : (
-          <circle cx="4" cy="4" r="3" fill="none" stroke="currentColor" strokeWidth="1.5" />
-        )}
-      </svg>
-      {isPending ? t('health.checking') : t(`health.${state}`)}
+      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+      {t(`health.${state}`)}
     </span>
   );
 }

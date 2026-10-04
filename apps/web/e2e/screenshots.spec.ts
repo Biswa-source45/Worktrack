@@ -37,13 +37,14 @@ for (const theme of THEMES) {
   for (const width of WIDTHS) {
     test(`screenshots: ${theme} at ${width}px`, async ({ page, context }) => {
       test.setTimeout(120_000);
-      const shot = async (name: string) => {
+      // Dialogs are captured at viewport size: their overlay covers the viewport, not the page.
+      const shot = async (name: string, fullPage = true) => {
         // Let fonts and entrance animations settle so the capture shows the resting state.
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(400);
         await page.screenshot({
           path: path.join(DIR, `${name}-${theme}-${width}.png`),
-          fullPage: true,
+          fullPage,
         });
       };
       await page.setViewportSize({ width, height: 800 });
@@ -72,7 +73,7 @@ for (const theme of THEMES) {
       await page.getByRole('button', { name: 'New employee' }).click();
       const form = page.getByRole('dialog', { name: 'New employee' });
       await expect(form.getByLabel('Employee code')).toBeVisible();
-      await shot('employee-dialog');
+      await shot('employee-dialog', false);
       const code = `EMP${uniqueSuffix()}`;
       await form.getByLabel('Employee code').fill(code);
       await form.getByLabel('Full name').fill(`E2E Shot ${code}`);
@@ -82,14 +83,14 @@ for (const theme of THEMES) {
       await form.getByRole('button', { name: 'Save' }).click();
       const shown = page.getByRole('dialog', { name: 'Temporary password' });
       await expect(shown).toBeVisible();
-      await shot('temp-password-dialog');
+      await shot('temp-password-dialog', false);
       await shown.getByRole('button', { name: 'Close', exact: true }).click();
       await expect(shown).toBeHidden();
 
       await page.getByRole('button', { name: 'Import employees' }).click();
       const dialog = page.getByRole('dialog', { name: 'Import employees' });
       await expect(dialog).toBeVisible();
-      await shot('import-dialog');
+      await shot('import-dialog', false);
       await page.keyboard.press('Escape');
       await expect(dialog).toBeHidden();
 

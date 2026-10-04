@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const controlClass =
-  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20';
+  'h-9 w-full min-w-0 rounded-md border border-input bg-raised px-3 text-body text-foreground placeholder:text-muted-foreground file:mr-3 file:h-full file:border-0 file:bg-transparent file:font-medium file:text-foreground disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-danger';
 
 type ControlProps = { invalid?: boolean };
 

@@ -15,7 +15,7 @@ export function DropdownMenuContent({
         align="end"
         sideOffset={4}
         className={cn(
-          'z-50 min-w-40 rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none',
+          'z-50 min-w-40 animate-in rounded-md border bg-popover p-1 text-popover-foreground shadow-md duration-150 ease-out outline-none fade-in zoom-in-96',
           className,
         )}
         {...props}
@@ -31,7 +31,8 @@ export function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        'flex cursor-default items-center rounded-md px-2 py-1.5 text-sm outline-none select-none data-[disabled]:opacity-50 data-[highlighted]:bg-muted',
+        // The highlighted fill is the focus indicator inside the menu.
+        'flex cursor-default items-center rounded-sm px-2 py-1.5 text-small outline-none select-none data-[disabled]:opacity-50 data-[highlighted]:bg-raised',
         className,
       )}
       {...props}

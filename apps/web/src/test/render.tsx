@@ -2,11 +2,19 @@ import type { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 import '@/lib/i18n';
 
 export function renderWithClient(ui: ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return { client, ...render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>) };
+  return {
+    client,
+    ...render(
+      <ThemeProvider>
+        <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+      </ThemeProvider>,
+    ),
+  };
 }
 
 export type Call = {

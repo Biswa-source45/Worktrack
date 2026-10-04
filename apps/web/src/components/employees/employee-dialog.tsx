@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input, Select } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { todayIst } from '@/lib/ist';
 import {
@@ -194,24 +195,23 @@ export function EmployeeDialog({
                 label={t('employees.form.password')}
                 error={errors.password?.message}
               >
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  {...field('password')}
-                />
-                <span className="text-xs text-muted-foreground">
+                <PasswordInput id="password" autoComplete="new-password" {...field('password')} />
+                <span className="text-caption text-muted-foreground">
                   {t('employees.form.passwordHint')}
                 </span>
               </Field>
             )}
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...register('field_eligible')} />
+          <label className="flex items-center gap-2 text-small font-medium">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
+              {...register('field_eligible')}
+            />
             {t('employees.form.fieldEligible')}
           </label>
           {serverError && (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="text-small text-danger">
               {serverError}
             </p>
           )}

@@ -115,7 +115,7 @@ export const listEmployees = (token: string, q: string) =>
 export async function uiLogin(page: Page, identifier: string, password: string) {
   await page.goto('/login');
   await page.getByLabel('Employee ID or mobile number').fill(identifier);
-  await page.getByLabel('Password').fill(password);
+  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/localhost:3100\/$/);
 }

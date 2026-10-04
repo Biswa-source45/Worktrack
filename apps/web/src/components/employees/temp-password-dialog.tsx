@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { Check, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { AlertNote } from '@/components/alert-note';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,20 +37,16 @@ export function TemporaryPasswordDialog({
         <DialogDescription>
           {value.name} ({value.empCode})
         </DialogDescription>
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm"
-        >
-          {t('temporaryPassword.warning')}
-        </p>
+        <AlertNote>{t('temporaryPassword.warning')}</AlertNote>
         <div className="flex items-center gap-2">
           <code
             aria-label={t('temporaryPassword.label')}
-            className="flex-1 rounded-lg bg-muted px-3 py-2 font-mono text-base select-all"
+            className="flex-1 rounded-md bg-raised px-3 py-2 font-mono text-large select-all"
           >
             {value.password}
           </code>
           <Button variant="outline" onClick={() => void copy()}>
+            {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
             {copied ? t('temporaryPassword.copied') : t('temporaryPassword.copy')}
           </Button>
         </div>

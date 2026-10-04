@@ -1,6 +1,8 @@
 {
   "app": {
-    "title": "WorkTrack Admin"
+    "title": "WorkTrack Admin",
+    "name": "WorkTrack",
+    "tagline": "Attendance and field tasks for your team."
   },
   "common": {
     "cancel": "Cancel",
@@ -21,6 +23,16 @@
     "employees": "Employees",
     "devices": "Devices",
     "logout": "Sign out"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "password": {
+    "show": "Show password",
+    "hide": "Hide password"
   },
   "shell": {
     "noAccess": "You do not have access to any admin screens. Ask your administrator to update your role."

@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { Ellipsis, Plus, Search, TriangleAlert, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
+import { Page, PageHeader } from '@/components/page';
 import { RequirePermission } from '@/components/require-permission';
 import { StatusBadge } from '@/components/status-badge';
-import { Badge } from '@/components/ui/badge';
+import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input, Select } from '@/components/ui/input';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
 import { EmployeeDialog, type TemporaryPassword } from './employee-dialog';
@@ -136,7 +139,12 @@ function EmployeesView() {
       col.accessor('emp_code', { header: t('employees.col.code') }),
       col.accessor('name', {
         header: t('employees.col.name'),
-        cell: ({ getValue }) => truncated(getValue()),
+        cell: ({ getValue }) => (
+          <span className="flex items-center gap-2">
+            <Avatar name={getValue()} />
+            {truncated(getValue())}
+          </span>
+        ),
       }),
       col.accessor('mobile', { header: t('employees.col.mobile') }),
       col.accessor((e) => e.designation.name, {
@@ -167,12 +175,11 @@ function EmployeesView() {
           <span className="flex gap-1">
             <StatusBadge
               testId={`status-${e.status}`}
-              icon={e.status === 'active' ? 'check-circle' : 'minus-circle'}
-              variant={e.status === 'active' ? 'secondary' : 'outline'}
+              tone={e.status === 'active' ? 'success' : 'neutral'}
               label={t(`employees.status.${e.status}`)}
             />
             {e.locked_until && Date.parse(e.locked_until) > now && (
-              <Badge variant="destructive">{t('employees.locked')}</Badge>
+              <StatusBadge tone="danger" icon={TriangleAlert} label={t('employees.locked')} />
             )}
           </span>
         ),
@@ -186,9 +193,9 @@ function EmployeesView() {
               <Button
                 variant="ghost"
                 aria-label={t('employees.actionsFor', { name: e.name })}
-                className="size-11 md:size-9"
+                className="size-11 px-0 md:size-9"
               >
-                <span aria-hidden="true">⋯</span>
+                <Ellipsis aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -217,16 +224,21 @@ function EmployeesView() {
 
   const close = () => setDialog(null);
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto text-2xl font-semibold">{t('employees.title')}</h1>
-        <Input
-          aria-label={t('employees.search')}
-          placeholder={t('employees.search')}
-          className="w-56"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+    <Page>
+      <PageHeader title={t('employees.title')}>
+        <div className="relative">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            aria-label={t('employees.search')}
+            placeholder={t('employees.search')}
+            className="w-64 pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         <Select
           aria-label={t('employees.col.status')}
           className="w-36"
@@ -238,18 +250,22 @@ function EmployeesView() {
           <option value="inactive">{t('employees.status.inactive')}</option>
         </Select>
         <Button variant="outline" onClick={() => setDialog({ kind: 'import' })}>
+          <Upload aria-hidden="true" />
           {t('import.open')}
         </Button>
-        <Button onClick={() => setDialog({ kind: 'form' })}>{t('employees.create')}</Button>
-      </div>
+        <Button onClick={() => setDialog({ kind: 'form' })}>
+          <Plus aria-hidden="true" />
+          {t('employees.create')}
+        </Button>
+      </PageHeader>
 
       {(actionError || list.error) && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-small text-danger">
           {actionError ?? errorMessage(t, list.error)}
         </p>
       )}
       {list.isPending ? (
-        <p>{t('common.loading')}</p>
+        <TableSkeleton />
       ) : (
         <DataTable
           columns={columns}
@@ -309,7 +325,7 @@ function EmployeesView() {
       {temporary && (
         <TemporaryPasswordDialog value={temporary} onClose={() => setTemporary(null)} />
       )}
-    </section>
+    </Page>
   );
 }
 
