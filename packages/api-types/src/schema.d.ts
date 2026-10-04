@@ -377,6 +377,18 @@ export interface components {
             /** Pending Devices */
             pending_devices: number;
         };
+        /**
+         * DeviceConflict
+         * @description The other employee this phone is currently active for.
+         */
+        DeviceConflict: {
+            /** User Id */
+            user_id: number;
+            /** Emp Code */
+            emp_code: string;
+            /** Name */
+            name: string;
+        };
         /** DeviceCounts */
         DeviceCounts: {
             /** Pending */
@@ -445,6 +457,7 @@ export interface components {
              * Format: date-time
              */
             last_seen_at: string;
+            conflict: components["schemas"]["DeviceConflict"] | null;
         };
         /** DevicePage */
         DevicePage: {
@@ -648,6 +661,8 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "pending" | "revoked";
+            /** Pending Reason */
+            pending_reason: "phone_in_use" | null;
         };
         /** MeResponse */
         MeResponse: {

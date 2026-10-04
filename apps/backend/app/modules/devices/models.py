@@ -42,3 +42,10 @@ Index(
     unique=True,
     postgresql_where=text("status = 'pending'"),
 )
+# One employee per phone (D27): a phone is active for at most one account at a time.
+Index(
+    "uq_user_devices_one_active_per_phone",
+    UserDevice.device_id,
+    unique=True,
+    postgresql_where=text("status = 'active'"),
+)

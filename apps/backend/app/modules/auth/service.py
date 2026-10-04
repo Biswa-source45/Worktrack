@@ -6,6 +6,7 @@ from typing import cast
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
@@ -132,10 +133,26 @@ async def register_failure(
     await session.commit()
 
 
+async def phone_holder_id(session: AsyncSession, device_id: str, user_id: int) -> int | None:
+    """The other employee this phone is active for, if any (at most one: unique index)."""
+    return (
+        await session.execute(
+            select(UserDevice.user_id).where(
+                UserDevice.device_id == device_id,
+                UserDevice.user_id != user_id,
+                UserDevice.status == DEVICE_ACTIVE,
+            )
+        )
+    ).scalar_one_or_none()
+
+
 async def _bind_device(
-    session: AsyncSession, user: User, info: DeviceInfo, ctx: AuditCtx
+    session: AsyncSession, user: User, info: DeviceInfo, ctx: AuditCtx, *, retry: bool = True
 ) -> UserDevice:
-    """First device is active at once; any other phone waits as a pending change request."""
+    """First device is active at once; any other phone waits as a pending change request.
+
+    A phone that is active for another employee always waits too: one phone, one employee.
+    """
     current = (
         await session.execute(
             select(UserDevice).where(
@@ -157,7 +174,8 @@ async def _bind_device(
             )
         )
     ).first()
-    status = DEVICE_PENDING if has_active else DEVICE_ACTIVE
+    holder_id = await phone_holder_id(session, info.device_id, user.id)
+    status = DEVICE_PENDING if has_active or holder_id is not None else DEVICE_ACTIVE
     if status == DEVICE_PENDING:
         # A newer request replaces an older pending one.
         stale = (
@@ -185,10 +203,21 @@ async def _bind_device(
         status=status,
         last_seen_at=utcnow(),
     )
-    session.add(device)
-    await session.flush()
+    try:
+        async with session.begin_nested():
+            session.add(device)
+            await session.flush()
+    except IntegrityError:
+        # Lost a race for the phone (or for this account's one active/pending slot): the unique
+        # indexes held. Decide again on what is stored now.
+        if not retry:
+            raise
+        return await _bind_device(session, user, info, ctx, retry=False)
     action = "device.registered" if status == DEVICE_ACTIVE else "device.change_requested"
-    audit.record(session, ctx, action, "user_device", device.id, after={"status": status})
+    after: dict[str, object] = {"status": status}
+    if holder_id is not None:
+        after |= {"reason": "phone_in_use", "conflict_user_id": holder_id}
+    audit.record(session, ctx, action, "user_device", device.id, after=after)
     return device
 
 
@@ -363,5 +392,12 @@ async def build_me(session: AsyncSession, auth: AuthContext) -> MeResponse:
         client=cast(Client, auth.client),
         device=None
         if device is None
-        else MeDevice(id=device.id, status=cast(DeviceStatus, device.status)),
+        else MeDevice(
+            id=device.id,
+            status=cast(DeviceStatus, device.status),
+            pending_reason="phone_in_use"
+            if device.status == DEVICE_PENDING
+            and await phone_holder_id(session, device.device_id, user.id) is not None
+            else None,
+        ),
     )

@@ -7,6 +7,7 @@ from app.modules.employees.schemas import Password, Ref
 
 Client = Literal["web", "mobile"]
 DeviceStatus = Literal["active", "pending", "revoked"]
+PendingReason = Literal["phone_in_use"]
 
 
 class DeviceInfo(BaseModel):
@@ -52,6 +53,8 @@ class TokenResponse(BaseModel):
 class MeDevice(BaseModel):
     id: int
     status: DeviceStatus
+    # Why a pending phone waits, when it is more than a normal phone change.
+    pending_reason: PendingReason | None
 
 
 class MeResponse(BaseModel):
