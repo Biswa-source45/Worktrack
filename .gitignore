@@ -23,3 +23,6 @@ next-env.d.ts
 # face models are downloaded, never committed
 apps/backend/models/*
 !apps/backend/models/.gitkeep
+
+# real places and home coordinates for the local seed, never committed
+apps/backend/seed.local.json
