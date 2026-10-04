@@ -1,6 +1,7 @@
-import { MonitorSmartphone, Smartphone, UsersRound } from '@/components/icons';
+import { Building, MonitorSmartphone, Smartphone, UsersRound } from '@/components/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BranchesSection } from '@/components/admin/branches-section';
 import { DevicesSection } from '@/components/admin/devices-section';
 import { EmployeesSection } from '@/components/admin/employees-section';
 import { SessionsSection } from '@/components/admin/sessions-section';
@@ -18,6 +19,7 @@ const SECTIONS = [
     icon: MonitorSmartphone,
     Section: SessionsSection,
   },
+  { key: 'branches', permission: 'branches.manage', icon: Building, Section: BranchesSection },
 ] as const;
 type SectionKey = (typeof SECTIONS)[number]['key'];
 

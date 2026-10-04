@@ -3,6 +3,7 @@ import { LogOut, Monitor, Moon, Sun } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { HeroDecor } from '@/components/decor/hero-decor';
+import { HomeLocationCard } from '@/components/home-location-card';
 import { MySessionsCard } from '@/components/my-sessions-card';
 import { AppText } from '@/components/ui/app-text';
 import { Avatar } from '@/components/ui/avatar';
@@ -60,7 +61,12 @@ export default function ProfileScreen() {
           ]}
         />
       </Card>
-      {me ? <MySessionsCard /> : null}
+      {me ? (
+        <>
+          <HomeLocationCard />
+          <MySessionsCard />
+        </>
+      ) : null}
       {/* Sign out sits last, low on the screen, in reach of the thumb. */}
       <View style={{ flexGrow: 1, justifyContent: 'flex-end', gap: space[3] }}>
         {info ? (

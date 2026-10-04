@@ -117,7 +117,8 @@
     "sections": {
       "devices": "Devices",
       "employees": "Employees",
-      "sessions": "Sessions"
+      "sessions": "Sessions",
+      "branches": "Branches"
     }
   },
   "devices": {
@@ -174,7 +175,26 @@
     "resetPassword": "Reset password",
     "deactivateConfirm": "Deactivate {{name}}? They will be signed out and cannot sign in again until reactivated.",
     "reactivateConfirm": "Reactivate {{name}}? They will be able to sign in again.",
-    "resetConfirm": "Generate a new temporary password for {{name}}? Their current password stops working and they are signed out."
+    "resetConfirm": "Generate a new temporary password for {{name}}? Their current password stops working and they are signed out.",
+    "homeBranch": "Home branch",
+    "shift": "Shift",
+    "onlyHomeBranch": "Only at home branch",
+    "nextDays": "Next 7 days",
+    "dayKind": {
+      "office": "Office",
+      "home": "Home",
+      "off": "Off"
+    },
+    "dayReason": {
+      "holiday": "Holiday",
+      "schedule": "Weekly schedule",
+      "weekly_off": "Weekly off",
+      "shift": "As per shift"
+    },
+    "homeLocation": "Home location",
+    "homeApproved": "Approved ({{count}} m)",
+    "homePending": "Request pending",
+    "planLoadFailed": "Could not load the schedule and home location."
   },
   "temporaryPassword": {
     "title": "Temporary password",
@@ -221,5 +241,54 @@
       "before_tracking": "Older session",
       "unknown": "Ended"
     }
+  },
+  "location": {
+    "useCurrent": "Use my current location",
+    "errors": {
+      "permission_denied": "WorkTrack may not use your location. Allow location for WorkTrack in your phone's Settings, then try again.",
+      "services_off": "Location is turned off on this phone. Turn it on and try again.",
+      "timeout": "Finding your location took too long. Move to an open area and try again.",
+      "unavailable": "Could not get your location. Please try again."
+    }
+  },
+  "homeLocation": {
+    "title": "Work-from-home location",
+    "loadFailed": "Could not load your work-from-home location.",
+    "notSet": "Not set",
+    "approved": "Approved",
+    "radius_one": "You can punch in within {{count}} metre of this place.",
+    "radius_other": "You can punch in within {{count}} metres of this place.",
+    "pending": "Request pending",
+    "requested": "Requested {{when}}",
+    "rejected": "Your last request was rejected.",
+    "rejectedBecause": "Your last request was rejected: {{reason}}",
+    "intro": "Stand at the place you work from at home. Your admin must approve it.",
+    "sendNew": "Send a new request",
+    "confirm": "Send this place to your admin as your work-from-home location? Accuracy ±{{accuracy}} m",
+    "send": "Send request"
+  },
+  "branches": {
+    "empty": "No branches found.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noAddress": "No address",
+    "address": "Address",
+    "radius": "Radius",
+    "metres": "{{count}} m",
+    "centre": "Centre (latitude, longitude)",
+    "moveTitle": "Move branch centre",
+    "moveConfirm": "Move the centre of {{name}} here? Accuracy ±{{accuracy}} m",
+    "move": "Move centre",
+    "moved": "The branch centre was moved to your location.",
+    "newHere": "New branch here",
+    "newIntro": "Stand at the centre of the new branch, then use your current location.",
+    "name": "Branch name",
+    "addressOptional": "Address (optional)",
+    "radiusOptional": "Radius in metres (optional, 30 to 500)",
+    "nameTooLong": "Use at most 120 characters.",
+    "addressTooLong": "Use at most 255 characters.",
+    "radiusRange": "Enter a whole number from 30 to 500, or leave it empty for the default.",
+    "locationReady": "Location captured. Accuracy ±{{accuracy}} m",
+    "save": "Save branch"
   }
 }

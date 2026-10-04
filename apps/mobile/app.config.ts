@@ -35,6 +35,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'POST_NOTIFICATIONS',
     ],
   },
-  plugins: ['expo-router', 'expo-dev-client'],
+  plugins: [
+    'expo-router',
+    'expo-dev-client',
+    // The usage strings and permissions above stay as written: the plugin reuses the Info.plist
+    // strings it finds and only adds the fine and coarse location permissions already listed.
+    // The two keys it would add on its own (the old "always" string, motion) are switched off.
+    ['expo-location', { locationAlwaysPermission: false, motionUsagePermission: false }],
+  ],
   experiments: { typedRoutes: true },
 });

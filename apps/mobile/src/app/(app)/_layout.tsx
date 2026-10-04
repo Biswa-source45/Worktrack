@@ -88,7 +88,8 @@ export default function AppLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { me } = useAuth();
-  const admin = can(me, 'devices.manage') || can(me, 'employees.manage');
+  const admin =
+    can(me, 'devices.manage') || can(me, 'employees.manage') || can(me, 'branches.manage');
 
   return (
     <Tabs

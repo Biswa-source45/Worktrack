@@ -16,3 +16,10 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => '11111111-2222-3333-4444-555555555555'),
 }));
 jest.mock('expo-system-ui', () => ({ setBackgroundColorAsync: jest.fn(() => Promise.resolve()) }));
+// No GPS in Jest: each test scripts the permission, the services switch and the position.
+jest.mock('expo-location', () => ({
+  Accuracy: { Highest: 5 },
+  requestForegroundPermissionsAsync: jest.fn(),
+  hasServicesEnabledAsync: jest.fn(),
+  getCurrentPositionAsync: jest.fn(),
+}));

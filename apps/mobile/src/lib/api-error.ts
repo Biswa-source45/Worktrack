@@ -37,12 +37,16 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code: string,
     message: string,
+    /** What the server attached to the error, such as the fields a 422 refused. */
+    readonly details?: unknown,
   ) {
     super(message);
   }
 }
 
-const serverError = z.object({ error: z.object({ code: z.string(), message: z.string() }) });
+const serverError = z.object({
+  error: z.object({ code: z.string(), message: z.string(), details: z.unknown().optional() }),
+});
 
 /** Resolves to the data of an api call; a failed call throws the server's own error. */
 export async function unwrap<T>(
@@ -51,9 +55,9 @@ export async function unwrap<T>(
   const { data, error, response } = await call;
   if (response.ok) return data as T;
   const parsed = serverError.safeParse(error);
-  throw parsed.success
-    ? new ApiError(response.status, parsed.data.error.code, parsed.data.error.message)
-    : new ApiError(response.status, `HTTP_${response.status}`, '');
+  if (!parsed.success) throw new ApiError(response.status, `HTTP_${response.status}`, '');
+  const { code, message, details } = parsed.data.error;
+  throw new ApiError(response.status, code, message, details);
 }
 
 /** The server's message for a failed admin or session call (403, 409 and so on). */

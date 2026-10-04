@@ -23,6 +23,7 @@ function signInWith(permissions: string[]) {
     'GET /api/v1/admin/sessions': () =>
       Response.json({ ...EMPTY, counts: { active: 0, ended: 0 } }),
     'GET /api/v1/admin/employees': () => Response.json(EMPTY),
+    'GET /api/v1/admin/branches': () => Response.json(EMPTY),
     'GET /api/v1/me/sessions': () => Response.json([]),
     'POST /api/v1/auth/logout': () => new Response(null, { status: 204 }),
   });
@@ -132,6 +133,48 @@ describe('Admin tab', () => {
     expect(await screen.findByText('No employees found.')).toBeOnTheScreen();
     expect(chosen('Employees')).toBe(true);
     expect(screen.getByLabelText('Search by name, code or mobile')).toBeOnTheScreen();
+  });
+
+  it('exists with only branches.manage and offers only Branches', async () => {
+    signInWith(['branches.manage']);
+    await openApp();
+    expect(screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel)).toEqual([
+      'Home',
+      'Profile & Settings',
+      'Admin',
+    ]);
+    await fireEvent.press(tab('Admin'));
+
+    expect(await screen.findByRole('header', { name: 'Branches' })).toBeOnTheScreen();
+    expect(await screen.findByText('No branches found.')).toBeOnTheScreen();
+    for (const name of ['Devices', 'Employees', 'Sessions', 'Branches']) {
+      expect(screen.queryByRole('button', { name })).toBeNull();
+    }
+    expect(adminCalls().every((call) => call.url.includes('/admin/branches'))).toBe(true);
+  });
+
+  it('adds Branches as the last section next to the others', async () => {
+    signInWith(['devices.manage', 'employees.manage', 'branches.manage']);
+    await openApp();
+    await fireEvent.press(tab('Admin'));
+    await screen.findByText('No devices found.');
+    for (const name of ['Devices', 'Employees', 'Sessions', 'Branches']) {
+      expect(segment(name)).toHaveStyle({ minHeight: 48 });
+    }
+    expect(adminCalls().some((call) => call.url.includes('/admin/branches'))).toBe(false);
+
+    await fireEvent.press(segment('Branches'));
+    expect(await screen.findByText('No branches found.')).toBeOnTheScreen();
+    expect(chosen('Branches')).toBe(true);
+  });
+
+  it('offers no Branches section without branches.manage', async () => {
+    signInWith(['devices.manage', 'employees.manage']);
+    await openApp();
+    await fireEvent.press(tab('Admin'));
+    await screen.findByText('No devices found.');
+    expect(screen.queryByRole('button', { name: 'Branches' })).toBeNull();
+    expect(adminCalls().some((call) => call.url.includes('/admin/branches'))).toBe(false);
   });
 
   it('keeps an employee page closed to an admin who only manages devices', async () => {

@@ -1,6 +1,7 @@
 // Icons are imported one file each: the package's index pulls every lucide icon (about 1,900)
 // into the bundle, because Metro does not drop unused exports. Add new icons here.
 export { default as ArrowLeft } from 'lucide-react-native/icons/arrow-left';
+export { default as Building } from 'lucide-react-native/icons/building';
 export { default as ChevronRight } from 'lucide-react-native/icons/chevron-right';
 export { default as CircleCheck } from 'lucide-react-native/icons/circle-check';
 export { default as CircleMinus } from 'lucide-react-native/icons/circle-minus';
@@ -14,6 +15,8 @@ export { default as KeyRound } from 'lucide-react-native/icons/key-round';
 export { default as Lock } from 'lucide-react-native/icons/lock';
 export { default as LockOpen } from 'lucide-react-native/icons/lock-open';
 export { default as LogOut } from 'lucide-react-native/icons/log-out';
+export { default as MapPin } from 'lucide-react-native/icons/map-pin';
+export { default as MapPinPlus } from 'lucide-react-native/icons/map-pin-plus';
 export { default as Monitor } from 'lucide-react-native/icons/monitor';
 export { default as MonitorSmartphone } from 'lucide-react-native/icons/monitor-smartphone';
 export { default as Moon } from 'lucide-react-native/icons/moon';

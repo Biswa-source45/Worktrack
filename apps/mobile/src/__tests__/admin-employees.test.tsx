@@ -9,6 +9,8 @@ type Routes = Parameters<typeof mockApi>[0];
 
 const LIST = 'GET /api/v1/admin/employees';
 const ONE = 'GET /api/v1/admin/employees/1';
+const SCHEDULE = 'GET /api/v1/admin/employees/1/schedule';
+const HOME = 'GET /api/v1/admin/employees/1/home-location';
 const SEARCH = 'Search by name, code or mobile';
 const WARNING =
   'Share this temporary password with the employee securely. It is shown only once and cannot be retrieved later. The employee must change it at first sign in.';
@@ -47,6 +49,47 @@ function page(request: Request) {
 
 const one = () => Response.json(employees.find((employee) => employee.id === 1));
 
+// The seven days the screen asked for: a weekly off, a holiday, one day at home, the rest at office.
+function schedule(request: Request) {
+  const from = new Date(new URL(request.url).searchParams.get('from')!).getTime();
+  const plans = [
+    ['off', 'weekly_off'],
+    ['off', 'holiday'],
+    ['home', 'schedule'],
+    ['office', 'schedule'],
+    ['office', 'shift'],
+    ['office', 'schedule'],
+    ['office', 'schedule'],
+  ];
+  return Response.json({
+    rows: [],
+    resolved: plans.map(([kind, reason], index) => ({
+      date: new Date(from + index * 86_400_000).toISOString().slice(0, 10),
+      kind,
+      reason,
+    })),
+  });
+}
+
+const APPROVED_HOME = {
+  id: 31,
+  lat: 20.123456,
+  lng: 85.654321,
+  radius_m: 100,
+  source: 'request',
+  decided_at: '2026-10-02T06:00:00Z',
+};
+const PENDING_HOME = {
+  id: 32,
+  lat: 20.987654,
+  lng: 85.456789,
+  radius_m: 100,
+  accuracy_m: 14,
+  created_at: '2026-10-04T09:12:00Z',
+};
+const homeLocation = (approved: unknown, pending: unknown) => () =>
+  Response.json({ approved, pending });
+
 function change(over: Record<string, unknown>) {
   employees = employees.map((employee) =>
     employee.id === 1 ? { ...employee, ...over } : employee,
@@ -61,6 +104,8 @@ function signIn(routes: Routes = {}) {
     'POST /api/v1/auth/logout': () => new Response(null, { status: 204 }),
     [LIST]: page,
     [ONE]: one,
+    [SCHEDULE]: schedule,
+    [HOME]: homeLocation(APPROVED_HOME, null),
     ...routes,
   });
 }
@@ -365,6 +410,132 @@ describe('Admin employees', () => {
       expect(await dialog().findByText('You may not manage this employee.')).toBeOnTheScreen();
       expect(screen.queryByTestId('temp-password')).toBeNull();
       await fireEvent.press(dialog().getByRole('button', { name: 'Cancel' }));
+    });
+
+    it('shows the home branch and the shift, and no branch restriction by default', async () => {
+      signIn();
+      await openAsha();
+      expect(screen.getByText('Home branch')).toBeOnTheScreen();
+      expect(screen.getByText('Head Office')).toBeOnTheScreen();
+      expect(screen.getByText('Shift')).toBeOnTheScreen();
+      expect(screen.getByText('General')).toBeOnTheScreen();
+      expect(screen.queryByText('Only at home branch')).toBeNull();
+    });
+
+    it('says Not set without a home branch or shift, and shows the branch restriction', async () => {
+      change({
+        email: 'asha@example.com',
+        home_branch: null,
+        shift: null,
+        restrict_to_home_branch: true,
+      });
+      signIn();
+      await openAsha();
+      expect(screen.getAllByText('Not set')).toHaveLength(2);
+      expect(screen.getByText('Only at home branch')).toBeOnTheScreen();
+      // Field-eligible and the restriction.
+      expect(screen.getAllByText('Yes')).toHaveLength(2);
+    });
+
+    it('lists the next 7 days from today in IST with the kind and the reason', async () => {
+      signIn();
+      await openAsha();
+      expect(await screen.findByRole('header', { name: 'Next 7 days' })).toBeOnTheScreen();
+
+      const asked = new URL(
+        sent('GET').find((call) => call.url.includes('/employees/1/schedule'))!.url,
+      ).searchParams;
+      const from = asked.get('from')!;
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(
+        new Date(),
+      );
+      expect(from).toBe(today);
+      const day = (index: number) =>
+        new Date(new Date(from).getTime() + index * 86_400_000).toISOString().slice(0, 10);
+      expect(asked.get('to')).toBe(day(6));
+
+      const expected = [
+        ['Off', 'Weekly off'],
+        ['Off', 'Holiday'],
+        ['Home', 'Weekly schedule'],
+        ['Office', 'Weekly schedule'],
+        ['Office', 'As per shift'],
+        ['Office', 'Weekly schedule'],
+        ['Office', 'Weekly schedule'],
+      ];
+      for (const [index, [kind, reason]] of expected.entries()) {
+        const row = within(screen.getByTestId(`day-${day(index)}`));
+        expect(row.getByText(kind)).toBeOnTheScreen();
+        expect(row.getByText(reason)).toBeOnTheScreen();
+        const label = new Intl.DateTimeFormat('en-IN', {
+          timeZone: 'UTC',
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        }).format(new Date(day(index)));
+        expect(row.getByText(label)).toBeOnTheScreen();
+      }
+    });
+
+    it.each([
+      ['Approved (100 m)', APPROVED_HOME, null],
+      ['Request pending', null, PENDING_HOME],
+      ['Approved (100 m) · Request pending', APPROVED_HOME, PENDING_HOME],
+      ['Not set', null, null],
+    ])(
+      'shows the home location as "%s" and never its coordinates',
+      async (status, approved, pending) => {
+        change({ email: 'asha@example.com' });
+        signIn({ [HOME]: homeLocation(approved, pending) });
+        await openAsha();
+        expect(await screen.findByText('Home location')).toBeOnTheScreen();
+        expect(screen.getByText(status)).toBeOnTheScreen();
+        expect(screen.queryByText(/20\.\d|85\.\d/)).toBeNull();
+        expect(screen.queryByText(/123456|654321|987654|456789/)).toBeNull();
+      },
+    );
+
+    it('hides the schedule and the home location quietly when the viewer may not manage the employee', async () => {
+      const forbidden = () => failure(403, 'FORBIDDEN', 'You may not manage this employee.');
+      signIn({ [SCHEDULE]: forbidden, [HOME]: forbidden });
+      await openAsha();
+      await waitFor(() =>
+        expect(sent('GET').some((call) => call.url.includes('/home-location'))).toBe(true),
+      );
+      await waitFor(() => expect(screen.queryByLabelText('Loading...')).toBeNull());
+      expect(screen.queryByText('Next 7 days')).toBeNull();
+      expect(screen.queryByText('Home location')).toBeNull();
+      expect(screen.queryByText('You may not manage this employee.')).toBeNull();
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull();
+      // The rest of the page is untouched.
+      expect(screen.getByText('Head Office')).toBeOnTheScreen();
+      expect(button('Reset password')).toBeOnTheScreen();
+    });
+
+    it('keeps the home location when only the schedule is closed to the viewer', async () => {
+      signIn({ [SCHEDULE]: () => failure(403, 'FORBIDDEN', 'You may not manage this employee.') });
+      await openAsha();
+      expect(await screen.findByText('Approved (100 m)')).toBeOnTheScreen();
+      expect(screen.queryByText('Next 7 days')).toBeNull();
+      expect(screen.queryByRole('alert')).toBeNull();
+    });
+
+    it('offers Retry when the schedule fails for another reason', async () => {
+      let fail = true;
+      signIn({
+        [SCHEDULE]: (request) =>
+          fail ? failure(500, 'INTERNAL', 'The server had a problem.') : schedule(request),
+      });
+      await openAsha();
+      expect(
+        await screen.findByText('Could not load the schedule and home location.'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Approved (100 m)')).toBeOnTheScreen();
+      fail = false;
+      await fireEvent.press(button('Retry'));
+      expect(await screen.findByRole('header', { name: 'Next 7 days' })).toBeOnTheScreen();
+      expect(screen.queryByText('Could not load the schedule and home location.')).toBeNull();
     });
 
     it('shows the server message with Retry when the employee cannot be loaded', async () => {
