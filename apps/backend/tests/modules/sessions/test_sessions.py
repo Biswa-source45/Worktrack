@@ -4,10 +4,12 @@ from datetime import timedelta
 from typing import Any
 
 import httpx
-from sqlalchemy import select, update
+from sqlalchemy import event, select, update
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import utcnow
+from app.core.config import Settings
+from app.core.security import create_access_token, utcnow
 from app.modules.auth.models import AuthSession, RefreshToken
 from app.modules.devices.models import UserDevice
 from app.modules.employees.models import User
@@ -395,3 +397,140 @@ async def test_the_worker_runs_the_purge_every_day() -> None:
     assert job.coroutine is purge_sessions
     assert (job.hour, job.minute) == (21, 30)
     assert await purge_sessions({}) >= 0
+
+
+# --- an ended session stops working at once ---------------------------------------------------
+
+
+async def _status(client: httpx.AsyncClient, tokens: Tokens, path: str = "/me") -> int:
+    return (await client.get(f"{API}{path}", headers=_bearer(tokens))).status_code
+
+
+async def test_a_session_signed_out_by_an_admin_is_refused_on_its_very_next_call(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    user = await make_user(db, ADMIN)
+    tokens = await _web(client, user)
+    other = await _web(client, user, SAFARI)
+    _, headers = await actor(client, db, SUPER_ADMIN)
+    assert await _status(client, tokens) == 200  # the access token is fresh: 15 minutes to run
+
+    newer, older = await _of(client, headers, user)
+    assert (
+        await client.post(f"{SESSIONS}/{older['id']}/revoke", headers=headers)
+    ).status_code == 200
+
+    response = await client.get(f"{API}/me", headers=_bearer(tokens))
+    assert response.status_code == 401
+    assert error_code(response) == "INVALID_TOKEN"
+    assert await _status(client, tokens, "/admin/employees") == 401
+    assert await _status(client, tokens, "/me/sessions") == 401
+    # The same user's other sign-in keeps working.
+    assert await _status(client, other) == 200
+    assert newer["status"] == "active"
+
+
+async def test_logout_and_sign_out_others_end_access_at_once(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    user = await make_user(db, ADMIN)
+    here, elsewhere, gone = (
+        await _web(client, user),
+        await _web(client, user),
+        await _web(client, user),
+    )
+
+    await client.post(f"{API}/auth/logout", json={"refresh_token": gone["refresh_token"]})
+    assert await _status(client, gone) == 401
+
+    assert (await client.post(f"{MINE}/revoke-others", headers=_bearer(here))).json() == {
+        "revoked": 1
+    }
+    assert await _status(client, elsewhere) == 401
+    assert await _status(client, here) == 200
+
+
+async def test_a_password_reset_ends_access_at_once(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    user = await make_user(db, ADMIN)
+    tokens = await _web(client, user)
+    _, headers = await actor(client, db, SUPER_ADMIN)
+    assert (
+        await client.post(f"{API}/admin/employees/{user.id}/reset-password", headers=headers)
+    ).status_code == 200
+    assert await _status(client, tokens) == 401
+
+
+async def test_a_revoked_phone_can_only_read_why_it_stopped(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    user = await make_user(db, ADMIN)
+    tokens = await _mobile(client, user)
+    _, headers = await actor(client, db, SUPER_ADMIN)
+    phone = (
+        await client.get(f"{API}/admin/devices", params={"user_id": user.id}, headers=headers)
+    ).json()["items"][0]
+    await client.patch(
+        f"{API}/admin/devices/{phone['id']}", json={"action": "revoke"}, headers=headers
+    )
+
+    # /me still answers, so the app can say "this phone is no longer approved"...
+    me = await client.get(f"{API}/me", headers=_bearer(tokens))
+    assert me.status_code == 200
+    assert me.json()["device"]["status"] == "revoked"
+    # ...and nothing else does.
+    assert await _status(client, tokens, "/me/sessions") == 401
+    assert await _status(client, tokens, "/admin/employees") == 401
+    assert await _status(client, tokens, "/admin/devices") == 401
+
+
+async def test_a_token_without_a_session_is_refused(
+    client: httpx.AsyncClient, db: AsyncSession, settings: Settings
+) -> None:
+    user = await make_user(db, ADMIN)
+    for session_id in (None, "00000000-0000-0000-0000-000000000000"):
+        token, _ = create_access_token(
+            settings, user_id=user.id, device_row_id=None, client="web", session_id=session_id
+        )
+        response = await client.get(f"{API}/me", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 401
+        assert error_code(response) == "INVALID_TOKEN"
+
+
+async def test_a_session_cannot_be_used_by_another_user(
+    client: httpx.AsyncClient, db: AsyncSession, settings: Settings
+) -> None:
+    owner, intruder = await make_user(db, ADMIN), await make_user(db, ADMIN)
+    await _web(client, owner)
+    family = (
+        await db.execute(select(AuthSession.family_id).where(AuthSession.user_id == owner.id))
+    ).scalar_one()
+    token, _ = create_access_token(
+        settings, user_id=intruder.id, device_row_id=None, client="web", session_id=str(family)
+    )
+    response = await client.get(f"{API}/me", headers={"Authorization": f"Bearer {token}"})
+    assert response.status_code == 401
+
+
+async def test_checking_the_session_costs_no_extra_query(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    """The user and their session are read in one statement on every authenticated request."""
+    user = await make_user(db, ADMIN)
+    headers = _bearer(await _web(client, user))
+    statements: list[str] = []
+
+    def record(_conn: object, _cursor: object, statement: str, *_: object) -> None:
+        if not statement.startswith(("SAVEPOINT", "RELEASE")):
+            statements.append(statement)
+
+    event.listen(Engine, "before_cursor_execute", record)
+    try:
+        db.expunge_all()  # production opens a fresh session per request
+        assert (await client.get(f"{API}/admin/roles", headers=headers)).status_code == 200
+    finally:
+        event.remove(Engine, "before_cursor_execute", record)
+    authentication, endpoint = statements
+    assert "FROM users" in authentication and "auth_sessions" in authentication
+    assert "FROM roles" in endpoint

@@ -26,7 +26,7 @@ def _is_active(now: datetime) -> ColumnElement[bool]:
 
 
 def _out(
-    row: AuthSession, user: User, device: UserDevice | None, now: datetime, current: str | None
+    row: AuthSession, user: User, device: UserDevice | None, now: datetime, current: str
 ) -> SessionOut:
     expired = row.ended_at is None and row.expires_at <= now
     return SessionOut(
@@ -44,7 +44,7 @@ def _out(
         status="ended" if row.ended_at is not None or expired else "active",
         ended_at=row.expires_at if expired else row.ended_at,
         end_reason=END_EXPIRED if expired else row.end_reason,
-        current=current is not None and str(row.family_id) == current,
+        current=str(row.family_id) == current,
     )
 
 
@@ -129,9 +129,6 @@ async def list_own(session: AsyncSession, auth: AuthContext) -> list[SessionOut]
 
 async def revoke_others(session: AsyncSession, auth: AuthContext, ctx: AuditCtx) -> int:
     """Sign the user out everywhere except the session making this request."""
-    if auth.session_id is None:
-        # A token from before sessions existed cannot say which session to keep.
-        raise AppError("CONFLICT", "Sign in again to manage your sessions.", 409)
     families = (
         (
             await session.execute(
