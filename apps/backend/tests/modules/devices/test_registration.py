@@ -139,12 +139,17 @@ async def test_a_revoked_phone_logging_in_again_is_a_new_request(
     ]
 
 
-async def test_each_user_has_their_own_device_rows(
+async def test_a_phone_is_active_for_only_one_employee(
     client: httpx.AsyncClient, db: AsyncSession
 ) -> None:
+    # Details of the rule (D27) are covered in test_phone_conflict.py.
     alice, bob = await make_user(db), await make_user(db)
     assert (await _mobile_login(client, alice, 1))["device_status"] == "active"
-    assert (await _mobile_login(client, bob, 1))["device_status"] == "active"
+    waiting = await _mobile_login(client, bob, 1)
+    assert waiting["device_status"] == "pending"
+    assert (await _me(client, waiting))["device"]["pending_reason"] == "phone_in_use"
+    # A free phone of his own is still active at once.
+    assert (await _mobile_login(client, bob, 2))["device_status"] == "active"
 
 
 async def test_web_login_creates_no_device(client: httpx.AsyncClient, db: AsyncSession) -> None:

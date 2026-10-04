@@ -1,6 +1,8 @@
 {
   "app": {
-    "title": "WorkTrack Admin"
+    "title": "WorkTrack Admin",
+    "name": "WorkTrack",
+    "tagline": "Attendance and field tasks for your team."
   },
   "common": {
     "cancel": "Cancel",
@@ -20,7 +22,18 @@
     "label": "Main",
     "employees": "Employees",
     "devices": "Devices",
+    "sessions": "Sessions",
     "logout": "Sign out"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "password": {
+    "show": "Show password",
+    "hide": "Hide password"
   },
   "shell": {
     "noAccess": "You do not have access to any admin screens. Ask your administrator to update your role."
@@ -157,6 +170,8 @@
     "reject": "Reject",
     "revoke": "Revoke",
     "approveConfirm": "Approve {{model}} for {{name}}? This revokes the employee's current phone, which is signed out at once.",
+    "approveConflictConfirm": "Approve {{model}} for {{name}}? This phone is active for {{other}} ({{code}}): their access on it is revoked and they are signed out at once. {{name}}'s current phone, if any, is revoked too.",
+    "conflict": "This phone is already active for {{name}} ({{code}})",
     "rejectConfirm": "Reject the request for {{model}} from {{name}}?",
     "revokeConfirm": "Revoke {{model}} for {{name}}? The phone is signed out and cannot punch in.",
     "status": {
@@ -173,6 +188,57 @@
       "status": "Status",
       "actions": "Actions",
       "lastSeen": "Last seen (IST)"
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "empty": {
+      "all": "No sessions found.",
+      "active": "No active sessions found.",
+      "ended": "No ended sessions found."
+    },
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "type": {
+      "all": "All types",
+      "web": "Web",
+      "mobile": "Mobile"
+    },
+    "col": {
+      "employee": "Employee",
+      "type": "Type",
+      "device": "Browser / phone",
+      "os": "OS",
+      "ip": "IP",
+      "signedIn": "Signed in (IST)",
+      "lastSeen": "Last seen (IST)",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "unknownBrowser": "Unknown browser",
+    "notRecorded": "Not recorded",
+    "current": "This session",
+    "signOut": "Sign out",
+    "signOutOf": "Sign out session of {{name}}",
+    "signOutTitle": "Sign out this session",
+    "signOutConfirm": "Sign out {{name}} on {{device}}? They must sign in again to continue.",
+    "signOutSelf": "This is the session you are using now: you will be signed out yourself.",
+    "reason": {
+      "signed_out": "Signed out",
+      "revoked_by_admin": "Signed out by an admin",
+      "signed_out_elsewhere": "Signed out from another session",
+      "password_changed": "Password changed",
+      "password_reset": "Password reset by an admin",
+      "device_revoked": "Phone revoked",
+      "device_replaced": "Phone replaced",
+      "account_changed": "Account changed",
+      "token_reuse": "Security: reused token",
+      "expired": "Expired",
+      "before_tracking": "Ended before tracking",
+      "other": "Ended"
     }
   },
   "health": {

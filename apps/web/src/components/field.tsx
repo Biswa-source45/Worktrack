@@ -8,11 +8,11 @@ type Props = { id: string; label: string; error?: string; children: ReactNode };
 export function Field({ id, label, error, children }: Props) {
   const { t } = useTranslation();
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       {children}
       {error && (
-        <p id={`${id}-error`} role="alert" className="text-xs text-destructive">
+        <p id={`${id}-error`} role="alert" className="text-caption text-danger">
           {t(error)}
         </p>
       )}

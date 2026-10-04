@@ -27,6 +27,10 @@ async function fetchMe() {
   return data;
 }
 
+/** Only decides what the app offers; the server checks the permission on every call. */
+export const can = (me: Me | undefined, permission: string) =>
+  me?.permissions.includes(permission) ?? false;
+
 /** Which route group the signed-in state allows; the root layout turns these into route guards. */
 export function sessionGuards(status: AuthStatus, me: Me | undefined) {
   const signedIn = status === 'signedIn';

@@ -20,7 +20,11 @@ async function call<T>(method: string, path: string, token?: string, body?: Json
   return (response.status === 204 ? undefined : await response.json()) as T;
 }
 
-export type Tokens = { access_token: string; must_change_password: boolean };
+export type Tokens = {
+  access_token: string;
+  refresh_token: string;
+  must_change_password: boolean;
+};
 export type Device = { device_id: string; model: string; os: string; app_version: string };
 export type Counts = { pending: number; active: number; revoked: number };
 export type Dashboard = {
@@ -62,12 +66,16 @@ export const uniqueMobile = () => `9${String(randomInt(0, 1_000_000_000)).padSta
 export const uniqueSuffix = () =>
   `${Date.now().toString(36).toUpperCase()}${randomBytes(2).toString('hex').toUpperCase()}`;
 
-export async function createEmployee(token: string, name?: string): Promise<Created> {
+export async function createEmployee(
+  token: string,
+  name?: string,
+  roleName = 'Office Employee',
+): Promise<Created> {
   const [designations, roles] = await Promise.all([
     call<{ id: number }[]>('GET', '/admin/masters/designations', token),
     call<{ id: number; name: string }[]>('GET', '/admin/roles', token),
   ]);
-  const role = roles.find((r) => r.name === 'Office Employee');
+  const role = roles.find((r) => r.name === roleName);
   if (!role || designations.length === 0) throw new Error('Seed roles or designations missing');
 
   const code = `EMP${uniqueSuffix()}`;
@@ -101,6 +109,25 @@ export const dashboard = (token: string) => call<Dashboard>('GET', '/admin/dashb
 export const deviceCounts = async (token: string) =>
   (await call<{ counts: Counts }>('GET', '/admin/devices?limit=1', token)).counts;
 
+export const sessionCounts = async (token: string) =>
+  (
+    await call<{ counts: { active: number; ended: number } }>(
+      'GET',
+      '/admin/sessions?limit=1',
+      token,
+    )
+  ).counts;
+
+/** HTTP status of trying to refresh with this token (401 once its session is over). */
+export const refreshStatus = async (refreshToken: string) =>
+  (
+    await fetch(`${API}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    })
+  ).status;
+
 export const listEmployees = (token: string, q: string) =>
   call<{ items: { emp_code: string }[] }>(
     'GET',
@@ -111,7 +138,7 @@ export const listEmployees = (token: string, q: string) =>
 export async function uiLogin(page: Page, identifier: string, password: string) {
   await page.goto('/login');
   await page.getByLabel('Employee ID or mobile number').fill(identifier);
-  await page.getByLabel('Password').fill(password);
+  await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/localhost:3100\/$/);
 }

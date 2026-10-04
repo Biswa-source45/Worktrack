@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { TriangleAlert } from '@/components/icons';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Button, ScrollView, Text } from 'react-native';
 import { z } from 'zod';
-import { FormField } from '@/components/form-field';
+import { AuthShell } from '@/components/auth-shell';
+import { Banner } from '@/components/ui/banner';
+import { Button } from '@/components/ui/button';
+import { PasswordField } from '@/components/ui/password-field';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/api-error';
 import { useAuth } from '@/lib/auth';
@@ -58,38 +61,35 @@ export default function ChangePasswordScreen() {
   });
 
   return (
-    <ScrollView
-      contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 16, padding: 24 }}
-      keyboardShouldPersistTaps="handled"
+    <AuthShell
+      title={t('changePassword.title')}
+      intro={t('changePassword.intro')}
+      footer={
+        <Button
+          label={t('changePassword.submit')}
+          onPress={() => void submit()}
+          loading={isSubmitting}
+        />
+      }
     >
-      <Text accessibilityRole="header" style={{ fontSize: 28, fontWeight: '600' }}>
-        {t('changePassword.title')}
-      </Text>
-      <Text>{t('changePassword.intro')}</Text>
       {FIELDS.map(({ name, label }) => (
         <Controller
           key={name}
           control={control}
           name={name}
           render={({ field }) => (
-            <FormField
+            <PasswordField
               label={t(label)}
               error={errors[name] && t(errors[name].message ?? 'validation.required')}
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
-              secureTextEntry
-              textContentType={name === 'current' ? 'password' : 'newPassword'}
+              kind={name === 'current' ? 'current' : 'new'}
             />
           )}
         />
       ))}
-      {failure ? <Text style={{ color: '#b00020' }}>{failure}</Text> : null}
-      {isSubmitting ? (
-        <ActivityIndicator />
-      ) : (
-        <Button title={t('changePassword.submit')} onPress={() => void submit()} />
-      )}
-    </ScrollView>
+      {failure ? <Banner status="danger" icon={TriangleAlert} message={failure} /> : null}
+    </AuthShell>
   );
 }

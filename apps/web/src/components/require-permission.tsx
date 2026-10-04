@@ -2,7 +2,18 @@
 
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { EmptyState } from '@/components/empty-state';
+import { Card } from '@/components/ui/card';
 import { useMe } from '@/lib/me';
+
+export function NoAccess() {
+  const { t } = useTranslation();
+  return (
+    <Card>
+      <EmptyState text={t('shell.noAccess')} />
+    </Card>
+  );
+}
 
 // The server enforces every permission; this only keeps people off screens they cannot use.
 export function RequirePermission({
@@ -12,9 +23,8 @@ export function RequirePermission({
   permission: string;
   children: ReactNode;
 }) {
-  const { t } = useTranslation();
   const { data } = useMe();
   if (!data) return null;
-  if (!data.permissions.includes(permission)) return <p>{t('shell.noAccess')}</p>;
+  if (!data.permissions.includes(permission)) return <NoAccess />;
   return children;
 }

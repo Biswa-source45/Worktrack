@@ -2,7 +2,9 @@
 
 import { useState, type ChangeEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { CircleCheck, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { AlertNote } from '@/components/alert-note';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -39,14 +42,7 @@ async function upload(file: File, dryRun: boolean): Promise<ImportResult> {
 
 function PasswordWarning() {
   const { t } = useTranslation();
-  return (
-    <p
-      role="alert"
-      className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm"
-    >
-      {t('import.passwordWarning')}
-    </p>
-  );
+  return <AlertNote>{t('import.passwordWarning')}</AlertNote>;
 }
 
 // Credentials exist only in this component's state; closing the dialog unmounts and drops them.
@@ -94,7 +90,10 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
 
         {done ? (
           <>
-            <p>{t('import.created', { count: done.created })}</p>
+            <p className="flex items-center gap-2 font-medium text-success">
+              <CircleCheck aria-hidden="true" className="size-5 shrink-0" />
+              <span>{t('import.created', { count: done.created })}</span>
+            </p>
             <PasswordWarning />
             <Table>
               <TableHeader>
@@ -121,6 +120,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
                   downloadCsv('employee-credentials.csv', credentialsCsv(done.credentials))
                 }
               >
+                <Download aria-hidden="true" />
                 {t('import.downloadCsv')}
               </Button>
               <Button onClick={onClose}>{t('common.close')}</Button>
@@ -128,13 +128,16 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
           </>
         ) : (
           <>
-            <a href={TEMPLATE_URL} download className="text-sm underline">
+            <a
+              href={TEMPLATE_URL}
+              download
+              className="inline-flex items-center gap-1.5 justify-self-start rounded-sm text-small font-medium text-primary-text underline underline-offset-4"
+            >
+              <Download aria-hidden="true" className="size-4" />
               {t('import.downloadTemplate')}
             </a>
             <div className="grid gap-1.5">
-              <label htmlFor="import-file" className="text-sm font-medium">
-                {t('import.file')}
-              </label>
+              <Label htmlFor="import-file">{t('import.file')}</Label>
               <Input
                 id="import-file"
                 type="file"
@@ -144,7 +147,7 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
               />
             </div>
             {error && (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" className="text-small text-danger">
                 {error}
               </p>
             )}

@@ -37,10 +37,15 @@ export function clearTokens(response: NextResponse) {
   response.cookies.set(REFRESH_COOKIE, '', cookieOptions(0));
 }
 
-// The backend's per-IP login limit must see the real client, not this server.
+// The backend's per-IP login limit and its sessions list must see the real client (address and
+// browser), not this server.
 export function forwardedFor(request: NextRequest): Record<string, string> {
-  const value = request.headers.get('x-forwarded-for');
-  return value ? { 'x-forwarded-for': value } : {};
+  const headers: Record<string, string> = {};
+  for (const name of ['x-forwarded-for', 'user-agent']) {
+    const value = request.headers.get(name);
+    if (value) headers[name] = value;
+  }
+  return headers;
 }
 
 function clientHeaders(request: NextRequest, token: string): Record<string, string> {

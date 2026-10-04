@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { cleanup, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { makeMe } from '@/test/fixtures';
@@ -38,6 +38,22 @@ describe('AppShell', () => {
     shell(makeMe());
     expect(await screen.findByRole('link', { name: 'Devices' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Employees' })).toBeInTheDocument();
+  });
+
+  it('shows Sessions only with the devices.manage permission', async () => {
+    shell(makeMe());
+    const sessions = await screen.findByRole('link', { name: 'Sessions' });
+    expect(sessions).toHaveAttribute('href', '/sessions');
+    expect(
+      within(screen.getByRole('navigation'))
+        .getAllByRole('link')
+        .map((a) => a.textContent),
+    ).toEqual(['Employees', 'Devices', 'Sessions']);
+    cleanup();
+
+    shell(makeMe({ permissions: ['web.access', 'employees.manage'] }));
+    expect(await screen.findByRole('link', { name: 'Employees' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Sessions' })).not.toBeInTheDocument();
   });
 
   it('tells a user with neither permission that there is no access', async () => {

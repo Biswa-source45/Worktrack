@@ -35,7 +35,13 @@ const backendTokens = {
   device_status: null,
 };
 
-type Sent = { url: string; auth: string | null; body: string; forwardedFor: string | null };
+type Sent = {
+  url: string;
+  auth: string | null;
+  body: string;
+  forwardedFor: string | null;
+  userAgent: string | null;
+};
 let sent: Sent[];
 
 function backend(respond: (call: Sent) => Response) {
@@ -49,6 +55,7 @@ function backend(respond: (call: Sent) => Response) {
           ? new TextDecoder().decode(init.body)
           : String(init?.body),
       forwardedFor: headers.get('x-forwarded-for'),
+      userAgent: headers.get('user-agent'),
     };
     sent.push(call);
     return respond(call);
@@ -61,6 +68,18 @@ beforeEach(() => {
 });
 
 describe('POST /api/auth/login', () => {
+  it("passes the browser's user agent on, so the sessions list can name the browser", async () => {
+    backend(() => Response.json(backendTokens));
+    await login(
+      post(
+        'login',
+        { identifier: 'ADMIN-1', password: 'pw' },
+        { ...SAME_ORIGIN, 'user-agent': 'Mozilla/5.0 Test Chrome/141.0' },
+      ),
+    );
+    expect(sent[0].userAgent).toBe('Mozilla/5.0 Test Chrome/141.0');
+  });
+
   it('sets httpOnly SameSite=Strict cookies and returns no tokens', async () => {
     backend(() => Response.json(backendTokens));
     const response = await login(

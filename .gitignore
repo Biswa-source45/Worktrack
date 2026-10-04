@@ -13,6 +13,7 @@ __pycache__/
 # js / expo / next
 .next/
 .next-e2e/
+apps/web/e2e/screenshots/
 .expo/
 dist/
 coverage/

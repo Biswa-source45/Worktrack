@@ -72,6 +72,28 @@ export function makeDevice(overrides: Partial<Schemas['DeviceOut']> = {}): Schem
     created_at: '2026-01-15T04:30:00Z',
     updated_at: '2026-01-15T04:30:00Z',
     last_seen_at: '2026-01-15T04:30:00Z',
+    conflict: null,
+    ...overrides,
+  };
+}
+
+export function makeSession(overrides: Partial<Schemas['SessionOut']> = {}): Schemas['SessionOut'] {
+  return {
+    id: 21,
+    user_id: 2,
+    emp_code: 'EMP-001',
+    user_name: 'Asha Rao',
+    client: 'web',
+    browser: 'Chrome 141',
+    os: 'Windows',
+    device_model: null,
+    ip: '203.0.113.7',
+    created_at: '2026-02-01T04:30:00Z',
+    last_seen_at: '2026-02-01T18:45:00Z',
+    status: 'active',
+    ended_at: null,
+    end_reason: null,
+    current: false,
     ...overrides,
   };
 }

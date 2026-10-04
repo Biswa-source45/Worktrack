@@ -18,7 +18,7 @@ test('admin signs in, changes the password, creates an employee and signs out', 
 
   // First sign-in with the bootstrap password forces the change.
   await page.getByLabel('Employee ID or mobile number').fill(adminCode);
-  await page.getByLabel('Password').fill(process.env.E2E_ADMIN_PASSWORD as string);
+  await page.getByLabel('Password', { exact: true }).fill(process.env.E2E_ADMIN_PASSWORD as string);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/\/change-password$/);
 
@@ -69,7 +69,7 @@ test('admin signs in, changes the password, creates an employee and signs out', 
 
   // Office Employee has no web.access, so the temporary password gets the generic error.
   await page.getByLabel('Employee ID or mobile number').fill(empCode);
-  await page.getByLabel('Password').fill(temporaryPassword);
+  await page.getByLabel('Password', { exact: true }).fill(temporaryPassword);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByText('Invalid employee ID or password.')).toBeVisible();
   await expect(page).toHaveURL(/\/login$/);

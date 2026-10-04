@@ -1,14 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'expo-router';
+import { TriangleAlert, WifiOff } from '@/components/icons';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Button, ScrollView, Text, View } from 'react-native';
 import { z } from 'zod';
-import { FormField } from '@/components/form-field';
+import { AuthShell } from '@/components/auth-shell';
+import { Banner } from '@/components/ui/banner';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { PasswordField } from '@/components/ui/password-field';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/api-error';
 import { useAuth } from '@/lib/auth';
+import { useTheme } from '@/lib/theme';
 import { getDeviceInfo } from '@/lib/token-store';
 
 // Messages are i18n keys, translated when rendered.
@@ -21,6 +26,7 @@ type Values = z.infer<typeof schema>;
 export default function LoginScreen() {
   const { t } = useTranslation();
   const { signIn } = useAuth();
+  const { colors, space, text, minTouchTarget } = useTheme();
   const [failure, setFailure] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
   const {
@@ -48,24 +54,42 @@ export default function LoginScreen() {
   });
 
   return (
-    <ScrollView
-      contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', gap: 16, padding: 24 }}
-      keyboardShouldPersistTaps="handled"
+    <AuthShell
+      title={t('login.title')}
+      footer={
+        <>
+          <Button label={t('login.submit')} onPress={() => void submit()} loading={isSubmitting} />
+          {process.env.EXPO_PUBLIC_APP_ENV === 'development' ? (
+            <Link
+              href="/health"
+              style={[
+                text('small', 500),
+                {
+                  color: colors.primaryText,
+                  textAlign: 'center',
+                  minHeight: minTouchTarget,
+                  paddingVertical: space[3],
+                },
+              ]}
+            >
+              {t('health.open')}
+            </Link>
+          ) : null}
+        </>
+      }
     >
-      <Text accessibilityRole="header" style={{ fontSize: 28, fontWeight: '600' }}>
-        {t('login.title')}
-      </Text>
       <Controller
         control={control}
         name="identifier"
         render={({ field }) => (
-          <FormField
+          <Field
             label={t('login.identifier')}
             error={errors.identifier && t(errors.identifier.message ?? 'validation.required')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
             textContentType="username"
+            autoComplete="username"
           />
         )}
       />
@@ -73,34 +97,26 @@ export default function LoginScreen() {
         control={control}
         name="password"
         render={({ field }) => (
-          <FormField
+          <PasswordField
             label={t('login.password')}
             error={errors.password && t(errors.password.message ?? 'validation.required')}
             value={field.value}
             onChangeText={field.onChange}
             onBlur={field.onBlur}
-            secureTextEntry
-            textContentType="password"
           />
         )}
       />
-      {failure ? <Text style={{ color: '#b00020' }}>{failure}</Text> : null}
+      {failure ? <Banner status="danger" icon={TriangleAlert} message={failure} /> : null}
       {offline ? (
-        <View style={{ gap: 8 }}>
-          <Text style={{ color: '#b00020' }}>{t('errors.network')}</Text>
-          <Button title={t('login.retry')} onPress={() => void submit()} disabled={isSubmitting} />
-        </View>
+        <Banner status="danger" icon={WifiOff} message={t('errors.network')}>
+          <Button
+            variant="secondary"
+            label={t('login.retry')}
+            onPress={() => void submit()}
+            disabled={isSubmitting}
+          />
+        </Banner>
       ) : null}
-      {isSubmitting ? (
-        <ActivityIndicator />
-      ) : (
-        <Button title={t('login.submit')} onPress={() => void submit()} />
-      )}
-      {process.env.EXPO_PUBLIC_APP_ENV === 'development' ? (
-        <Link href="/health" style={{ textAlign: 'center' }}>
-          {t('health.open')}
-        </Link>
-      ) : null}
-    </ScrollView>
+    </AuthShell>
   );
 }

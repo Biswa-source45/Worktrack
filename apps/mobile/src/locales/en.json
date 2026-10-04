@@ -1,6 +1,35 @@
 {
   "app": {
-    "title": "WorkTrack"
+    "title": "WorkTrack",
+    "tagline": "Attendance and field tasks for your team.",
+    "version": "WorkTrack version {{version}}"
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Retry",
+    "signOut": "Sign out",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "loadMore": "Load more",
+    "yes": "Yes",
+    "no": "No",
+    "labelWithCount": "{{label}}: {{count}}"
+  },
+  "tabs": {
+    "home": "Home",
+    "profile": "Profile & Settings",
+    "admin": "Admin"
+  },
+  "theme": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "password": {
+    "show": "Show password",
+    "hide": "Hide password"
   },
   "health": {
     "loading": "Checking backend...",
@@ -45,15 +74,29 @@
     "confirm": "Confirm new password",
     "submit": "Change password"
   },
-  "home": {
-    "loadFailed": "Could not load your profile.",
-    "retry": "Retry",
+  "profile": {
+    "details": "Your details",
     "employeeCode": "Employee ID",
     "designation": "Designation",
     "role": "Role",
     "department": "Department",
-    "noDepartment": "Not assigned",
+    "noDepartment": "Not assigned"
+  },
+  "mySessions": {
+    "title": "Your sessions",
+    "thisDevice": "This device",
+    "loadFailed": "Could not load your sessions.",
+    "signOutOthers": "Sign out other sessions",
+    "signOutOthersConfirm": "Sign out every other session of your account? This phone stays signed in.",
+    "signedOut_one": "Signed out {{count}} other session.",
+    "signedOut_other": "Signed out {{count}} other sessions.",
+    "lastSeen": "Last seen {{when}}"
+  },
+  "home": {
+    "greeting": "Welcome back",
+    "loadFailed": "Could not load your profile.",
     "devicePending": "Waiting for admin approval of this phone. You cannot punch in until it is approved.",
+    "devicePendingInUse": "This phone is registered to another employee. Ask your admin to approve this phone. You cannot punch in until it is approved.",
     "checkAgain": "Check again",
     "deviceRevoked": "This phone is no longer approved for your account. Sign out and contact your admin.",
     "deviceTitle": "This device",
@@ -67,7 +110,116 @@
     "deviceCannotPunch": "You cannot punch in until an admin approves this phone.",
     "deviceModel": "Model",
     "deviceOs": "Operating system",
-    "deviceVersion": "App version",
-    "signOut": "Sign out"
+    "deviceVersion": "App version"
+  },
+  "admin": {
+    "title": "Admin",
+    "sections": {
+      "devices": "Devices",
+      "employees": "Employees",
+      "sessions": "Sessions"
+    }
+  },
+  "devices": {
+    "empty": {
+      "all": "No devices found.",
+      "pending": "No pending devices found.",
+      "active": "No active devices found.",
+      "revoked": "No revoked devices found."
+    },
+    "status": {
+      "all": "All",
+      "pending": "Pending",
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "os": "OS",
+    "appVersion": "App version",
+    "lastSeen": "Last seen",
+    "conflict": "This phone is already active for {{name}} ({{code}})",
+    "approve": "Approve",
+    "reject": "Reject",
+    "revoke": "Revoke",
+    "approveA11y": "Approve {{model}} for {{name}}",
+    "rejectA11y": "Reject {{model}} for {{name}}",
+    "revokeA11y": "Revoke {{model}} for {{name}}",
+    "approveTitle": "Approve phone",
+    "rejectTitle": "Reject phone",
+    "revokeTitle": "Revoke phone",
+    "approveConfirm": "Approve {{model}} for {{name}}? This revokes the employee's current phone, which is signed out at once.",
+    "approveConflictConfirm": "Approve {{model}} for {{name}}?",
+    "approveConflictNotice": "This phone is active for {{other}} ({{code}}): their access on it is revoked and they are signed out at once. {{name}}'s current phone, if any, is revoked too.",
+    "rejectConfirm": "Reject the request for {{model}} from {{name}}?",
+    "revokeConfirm": "Revoke {{model}} for {{name}}? The phone is signed out and cannot punch in."
+  },
+  "employees": {
+    "search": "Search by name, code or mobile",
+    "empty": "No employees found.",
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "locked": "Locked",
+    "mobile": "Mobile",
+    "email": "Email",
+    "notSet": "Not set",
+    "joinedOn": "Joined on",
+    "fieldEligible": "Field-eligible",
+    "mustChangePassword": "Must change password",
+    "editOnWeb": "Edit on the web portal",
+    "unlock": "Unlock",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "resetPassword": "Reset password",
+    "deactivateConfirm": "Deactivate {{name}}? They will be signed out and cannot sign in again until reactivated.",
+    "reactivateConfirm": "Reactivate {{name}}? They will be able to sign in again.",
+    "resetConfirm": "Generate a new temporary password for {{name}}? Their current password stops working and they are signed out."
+  },
+  "temporaryPassword": {
+    "title": "Temporary password",
+    "warning": "Share this temporary password with the employee securely. It is shown only once and cannot be retrieved later. The employee must change it at first sign in."
+  },
+  "sessions": {
+    "empty": {
+      "all": "No sessions found.",
+      "active": "No active sessions found.",
+      "ended": "No ended sessions found."
+    },
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "client": {
+      "web": "Web",
+      "mobile": "Mobile"
+    },
+    "unknownBrowser": "Unknown browser",
+    "unknownPhone": "Unknown phone",
+    "notRecorded": "Not recorded",
+    "os": "OS",
+    "ip": "IP",
+    "signedIn": "Signed in",
+    "lastSeen": "Last seen",
+    "thisSession": "This session",
+    "signOutA11y": "Sign out session of {{name}}",
+    "signOutTitle": "Sign out this session",
+    "signOutConfirm": "Sign out {{name}} on {{device}}? They must sign in again to continue.",
+    "signOutCurrentNotice": "This is the session you are using now: this phone will be signed out.",
+    "endReason": {
+      "signed_out": "Signed out",
+      "revoked_by_admin": "Signed out by an admin",
+      "signed_out_elsewhere": "Signed out from another session",
+      "password_changed": "Password changed",
+      "password_reset": "Password reset",
+      "device_revoked": "Phone revoked",
+      "device_replaced": "Phone replaced",
+      "account_changed": "Account changed",
+      "token_reuse": "Security check failed",
+      "expired": "Expired",
+      "before_tracking": "Older session",
+      "unknown": "Ended"
+    }
   }
 }

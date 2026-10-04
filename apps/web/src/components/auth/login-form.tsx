@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Field } from '@/components/field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { errorMessage, postJson } from '@/lib/api-client';
 
 const schema = z.object({
@@ -42,7 +43,7 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-4">
-      <h1 className="text-2xl font-semibold">{t('login.title')}</h1>
+      <h1 className="text-h2">{t('login.title')}</h1>
       <Field id="identifier" label={t('login.identifier')} error={errors.identifier?.message}>
         <Input
           id="identifier"
@@ -52,16 +53,15 @@ export function LoginForm() {
         />
       </Field>
       <Field id="password" label={t('login.password')} error={errors.password?.message}>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="current-password"
           invalid={!!errors.password}
           {...register('password')}
         />
       </Field>
       {serverError && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-small text-danger">
           {serverError}
         </p>
       )}

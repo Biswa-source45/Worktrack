@@ -18,19 +18,24 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@hookform/resolvers": "^5.9.1",
     "@tanstack/react-query": "^5.104.1",
     "api-types": "workspace:*",
+    "design-tokens": "workspace:*",
     "expo": "^57.0.26",
     "expo-constants": "^57.0.20",
     "expo-crypto": "~57.0.3",
     "expo-dev-client": "^57.0.19",
     "expo-device": "~57.0.2",
+    "expo-font": "~57.0.4",
     "expo-linking": "^57.0.11",
     "expo-router": "^57.0.24",
     "expo-secure-store": "~57.0.4",
     "expo-status-bar": "^57.0.1",
+    "expo-system-ui": "~57.0.4",
     "i18next": "^26.4.2",
+    "lucide-react-native": "^1.51.0",
     "openapi-fetch": "^0.17.0",
     "react": "19.2.3",
     "react-hook-form": "^7.89.0",
@@ -38,6 +43,7 @@
     "react-native": "^0.86.3",
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^4.26.2",
+    "react-native-svg": "15.15.4",
     "zod": "^4.6.5"
   },
   "devDependencies": {
