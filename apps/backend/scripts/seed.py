@@ -66,7 +66,8 @@ DEMO_SHIFT = ShiftCreate(
     end_time=time(18, 0),
     grace_min=10,
     half_day_hours=Decimal(4),
-    full_day_hours=Decimal(8),
+    # Half an hour less than the shift: arriving within the grace period is still a full day.
+    full_day_hours=Decimal("7.5"),
     weekly_offs=[WeeklyOff(weekday=6), WeeklyOff(weekday=5, weeks=[2, 4])],
 )
 # (month, day, name), in the current year, for every branch.

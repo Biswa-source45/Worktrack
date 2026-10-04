@@ -5,6 +5,8 @@ never opened.
 """
 
 import json
+from datetime import datetime, time, timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -135,7 +137,7 @@ async def test_the_demo_seed_creates_the_expected_rows(
     shift = users["DEMO-SA"].shift
     assert shift is not None
     assert (shift.start_time.isoformat(), shift.end_time.isoformat()) == ("10:00:00", "18:00:00")
-    assert (shift.grace_min, shift.half_day_hours, shift.full_day_hours) == (10, 4, 8)
+    assert (shift.grace_min, shift.half_day_hours, shift.full_day_hours) == (10, 4, Decimal("7.5"))
     assert shift.weekly_offs == [
         {"weekday": 6, "weeks": None},
         {"weekday": 5, "weeks": [2, 4]},
@@ -157,6 +159,27 @@ async def test_the_demo_seed_creates_the_expected_rows(
     )
     assert audited == 5
     assert PASSWORD not in "\n".join(said)
+
+
+async def test_arriving_within_grace_on_the_general_shift_is_still_a_full_day(
+    db: AsyncSession,
+) -> None:
+    await seed_demo(db, PASSWORD, lambda _: None)
+    shift = await db.scalar(select(Shift).where(Shift.name == "General"))
+    assert shift is not None
+    day = today_ist()
+    at = lambda hour, minute: datetime.combine(day, time(hour, minute))  # noqa: E731
+    punched_in, punched_out = at(10, 5), at(18, 0)
+    # BR-02: not late, because 10:05 is inside the grace period.
+    assert punched_in <= datetime.combine(day, shift.start_time) + timedelta(
+        minutes=shift.grace_min
+    )
+    # BR-01 and BR-03: 7 h 55 min worked reaches the full-day threshold, so the day is Present.
+    worked_hours = Decimal((punched_out - punched_in).total_seconds()) / 3600
+    assert shift.full_day_hours == Decimal("7.5")
+    assert worked_hours >= shift.full_day_hours > shift.half_day_hours == Decimal(4)
+    # The whole shift minus the whole grace period must also be a full day.
+    assert Decimal(8) - Decimal(shift.grace_min) / 60 >= shift.full_day_hours
 
 
 async def test_a_second_run_changes_nothing(db: AsyncSession) -> None:
