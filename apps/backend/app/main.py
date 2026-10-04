@@ -19,6 +19,7 @@ from app.modules.devices.router import router as devices_router
 from app.modules.employees.router import router as employees_router
 from app.modules.health.router import router as health_router
 from app.modules.org_settings.router import router as settings_router
+from app.modules.schedule.router import router as schedule_router
 from app.modules.sessions.router import router as sessions_router
 from app.modules.shifts.router import router as shifts_router
 
@@ -69,6 +70,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         branches_router,
         devices_router,
         employees_router,
+        schedule_router,
         sessions_router,
         settings_router,
         shifts_router,

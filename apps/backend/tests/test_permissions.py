@@ -165,6 +165,26 @@ MATRIX: list[tuple[str, str, str, str]] = [
     ),
 ]
 
+MATRIX += [
+    (
+        method,
+        f"{P}/admin/{pattern}",
+        f"{P}/admin/{pattern.format(employee_id=MISSING, request_id=MISSING)}",
+        EMPLOYEES_MANAGE,
+    )
+    for method, pattern in [
+        ("GET", "employees/{employee_id}/schedule"),
+        ("PUT", "employees/{employee_id}/schedule"),
+        ("GET", "employees/{employee_id}/home-location"),
+        ("PUT", "employees/{employee_id}/home-location"),
+        ("DELETE", "employees/{employee_id}/home-location"),
+        ("GET", "home-location-requests"),
+        ("GET", "home-location-requests/{request_id}"),
+        ("POST", "home-location-requests/{request_id}/approve"),
+        ("POST", "home-location-requests/{request_id}/reject"),
+    ]
+]
+
 # Signed-in users of any role, scoped to themselves.
 SELF_ONLY = [
     ("GET", f"{P}/me"),
@@ -176,6 +196,11 @@ SELF_ONLY = [
 ANY_ROLE = [
     ("GET", f"{P}/branches"),
     ("GET", f"{P}/shifts"),
+    ("GET", f"{P}/me/home-location"),
+]
+# Any role, but only from the employee's own approved phone.
+OWN_PHONE = [
+    ("POST", f"{P}/me/home-location-requests"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [
@@ -208,7 +233,7 @@ def _registered_routes() -> set[tuple[str, str]]:
 
 def test_every_route_is_listed_in_the_permission_matrix() -> None:
     covered = {(method, path) for method, path, _, _ in MATRIX}
-    covered |= set(SELF_ONLY) | set(ANY_ROLE) | set(PUBLIC)
+    covered |= set(SELF_ONLY) | set(ANY_ROLE) | set(OWN_PHONE) | set(PUBLIC)
     assert _registered_routes() == covered
 
 
@@ -264,6 +289,30 @@ async def test_any_role_endpoints_need_a_session_and_a_changed_password(
         assert response.status_code == 200, (role, response.text)
     newcomer = await make_user(db, OFFICE, must_change=True)
     headers = await auth_headers(client, newcomer, kind="mobile", device_info=device(99))
+    response = await client.request(method, path, headers=headers)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "PASSWORD_CHANGE_REQUIRED"
+
+
+@pytest.mark.parametrize(("method", "path"), OWN_PHONE)
+async def test_own_phone_endpoints_need_the_approved_phone(
+    client: httpx.AsyncClient,
+    db: AsyncSession,
+    tokens: dict[str, dict[str, str]],
+    method: str,
+    path: str,
+) -> None:
+    assert (await client.request(method, path)).status_code == 401
+    # The fixture signs every role in on its own first phone, which is approved at once.
+    for role in ALL_ROLES:
+        response = await client.request(method, path, headers=tokens[role])
+        assert response.status_code not in (401, 403), (role, response.text)
+    on_the_web = await auth_headers(client, await make_user(db, ADMIN))
+    response = await client.request(method, path, headers=on_the_web)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "DEVICE_NOT_APPROVED"
+    newcomer = await make_user(db, OFFICE, must_change=True)
+    headers = await auth_headers(client, newcomer, kind="mobile", device_info=device(98))
     response = await client.request(method, path, headers=headers)
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "PASSWORD_CHANGE_REQUIRED"

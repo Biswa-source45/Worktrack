@@ -85,7 +85,7 @@ async def make_shift(
         grace_min=10,
         half_day_hours=4,
         full_day_hours=8,
-        weekly_offs=[{"weekday": 6, "weeks": None}],
+        weekly_offs=fields.pop("weekly_offs", [{"weekday": 6, "weeks": None}]),
         is_active=is_active,
         **fields,
     )

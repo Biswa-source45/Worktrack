@@ -26,7 +26,7 @@ def snapshot(branch: Branch) -> dict[str, Any]:
     }
 
 
-def _point(lat: float, lng: float) -> WKTElement:
+def point(lat: float, lng: float) -> WKTElement:
     return WKTElement(f"POINT({lng} {lat})", srid=4326)
 
 
@@ -84,7 +84,7 @@ async def create_branch(session: AsyncSession, ctx: AuditCtx, data: BranchCreate
     branch = Branch(
         name=data.name,
         address=data.address or None,
-        location=_point(data.lat, data.lng),
+        location=point(data.lat, data.lng),
         radius_m=radius,
     )
     session.add(branch)
@@ -105,7 +105,7 @@ async def update_branch(
     if "address" in changes:
         changes["address"] = changes["address"] or None
     if "lat" in changes or "lng" in changes:
-        branch.location = _point(changes.pop("lat", branch.lat), changes.pop("lng", branch.lng))
+        branch.location = point(changes.pop("lat", branch.lat), changes.pop("lng", branch.lng))
     for field, value in changes.items():
         setattr(branch, field, value)
     await _save(session, branch)

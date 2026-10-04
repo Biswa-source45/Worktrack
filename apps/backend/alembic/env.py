@@ -20,6 +20,7 @@ from app.modules.branches import models as _branches  # noqa: E402, F401
 from app.modules.devices import models as _devices  # noqa: E402, F401
 from app.modules.employees import models as _employees  # noqa: E402, F401
 from app.modules.org_settings import models as _org_settings  # noqa: E402, F401
+from app.modules.schedule import models as _schedule  # noqa: E402, F401
 from app.modules.shifts import models as _shifts  # noqa: E402, F401
 
 target_metadata = Base.metadata
