@@ -1,4 +1,4 @@
-import { CircleX, Clock, LogOut, RefreshCw, TriangleAlert } from 'lucide-react-native';
+import { CircleX, Clock, LogOut, RefreshCw, TriangleAlert } from '@/components/icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';

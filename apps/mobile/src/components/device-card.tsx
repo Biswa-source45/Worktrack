@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CircleCheck, CircleMinus, CircleX, Clock } from 'lucide-react-native';
+import { CircleCheck, CircleMinus, CircleX, Clock } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';

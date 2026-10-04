@@ -16,10 +16,3 @@ jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => '11111111-2222-3333-4444-555555555555'),
 }));
 jest.mock('expo-system-ui', () => ({ setBackgroundColorAsync: jest.fn(() => Promise.resolve()) }));
-// Jest resolves the package's "react-native" export, an ES module that the preset does not
-// transform. Its CommonJS build next to it holds the same real icons.
-jest.mock('lucide-react-native', () => {
-  const path = jest.requireActual<typeof import('path')>('path');
-  const esmDir = path.dirname(require.resolve('lucide-react-native'));
-  return jest.requireActual(path.join(esmDir, '../cjs/lucide-react-native.js'));
-});

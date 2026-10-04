@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CircleCheck, CircleX, Clock, RefreshCw, TriangleAlert } from 'lucide-react-native';
+import { CircleCheck, CircleX, Clock, RefreshCw, TriangleAlert } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 import { HeroDecor } from '@/components/decor/hero-decor';
 import { AppText } from '@/components/ui/app-text';

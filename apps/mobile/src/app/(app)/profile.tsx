@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { LogOut, Monitor, Moon, Sun } from 'lucide-react-native';
+import { LogOut, Monitor, Moon, Sun } from '@/components/icons';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { HeroDecor } from '@/components/decor/hero-decor';

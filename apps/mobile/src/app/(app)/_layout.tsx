@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import { House, UserRound } from 'lucide-react-native';
+import { House, UserRound } from '@/components/icons';
 import type { LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';

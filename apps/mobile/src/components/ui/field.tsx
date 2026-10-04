@@ -1,4 +1,4 @@
-import { TriangleAlert } from 'lucide-react-native';
+import { TriangleAlert } from '@/components/icons';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { TextInput, View } from 'react-native';

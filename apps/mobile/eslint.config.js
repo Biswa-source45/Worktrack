@@ -26,4 +26,23 @@ module.exports = defineConfig([
     ignores: ['src/**/*.test.{ts,tsx}', 'src/__tests__/**', 'src/test/**'],
     rules: { 'no-restricted-syntax': noRawColours },
   },
+  {
+    // The package index would bundle every lucide icon; icons come from src/components/icons.ts.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'lucide-react-native',
+              message:
+                'Import icons from @/components/icons (one file per icon keeps the bundle small).',
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
+    },
+  },
 ]);
