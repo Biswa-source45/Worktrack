@@ -42,6 +42,6 @@ export const meBody = (over: Record<string, unknown> = {}) => ({
   field_eligible: true,
   must_change_password: false,
   client: 'mobile',
-  device: { id: 9, status: 'active' },
+  device: { id: 9, status: 'active', pending_reason: null },
   ...over,
 });

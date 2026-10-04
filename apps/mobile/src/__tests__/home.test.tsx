@@ -37,6 +37,19 @@ describe('HomeScreen', () => {
     expect(calls.filter((c) => c.url.endsWith('/api/v1/me'))).toHaveLength(2);
   });
 
+  it('tells the employee what to do when the phone belongs to another employee', async () => {
+    const device = { id: 9, status: 'pending', pending_reason: 'phone_in_use' };
+    mockApi({ [ME]: () => Response.json(meBody({ device })) });
+    await renderWithAuth(<HomeScreen />);
+    expect(
+      await screen.findByText(
+        'This phone is registered to another employee. Ask your admin to approve this phone. You cannot punch in until it is approved.',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText(PENDING_TEXT)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Check again' })).toBeOnTheScreen();
+  });
+
   it('shows the revoked message', async () => {
     mockApi({ [ME]: () => Response.json(meBody({ device: { id: 9, status: 'revoked' } })) });
     await renderWithAuth(<HomeScreen />);

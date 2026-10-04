@@ -47,7 +47,11 @@ export default function HomeScreen() {
           accessibilityRole="alert"
           style={{ backgroundColor: '#fff3cd', padding: 12, borderRadius: 6, gap: 8 }}
         >
-          <Text style={{ fontWeight: '600' }}>{t('home.devicePending')}</Text>
+          <Text style={{ fontWeight: '600' }}>
+            {me.device.pending_reason === 'phone_in_use'
+              ? t('home.devicePendingInUse')
+              : t('home.devicePending')}
+          </Text>
           <Button
             title={t('home.checkAgain')}
             onPress={() => void checkAgain()}

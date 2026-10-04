@@ -54,6 +54,7 @@
     "department": "Department",
     "noDepartment": "Not assigned",
     "devicePending": "Waiting for admin approval of this phone. You cannot punch in until it is approved.",
+    "devicePendingInUse": "This phone is registered to another employee. Ask your admin to approve this phone. You cannot punch in until it is approved.",
     "checkAgain": "Check again",
     "deviceRevoked": "This phone is no longer approved for your account. Sign out and contact your admin.",
     "deviceTitle": "This device",
