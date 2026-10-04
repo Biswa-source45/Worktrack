@@ -23,6 +23,9 @@ const base = {
   manager_id: z.string(),
   joined_on: z.string().min(1, 'validation.required'),
   field_eligible: z.boolean(),
+  home_branch_id: z.string(),
+  shift_id: z.string(),
+  restrict_to_home_branch: z.boolean(),
 };
 
 export const createSchema = z.object({
@@ -51,6 +54,9 @@ export function toValues(employee: Employee, today: string): EmployeeValues {
     manager_id: employee.manager_id === null ? '' : String(employee.manager_id),
     joined_on: employee.joined_on || today,
     field_eligible: employee.field_eligible,
+    home_branch_id: employee.home_branch ? String(employee.home_branch.id) : '',
+    shift_id: employee.shift ? String(employee.shift.id) : '',
+    restrict_to_home_branch: employee.restrict_to_home_branch,
     password: '',
   };
 }
@@ -66,6 +72,9 @@ export const emptyValues = (today: string): EmployeeValues => ({
   manager_id: '',
   joined_on: today,
   field_eligible: false,
+  home_branch_id: '',
+  shift_id: '',
+  restrict_to_home_branch: false,
   password: '',
 });
 
@@ -83,6 +92,10 @@ export function toCreate(v: EmployeeValues): Schemas['EmployeeCreate'] {
     manager_id: optionalId(v.manager_id),
     joined_on: v.joined_on,
     field_eligible: v.field_eligible,
+    home_branch_id: optionalId(v.home_branch_id),
+    shift_id: optionalId(v.shift_id),
+    // The restriction means nothing without a home branch.
+    restrict_to_home_branch: v.home_branch_id !== '' && v.restrict_to_home_branch,
     password: v.password || null,
   };
 }
@@ -101,5 +114,10 @@ export function toUpdate(v: EmployeeValues, e: Employee): Schemas['EmployeeUpdat
   if (next.manager_id !== e.manager_id) update.manager_id = next.manager_id;
   if (next.joined_on !== e.joined_on) update.joined_on = next.joined_on;
   if (next.field_eligible !== e.field_eligible) update.field_eligible = next.field_eligible;
+  if (next.home_branch_id !== (e.home_branch?.id ?? null))
+    update.home_branch_id = next.home_branch_id;
+  if (next.shift_id !== (e.shift?.id ?? null)) update.shift_id = next.shift_id;
+  if (next.restrict_to_home_branch !== e.restrict_to_home_branch)
+    update.restrict_to_home_branch = next.restrict_to_home_branch;
   return update;
 }

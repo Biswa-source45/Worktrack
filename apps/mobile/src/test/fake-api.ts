@@ -8,13 +8,19 @@ type Handler = (request: Request) => Response | Promise<Response>;
 
 export const calls: Request[] = [];
 
+// Profile & Settings asks for this on every visit, and most tests only pass through there.
+const DEFAULT_ROUTES: Record<string, Handler> = {
+  'GET /api/v1/me/home-location': () =>
+    Response.json({ approved: null, pending: null, last_rejected: null }),
+};
+
 export function mockApi(routes: Record<string, Handler>) {
   calls.length = 0;
   jest.mocked(fetch).mockImplementation(async (input) => {
     const request = input as Request;
     calls.push(request.clone());
     const key = `${request.method} ${new URL(request.url).pathname}`;
-    const handler = routes[key];
+    const handler = routes[key] ?? DEFAULT_ROUTES[key];
     if (!handler) throw new Error(`Unmocked request: ${key}`);
     return handler(request);
   });
@@ -92,6 +98,9 @@ export const employeeBody = (
   department: { id: 4, name: 'Service' },
   manager_id: null,
   field_eligible: true,
+  home_branch: { id: 7, name: 'Head Office' },
+  shift: { id: 8, name: 'General' },
+  restrict_to_home_branch: false,
   status: 'active',
   joined_on: '2026-01-15',
   must_change_password: false,
@@ -116,5 +125,16 @@ export const sessionBody = (over: Partial<Schemas['SessionOut']> = {}): Schemas[
   ended_at: null,
   end_reason: null,
   current: false,
+  ...over,
+});
+
+export const branchBody = (over: Partial<Schemas['BranchOut']> = {}): Schemas['BranchOut'] => ({
+  id: 7,
+  name: 'Head Office',
+  address: '12 Station Road',
+  lat: 20.2961,
+  lng: 85.8245,
+  radius_m: 150,
+  is_active: true,
   ...over,
 });

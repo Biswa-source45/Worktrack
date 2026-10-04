@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { Ellipsis, Plus, Search, TriangleAlert, Upload } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Page, PageHeader } from '@/components/page';
 import { RequirePermission } from '@/components/require-permission';
 import { StatusBadge } from '@/components/status-badge';
+import { Tabs } from '@/components/tabs';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +25,7 @@ import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
 import { EmployeeDialog, type TemporaryPassword } from './employee-dialog';
 import type { Employee } from './employee-form';
+import { HomeRequestsTab, usePendingHomeRequests } from './home-requests';
 import { ImportDialog } from './import-dialog';
 import { TemporaryPasswordDialog } from './temp-password-dialog';
 import { useLookups } from './use-lookups';
@@ -60,6 +63,8 @@ function EmployeesView() {
   const queryClient = useQueryClient();
   const { data: me } = useMe();
   const lookups = useLookups();
+  const requests = usePendingHomeRequests();
+  const [tab, setTab] = useState<'employees' | 'requests'>('employees');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'' | 'active' | 'inactive'>('');
   const [dialog, setDialog] = useState<Dialog | null>(null);
@@ -202,6 +207,9 @@ function EmployeesView() {
               <DropdownMenuItem onSelect={() => setDialog({ kind: 'form', employee: e })}>
                 {t('common.edit')}
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/employees/${e.id}`}>{t('employees.scheduleAndHome')}</Link>
+              </DropdownMenuItem>
               {e.id !== me?.id && (
                 <DropdownMenuItem onSelect={() => setDialog({ kind: 'status', employee: e })}>
                   {e.status === 'active' ? t('employees.deactivate') : t('employees.reactivate')}
@@ -226,62 +234,81 @@ function EmployeesView() {
   return (
     <Page>
       <PageHeader title={t('employees.title')}>
-        <div className="relative">
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            aria-label={t('employees.search')}
-            placeholder={t('employees.search')}
-            className="w-64 pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Select
-          aria-label={t('employees.col.status')}
-          className="w-36"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as typeof status)}
-        >
-          <option value="">{t('employees.status.all')}</option>
-          <option value="active">{t('employees.status.active')}</option>
-          <option value="inactive">{t('employees.status.inactive')}</option>
-        </Select>
-        <Button variant="outline" onClick={() => setDialog({ kind: 'import' })}>
-          <Upload aria-hidden="true" />
-          {t('import.open')}
-        </Button>
-        <Button onClick={() => setDialog({ kind: 'form' })}>
-          <Plus aria-hidden="true" />
-          {t('employees.create')}
-        </Button>
+        {tab === 'employees' && (
+          <>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                aria-label={t('employees.search')}
+                placeholder={t('employees.search')}
+                className="w-64 pl-9"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Select
+              aria-label={t('employees.col.status')}
+              className="w-36"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as typeof status)}
+            >
+              <option value="">{t('employees.status.all')}</option>
+              <option value="active">{t('employees.status.active')}</option>
+              <option value="inactive">{t('employees.status.inactive')}</option>
+            </Select>
+            <Button variant="outline" onClick={() => setDialog({ kind: 'import' })}>
+              <Upload aria-hidden="true" />
+              {t('import.open')}
+            </Button>
+            <Button onClick={() => setDialog({ kind: 'form' })}>
+              <Plus aria-hidden="true" />
+              {t('employees.create')}
+            </Button>
+          </>
+        )}
       </PageHeader>
 
-      {(actionError || list.error) && (
-        <p role="alert" className="text-small text-danger">
-          {actionError ?? errorMessage(t, list.error)}
-        </p>
-      )}
-      {list.isPending ? (
-        <TableSkeleton />
+      <Tabs
+        label={t('employees.title')}
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'employees', label: t('employees.tab') },
+          { id: 'requests', label: t('home.requestsTab'), count: requests.data?.length },
+        ]}
+      />
+      {tab === 'requests' ? (
+        <HomeRequestsTab requests={requests} />
       ) : (
-        <DataTable
-          columns={columns}
-          data={rows}
-          empty={t('employees.empty')}
-          wideOnly={WIDE_ONLY}
-        />
-      )}
-      {list.hasNextPage && (
-        <Button
-          variant="outline"
-          onClick={() => void list.fetchNextPage()}
-          disabled={list.isFetchingNextPage}
-        >
-          {t('common.loadMore')}
-        </Button>
+        <>
+          {(actionError || list.error) && (
+            <p role="alert" className="text-small text-danger">
+              {actionError ?? errorMessage(t, list.error)}
+            </p>
+          )}
+          {list.isPending ? (
+            <TableSkeleton />
+          ) : (
+            <DataTable
+              columns={columns}
+              data={rows}
+              empty={t('employees.empty')}
+              wideOnly={WIDE_ONLY}
+            />
+          )}
+          {list.hasNextPage && (
+            <Button
+              variant="outline"
+              onClick={() => void list.fetchNextPage()}
+              disabled={list.isFetchingNextPage}
+            >
+              {t('common.loadMore')}
+            </Button>
+          )}
+        </>
       )}
 
       {dialog?.kind === 'form' && (
