@@ -59,7 +59,8 @@ async def test_upgrade_adds_table_column_and_permission_and_downgrade_removes_th
         await _insert_user("M9-A", "inactive")
         await _insert_user("M9-B", "active")
 
-        run_alembic("upgrade", "head")
+        # Revision 0009, not head: later migrations grant more permissions (same as 0006's test).
+        run_alembic("upgrade", "0009")
         assert await _table_exists()
         after = await _permissions()
         assert after["Super Admin"] == before["Super Admin"] | {"face.review"}
