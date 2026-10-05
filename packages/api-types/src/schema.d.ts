@@ -437,6 +437,146 @@ export interface paths {
         patch: operations["update_role_api_v1_admin_roles__role_id__patch"];
         trace?: never;
     };
+    "/api/v1/me/face-enrollment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Face Enrollment */
+        get: operations["my_face_enrollment_api_v1_me_face_enrollment_get"];
+        put?: never;
+        /** Submit Face Enrollment */
+        post: operations["submit_face_enrollment_api_v1_me_face_enrollment_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/face-enrollment/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Consent To Face Enrollment */
+        post: operations["consent_to_face_enrollment_api_v1_me_face_enrollment_consent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/face-enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Face Enrollments */
+        get: operations["list_face_enrollments_api_v1_admin_face_enrollments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/face-enrollments/{enrollment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Face Enrollment */
+        get: operations["get_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/face-enrollments/{enrollment_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Face Enrollment */
+        post: operations["approve_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/face-enrollments/{enrollment_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Face Enrollment */
+        post: operations["reject_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/face-enrollments/{enrollment_id}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Face Enrollment */
+        post: operations["reset_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/files/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get File
+         * @description The signed link is the credential: no sign-in header, because `<img>` cannot send one.
+         */
+        get: operations["get_file_api_v1_files__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/employees/{employee_id}/schedule": {
         parameters: {
             query?: never;
@@ -779,6 +919,11 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_submit_face_enrollment_api_v1_me_face_enrollment_post */
+        Body_submit_face_enrollment_api_v1_me_face_enrollment_post: {
+            /** Photos */
+            photos: string[];
+        };
         /** BranchCreate */
         BranchCreate: {
             /** Name */
@@ -1078,6 +1223,62 @@ export interface components {
             /** Status */
             status?: ("active" | "inactive") | null;
         };
+        /** EnrollmentDetail */
+        EnrollmentDetail: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /** Status */
+            status: string;
+            /**
+             * Consent At
+             * Format: date-time
+             */
+            consent_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /** Photos */
+            photos: string[];
+            /** Qualities */
+            qualities: components["schemas"]["PhotoQuality"][];
+            /** Consistency Score */
+            consistency_score: number | null;
+            /** Model Version */
+            model_version: string | null;
+            /** Decided By */
+            decided_by: number | null;
+            /** Reason */
+            reason: string | null;
+        };
+        /**
+         * EnrollmentItem
+         * @description An enrollment as listed: who and when, never the face.
+         */
+        EnrollmentItem: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /** Status */
+            status: string;
+            /**
+             * Consent At
+             * Format: date-time
+             */
+            consent_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+        };
+        /** EnrollmentPage */
+        EnrollmentPage: {
+            /** Items */
+            items: components["schemas"]["EnrollmentItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1346,6 +1547,22 @@ export interface components {
             /** Decided At */
             decided_at: string | null;
         };
+        /** MyEnrollment */
+        MyEnrollment: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "none" | "consented" | "pending" | "approved" | "rejected" | "reset";
+            /** Consent At */
+            consent_at: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /** Reason */
+            reason: string | null;
+        };
         /** MyHomeOut */
         MyHomeOut: {
             approved: components["schemas"]["MyApprovedHome"] | null;
@@ -1410,6 +1627,46 @@ export interface components {
              * @default 0.0.0
              */
             min_app_version: string;
+            /**
+             * Face Verify Threshold
+             * @default 0.4
+             */
+            face_verify_threshold: number;
+            /**
+             * Face Review Threshold
+             * @default 0.3
+             */
+            face_review_threshold: number;
+            /**
+             * Face Min Detection Confidence
+             * @default 0.9
+             */
+            face_min_detection_confidence: number;
+            /**
+             * Face Min Face Px
+             * @default 80
+             */
+            face_min_face_px: number;
+            /**
+             * Face Min Sharpness
+             * @default 60
+             */
+            face_min_sharpness: number;
+            /**
+             * Face Min Brightness
+             * @default 50
+             */
+            face_min_brightness: number;
+            /**
+             * Face Max Brightness
+             * @default 200
+             */
+            face_max_brightness: number;
+            /**
+             * Face Retention Days After Exit
+             * @default 30
+             */
+            face_retention_days_after_exit: number;
         };
         /** PendingHome */
         PendingHome: {
@@ -1429,6 +1686,17 @@ export interface components {
              */
             created_at: string;
         };
+        /** PhotoQuality */
+        PhotoQuality: {
+            /** Confidence */
+            confidence: number;
+            /** Face Px */
+            face_px: number;
+            /** Sharpness */
+            sharpness: number;
+            /** Brightness */
+            brightness: number;
+        };
         /** PlaceOut */
         PlaceOut: {
             /** Lat */
@@ -1437,6 +1705,11 @@ export interface components {
             lng: number;
             /** Name */
             name: string | null;
+        };
+        /** Reason */
+        Reason: {
+            /** Reason */
+            reason: string;
         };
         /** Ref */
         Ref: {
@@ -2761,6 +3034,275 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_face_enrollment_api_v1_me_face_enrollment_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyEnrollment"];
+                };
+            };
+        };
+    };
+    submit_face_enrollment_api_v1_me_face_enrollment_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_submit_face_enrollment_api_v1_me_face_enrollment_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyEnrollment"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    consent_to_face_enrollment_api_v1_me_face_enrollment_consent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyEnrollment"];
+                };
+            };
+        };
+    };
+    list_face_enrollments_api_v1_admin_face_enrollments_get: {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reason"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_face_enrollment_api_v1_admin_face_enrollments__enrollment_id__reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                enrollment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reason"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_file_api_v1_files__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": unknown;
                 };
             };
             /** @description Validation Error */
