@@ -96,7 +96,7 @@ describe('Branch dialog', () => {
     const dialog = await openCreate(user);
     expect(within(dialog).getByLabelText('Geofence radius (30 to 500 m)')).toHaveValue(120);
     await user.type(within(dialog).getByLabelText('Branch name'), ' Head Office ');
-    await user.click(within(dialog).getByRole('button', { name: 'move pin' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'move pin' }));
     // The circle follows the radius field.
     expect(within(dialog).getByTestId('map')).toHaveAttribute('data-radius', '120');
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
@@ -144,7 +144,7 @@ describe('Branch dialog', () => {
     await user.clear(radius);
     await user.type(radius, value);
     await user.type(within(dialog).getByLabelText('Branch name'), 'Depot');
-    await user.click(within(dialog).getByRole('button', { name: 'move pin' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'move pin' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
     expect(await within(dialog).findByText('Enter a whole number from 30 to 500.')).toBeVisible();
     expect(radius).toHaveAttribute('aria-invalid', 'true');
@@ -227,7 +227,7 @@ describe('Branch dialog', () => {
     });
     const dialog = await openCreate(user);
     await user.type(within(dialog).getByLabelText('Branch name'), 'Head Office');
-    await user.click(within(dialog).getByRole('button', { name: 'move pin' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'move pin' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
       'A branch with that name already exists.',
@@ -249,7 +249,7 @@ describe('Branch dialog', () => {
     });
     const dialog = await openCreate(user);
     await user.type(within(dialog).getByLabelText('Branch name'), 'Depot');
-    await user.click(within(dialog).getByRole('button', { name: 'move pin' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'move pin' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
     expect(
       await within(dialog).findByText(
