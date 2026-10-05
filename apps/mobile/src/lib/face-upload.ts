@@ -1,15 +1,15 @@
+import { File } from 'expo-file-system';
 import { api } from '@/lib/api';
 import { unwrap } from '@/lib/api-error';
 
 /** The three enrollment photos as a multipart body; each is a file on this phone. */
 export function photoForm(uris: string[]): FormData {
   const form = new FormData();
-  uris.forEach((uri, index) => {
-    // React Native reads the file itself when it sends a part shaped like this; the DOM typing
-    // of FormData only knows Blobs.
-    const part = { uri, name: `photo-${index + 1}.jpg`, type: 'image/jpeg' };
-    form.append('photos', part as unknown as Blob);
-  });
+  for (const uri of uris) {
+    // Not React Native's `{ uri, name, type }` part: the fetch Expo installs refuses it ("Unsupported
+    // FormDataPart") before anything is sent. A File is a Blob that fetch can read the bytes of.
+    form.append('photos', new File(uri));
+  }
   return form;
 }
 
