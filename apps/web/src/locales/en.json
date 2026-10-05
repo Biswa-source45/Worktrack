@@ -560,5 +560,51 @@
       "requested": "Requested (IST)",
       "actions": "Actions"
     }
+  },
+  "face": {
+    "tab": "Face enrollments",
+    "filter": "Show",
+    "status": {
+      "pending": "Waiting for review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "reset": "Reset"
+    },
+    "empty": {
+      "pending": "No face enrollments are waiting for review.",
+      "approved": "No approved face enrollments.",
+      "rejected": "No rejected face enrollments."
+    },
+    "col": {
+      "employee": "Employee",
+      "status": "Status",
+      "consent": "Accepted notice (IST)",
+      "submitted": "Photos sent (IST)",
+      "actions": "Actions"
+    },
+    "review": "Review",
+    "reviewOf": "Review the face enrollment of {{name}}",
+    "reviewTitle": "Face enrollment",
+    "reviewFor": "{{name}} ({{code}}). Opening this enrollment is recorded in the audit log.",
+    "reviewHint": "Loading the photos...",
+    "photoAlt": "Enrollment photo {{n}}",
+    "quality": "{{px}} px wide, sharpness {{sharpness}}, brightness {{brightness}}",
+    "deleted": "The photos and the face template of this enrollment were deleted.",
+    "consent": "Accepted the notice",
+    "submitted": "Photos sent",
+    "consistency": "Match between the three photos",
+    "model": "Model",
+    "reason": "Reason",
+    "rejectReason": "Reason for rejecting (the employee sees it)",
+    "resetReason": "Reason for resetting (the employee sees it and enrolls again)",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reset": "Reset enrollment",
+    "errors": {
+      "ENROLLMENT_ALREADY_DECIDED": "Someone has already decided this enrollment. The list was refreshed.",
+      "ENROLLMENT_NOT_RESETTABLE": "This enrollment can no longer be reset. The list was refreshed.",
+      "NOT_FOUND": "This enrollment no longer exists.",
+      "FORBIDDEN": "You may not review this employee's enrollment."
+    }
   }
 }
