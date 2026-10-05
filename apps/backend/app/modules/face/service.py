@@ -4,6 +4,7 @@ Privacy: the template (`embeddings`) is decrypted only in `verify_face`; photos 
 signed links; lists, audit rows and logs carry neither.
 """
 
+import datetime as dt
 import logging
 import uuid
 from functools import lru_cache
@@ -467,3 +468,51 @@ async def verify_face(session: AsyncSession, user_id: int, image: bytes) -> Face
     return await run_in_threadpool(
         get_provider().verify, image, enrolled, gates_from(org), thresholds_from(org)
     )
+
+
+# --- retention --------------------------------------------------------------------------------
+
+
+async def purge_departed(session: AsyncSession, s3: "S3Client", bucket: str, ctx: AuditCtx) -> int:
+    """Delete the photos and template of people deactivated longer ago than the retention period.
+
+    The row stays (status reset, reason "Employee left") so the history of who was enrolled and
+    when is kept; the face is not. Someone reactivated later must enroll again. SRS 13.
+    """
+    days = (await get_org_settings(session)).face_retention_days_after_exit
+    cutoff = utcnow() - dt.timedelta(days=days)
+    rows = (
+        (
+            await session.execute(
+                select(FaceEnrollment)
+                .join(User, User.id == FaceEnrollment.user_id)
+                .where(
+                    FaceEnrollment.status.in_((PENDING, APPROVED)),
+                    User.status == "inactive",
+                    User.deactivated_at <= cutoff,
+                )
+                .with_for_update(of=FaceEnrollment)
+                .execution_options(populate_existing=True)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    keys: list[str] = []
+    for row in rows:
+        before = _audit_view(row)
+        keys += row.image_keys or []
+        row.status, row.reason, row.decided_at = RESET, "Employee left", utcnow()
+        row.image_keys = row.embeddings = None
+        audit.record(
+            session,
+            ctx,
+            "face_enrollment.purge",
+            "face_enrollment",
+            row.id,
+            before=before,
+            after={**_audit_view(row), "reason": row.reason},
+        )
+    await session.commit()
+    await _delete_photos(s3, bucket, keys)
+    return len(rows)

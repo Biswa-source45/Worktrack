@@ -3,14 +3,13 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from functools import lru_cache
 
-import boto3
 import httpx
-from botocore.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from app.core import storage
 from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
 from app.modules.auth.router import router as auth_router
@@ -43,14 +42,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.settings = settings
         app.state.session_factory = async_sessionmaker(engine, expire_on_commit=False)
         app.state.redis = Redis.from_url(settings.redis_url)
-        app.state.s3 = boto3.client(
-            "s3",
-            endpoint_url=settings.s3_endpoint_url,
-            aws_access_key_id=settings.s3_access_key,
-            aws_secret_access_key=settings.s3_secret_key,
-            region_name=settings.s3_region,
-            config=Config(connect_timeout=2, read_timeout=2, retries={"max_attempts": 1}),
-        )
+        app.state.s3 = storage.make_client(settings)
         # Outbound calls (map links, address search). Redirects are followed by hand, hop by hop.
         app.state.http = httpx.AsyncClient(follow_redirects=False, verify=_tls_context())
         yield

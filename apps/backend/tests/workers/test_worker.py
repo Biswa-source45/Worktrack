@@ -24,3 +24,9 @@ async def test_ping_job_runs_through_the_worker() -> None:
         # the pools directly. Burst mode has already drained every task by the time main() returns.
         await worker.pool.aclose()
         await pool.aclose()
+
+
+def test_the_daily_clean_up_jobs_are_scheduled() -> None:
+    scheduled = {job.name for job in WorkerSettings.cron_jobs}
+    assert {"cron:purge_sessions", "cron:purge_faces"} <= scheduled
+    assert {"purge_sessions", "purge_faces"} <= {f.__name__ for f in WorkerSettings.functions}

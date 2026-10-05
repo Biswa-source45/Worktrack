@@ -139,6 +139,23 @@ def decide(score: float, thresholds: Thresholds) -> Decision:
     return Decision.MISMATCH
 
 
+def gate_issue(quality: Quality, gates: Gates) -> Issue | None:
+    """The first gate a measured photo fails, or None."""
+    if quality.confidence < gates.min_confidence:
+        return Issue.LOW_CONFIDENCE
+    if quality.face_px < gates.min_face_px:
+        return Issue.FACE_TOO_SMALL
+    # Light before sharpness: a dark photo is also low in contrast, and "too dark" is the
+    # reason the person can act on.
+    if quality.brightness < gates.min_brightness:
+        return Issue.TOO_DARK
+    if quality.brightness > gates.max_brightness:
+        return Issue.TOO_BRIGHT
+    if quality.sharpness < gates.min_sharpness:
+        return Issue.BLURRY
+    return None
+
+
 def decode(data: bytes) -> NDArray[np.uint8]:
     """Decode (applying the EXIF rotation) and shrink so the longest side is at most 640 px."""
     try:
@@ -221,17 +238,18 @@ class OpenCVSFaceProvider:
         side = (SHARPNESS_SIDE_PX, SHARPNESS_SIDE_PX)
         sharpness = float(cv2.Laplacian(cv2.resize(gray, side), cv2.CV_64F).var())
         quality = Quality(float(face[14]), w, sharpness, float(gray.mean()))
-        if w < gates.min_face_px:
-            raise PhotoRejected(Issue.FACE_TOO_SMALL)
-        # Light before sharpness: a dark photo is also low in contrast, and "too dark" is the
-        # reason the person can act on.
-        if quality.brightness < gates.min_brightness:
-            raise PhotoRejected(Issue.TOO_DARK)
-        if quality.brightness > gates.max_brightness:
-            raise PhotoRejected(Issue.TOO_BRIGHT)
-        if sharpness < gates.min_sharpness:
-            raise PhotoRejected(Issue.BLURRY)
+        issue = gate_issue(quality, gates)
+        if issue is not None:
+            raise PhotoRejected(issue)
         return quality
+
+    def measure(self, data: bytes) -> tuple[Embedding, Quality]:
+        """Embedding and quality of the one face in a photo, with no quality gate applied.
+
+        For calibration: it still raises `PhotoRejected` when there is no clear single face.
+        """
+        analysis = self._analyze(data, Gates(CANDIDATE_FLOOR, 1, 0, 0, 255))
+        return analysis.embedding, analysis.quality
 
     def enroll(self, images: Sequence[bytes], gates: Gates, match_threshold: float) -> Enrollment:
         analyses: list[_Analysis] = []

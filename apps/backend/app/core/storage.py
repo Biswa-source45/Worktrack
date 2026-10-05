@@ -2,8 +2,12 @@
 
 from typing import TYPE_CHECKING
 
+import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from starlette.concurrency import run_in_threadpool
+
+from app.core.config import Settings
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
@@ -11,6 +15,17 @@ if TYPE_CHECKING:
 
 class ObjectMissing(Exception):
     pass
+
+
+def make_client(settings: Settings) -> "S3Client":
+    return boto3.client(
+        "s3",
+        endpoint_url=settings.s3_endpoint_url,
+        aws_access_key_id=settings.s3_access_key,
+        aws_secret_access_key=settings.s3_secret_key,
+        region_name=settings.s3_region,
+        config=Config(connect_timeout=2, read_timeout=2, retries={"max_attempts": 1}),
+    )
 
 
 async def put(s3: "S3Client", bucket: str, key: str, data: bytes) -> None:
