@@ -1,8 +1,8 @@
-import datetime as dt
 import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, Header, Request, UploadFile
+from pydantic import AwareDatetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
@@ -38,7 +38,7 @@ def _punch_form(
     lat: Annotated[Lat, Form()],
     lng: Annotated[Lng, Form()],
     accuracy_m: Annotated[float, Form(ge=0, le=100_000)],
-    device_time: Annotated[dt.datetime | None, Form()] = None,
+    device_time: Annotated[AwareDatetime | None, Form()] = None,
     mocked: Annotated[bool, Form()] = False,
     emulator: Annotated[bool, Form()] = False,
     rooted: Annotated[bool, Form()] = False,

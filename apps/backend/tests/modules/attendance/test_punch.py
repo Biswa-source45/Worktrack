@@ -619,6 +619,20 @@ async def test_an_offline_punch_counts_at_receipt_and_waits_for_review(
     assert event.review_reasons == ["offline"]
 
 
+async def test_a_device_time_must_carry_its_time_zone(
+    client: httpx.AsyncClient, db: AsyncSession, scene: Scene
+) -> None:
+    response = await send(
+        client,
+        scene.headers,
+        "punch-in",
+        await at_branch(db, scene),
+        offline=True,
+        device_time="2027-03-01T10:20:00",
+    )
+    assert (response.status_code, error_code(response)) == (422, "VALIDATION_ERROR")
+
+
 async def test_an_offline_punch_needs_the_time_it_was_taken(
     client: httpx.AsyncClient, db: AsyncSession, scene: Scene
 ) -> None:

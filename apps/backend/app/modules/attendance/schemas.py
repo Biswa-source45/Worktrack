@@ -1,7 +1,7 @@
 import datetime as dt
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints
 
 from app.modules.branches.schemas import Lat, Lng
 from app.modules.schedule.models import DayKind
@@ -25,7 +25,7 @@ class PunchForm(Fix):
     """The text fields of a punch (the selfie travels as a file next to them)."""
 
     # Audit only: the server's own clock decides the time (invariant 1).
-    device_time: dt.datetime | None = None
+    device_time: AwareDatetime | None = None
     # What the phone reports about itself: Android's mock flag, emulator, root.
     mocked: bool = False
     emulator: bool = False
