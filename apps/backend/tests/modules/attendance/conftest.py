@@ -13,7 +13,7 @@ from app.modules.branches.models import Branch
 from app.modules.employees.models import User
 from app.modules.face.provider import Decision, FaceCheck
 from app.modules.shifts.models import Shift
-from tests.factories import ADMIN, make_branch, make_shift
+from tests.factories import ADMIN, make_branch, make_shift, role_id
 from tests.modules.employees.helpers import actor
 from tests.modules.face.test_enrollment import approved
 
@@ -63,7 +63,12 @@ class Clock:
 @pytest.fixture
 def clock(monkeypatch: pytest.MonkeyPatch) -> Clock:
     clock = Clock()
-    monkeypatch.setattr("app.modules.attendance.service.utcnow", lambda: clock.now)
+    for name in ("service", "admin"):
+        monkeypatch.setattr(f"app.modules.attendance.{name}.utcnow", lambda: clock.now)
+    for name in ("history", "admin", "admin_router"):
+        monkeypatch.setattr(
+            f"app.modules.attendance.{name}.today_ist", lambda: clock.now.astimezone(IST).date()
+        )
     return clock
 
 
@@ -125,3 +130,25 @@ async def scene(client: httpx.AsyncClient, db: AsyncSession, clock: Clock) -> Sc
     await db.refresh(user)
     _, admin = await actor(client, db, ADMIN)
     return Scene(user, headers, admin, branch, shift)
+
+
+async def employee(
+    client: httpx.AsyncClient,
+    db: AsyncSession,
+    scene: Scene,
+    n: int,
+    person: str = "b",
+    *,
+    role: str | None = None,
+    manager: User | None = None,
+) -> tuple[User, Headers]:
+    """Another employee on the same shift with an approved phone (device n) and face (person)."""
+    user, headers, _, _ = await approved(client, db, n, person)
+    user.shift_id = scene.shift.id
+    if manager is not None:
+        user.manager_id = manager.id
+    if role is not None:
+        user.role_id = await role_id(db, role)
+    await db.flush()
+    await db.refresh(user)
+    return user, headers

@@ -213,6 +213,28 @@ MATRIX += [
     ]
 ]
 
+MATRIX += [
+    (
+        method,
+        f"{P}/admin/{pattern}",
+        f"{P}/admin/{pattern.format(day_id=MISSING, request_id=MISSING, event_id=MISSING)}",
+        needed,
+    )
+    for method, pattern, needed in [
+        # The register is for managers (their team) and admins (everyone).
+        ("GET", "attendance", TEAM_VIEW),
+        ("GET", "attendance/{day_id}", TEAM_VIEW),
+        ("POST", "attendance/overrides", ATTENDANCE_OVERRIDE),
+        ("GET", "attendance-exceptions", ATTENDANCE_VIEW_ALL),
+        ("GET", "punch-out-requests", PUNCHOUT_APPROVE),
+        ("GET", "punch-out-requests/{request_id}", PUNCHOUT_APPROVE),
+        ("PATCH", "punch-out-requests/{request_id}/decision", PUNCHOUT_APPROVE),
+        ("GET", "punch-reviews", FACE_REVIEW),
+        ("GET", "punch-reviews/{event_id}", FACE_REVIEW),
+        ("POST", "punch-reviews/{event_id}/decision", FACE_REVIEW),
+    ]
+]
+
 # Signed-in users of any role, scoped to themselves.
 SELF_ONLY = [
     ("GET", f"{P}/me"),
@@ -227,6 +249,8 @@ ANY_ROLE = [
     ("GET", f"{P}/me/home-location"),
     ("GET", f"{P}/me/face-enrollment"),
     ("GET", f"{P}/attendance/today"),
+    ("GET", f"{P}/attendance/me"),
+    ("GET", f"{P}/notifications"),
 ]
 # Any role, but only from the employee's own approved phone.
 OWN_PHONE = [

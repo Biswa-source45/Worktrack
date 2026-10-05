@@ -7,6 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.clock import IST
+from app.core.errors import AppError
 from app.modules.attendance.models import (
     ABSENT,
     APPROVED,
@@ -58,6 +59,14 @@ def is_closed(day: dt.date, now: dt.datetime, settings: OrgSettings) -> bool:
     """True once the cut-off of `day` (IST) has passed: no more punches, a missing out is missed."""
     local = now.astimezone(IST)
     return local.date() > day or (local.date() == day and local.time() >= cutoff_time(settings))
+
+
+async def rules_for_day(session: AsyncSession, day: AttendanceDay) -> ShiftRules:
+    """The shift a day was worked under. Every day with a punch has one (a shift is required)."""
+    shift = None if day.shift_id is None else await session.get(Shift, day.shift_id)
+    if shift is None:
+        raise AppError("NO_SHIFT", "This day has no shift to calculate hours from.", 409)
+    return shift_rules(shift)
 
 
 async def lock_day(
