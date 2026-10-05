@@ -1,9 +1,11 @@
+import contextlib
 import itertools
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import boto3
 import httpx
 import pytest
 from dotenv import dotenv_values
@@ -29,6 +31,8 @@ if not _test_db_name.endswith("_test") or os.environ["TEST_DATABASE_URL"] == os.
     )
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
+# Photo keys are built from row ids, which also exist in the dev database: own bucket.
+os.environ["S3_BUCKET"] = "worktrack-test"
 os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret-test-only-jwt-secret")
 os.environ.setdefault("FACE_ENCRYPTION_KEY", "dGVzdC1vbmx5LWZhY2Uta2V5LXRlc3Qtb25seS0xMjM=")
 
@@ -82,6 +86,15 @@ async def running_client(
 @pytest.fixture(scope="session", autouse=True)
 def migrated_db() -> None:
     run_alembic("upgrade", "head")
+    s3 = boto3.client(
+        "s3",
+        endpoint_url=os.environ["S3_ENDPOINT_URL"],
+        aws_access_key_id=os.environ["S3_ACCESS_KEY"],
+        aws_secret_access_key=os.environ["S3_SECRET_KEY"],
+        region_name=os.environ.get("S3_REGION", "us-east-1"),
+    )
+    with contextlib.suppress(s3.exceptions.BucketAlreadyOwnedByYou):
+        s3.create_bucket(Bucket=os.environ["S3_BUCKET"])
     # Rate-limit counters live in Redis for 15 minutes; clear those left by earlier runs.
     with Redis.from_url(os.environ["REDIS_URL"]) as redis:
         for key in redis.scan_iter("rl:login:10.*"):

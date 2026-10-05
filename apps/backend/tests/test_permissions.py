@@ -208,6 +208,8 @@ PUBLIC = [
     ("POST", f"{P}/auth/refresh"),
     ("POST", f"{P}/auth/logout"),
     ("GET", "/health"),
+    # The signed link is the credential (tests/modules/files/test_files.py).
+    ("GET", f"{P}/files/{{token}}"),
 ]
 
 

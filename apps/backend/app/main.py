@@ -17,6 +17,7 @@ from app.modules.auth.router import router as auth_router
 from app.modules.branches.router import router as branches_router
 from app.modules.devices.router import router as devices_router
 from app.modules.employees.router import router as employees_router
+from app.modules.files.router import router as files_router
 from app.modules.health.router import router as health_router
 from app.modules.org_settings.router import router as settings_router
 from app.modules.schedule.router import router as schedule_router
@@ -70,6 +71,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         branches_router,
         devices_router,
         employees_router,
+        files_router,
         schedule_router,
         sessions_router,
         settings_router,
