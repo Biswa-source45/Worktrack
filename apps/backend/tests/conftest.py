@@ -130,3 +130,11 @@ async def client(db: AsyncSession) -> AsyncIterator[httpx.AsyncClient]:
 @pytest.fixture
 def settings() -> Settings:
     return get_settings()
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """`pytest -m "not slow"` is the fast check: it skips the migration tests (each one moves the
+    shared test database down and up again) and the face performance test."""
+    for item in items:
+        if "test_migration" in item.nodeid or "average_under_300_ms" in item.nodeid:
+            item.add_marker(pytest.mark.slow)
