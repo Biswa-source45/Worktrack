@@ -21,6 +21,281 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attendance/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Month
+         * @description `month` is YYYY-MM; omitted, this month.
+         */
+        get: operations["my_month_api_v1_attendance_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Register */
+        get: operations["register_api_v1_admin_attendance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/attendance/{day_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Day Detail */
+        get: operations["day_detail_api_v1_admin_attendance__day_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/attendance/overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Override */
+        post: operations["override_api_v1_admin_attendance_overrides_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/punch-out-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Requests */
+        get: operations["list_requests_api_v1_admin_punch_out_requests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/punch-out-requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Request Detail */
+        get: operations["request_detail_api_v1_admin_punch_out_requests__request_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/punch-out-requests/{request_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Decide Request */
+        patch: operations["decide_request_api_v1_admin_punch_out_requests__request_id__decision_patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/punch-reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reviews */
+        get: operations["list_reviews_api_v1_admin_punch_reviews_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/punch-reviews/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review Detail */
+        get: operations["review_detail_api_v1_admin_punch_reviews__event_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/punch-reviews/{event_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide Review */
+        post: operations["decide_review_api_v1_admin_punch_reviews__event_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/attendance-exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Exceptions */
+        get: operations["list_exceptions_api_v1_admin_attendance_exceptions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today */
+        get: operations["today_api_v1_attendance_today_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/precheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Precheck */
+        post: operations["precheck_api_v1_attendance_precheck_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/punch-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Punch In */
+        post: operations["punch_in_api_v1_attendance_punch_in_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/punch-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Punch Out */
+        post: operations["punch_out_api_v1_attendance_punch_out_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/punch-out-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Punch Out */
+        post: operations["request_punch_out_api_v1_attendance_punch_out_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -577,6 +852,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My Notifications
+         * @description The person's own notifications, newest first. `cursor` is the id of the last one seen.
+         */
+        get: operations["my_notifications_api_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/employees/{employee_id}/schedule": {
         parameters: {
             query?: never;
@@ -927,6 +1222,109 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_punch_in_api_v1_attendance_punch_in_post */
+        Body_punch_in_api_v1_attendance_punch_in_post: {
+            /** Selfie */
+            selfie: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Mocked
+             * @default false
+             */
+            mocked: boolean;
+            /**
+             * Emulator
+             * @default false
+             */
+            emulator: boolean;
+            /**
+             * Rooted
+             * @default false
+             */
+            rooted: boolean;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_punch_out_api_v1_attendance_punch_out_post */
+        Body_punch_out_api_v1_attendance_punch_out_post: {
+            /** Selfie */
+            selfie: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Mocked
+             * @default false
+             */
+            mocked: boolean;
+            /**
+             * Emulator
+             * @default false
+             */
+            emulator: boolean;
+            /**
+             * Rooted
+             * @default false
+             */
+            rooted: boolean;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_request_punch_out_api_v1_attendance_punch_out_requests_post */
+        Body_request_punch_out_api_v1_attendance_punch_out_requests_post: {
+            /** Selfie */
+            selfie: string;
+            /** Reason */
+            reason: string;
+            /** Note */
+            note?: string | null;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Mocked
+             * @default false
+             */
+            mocked: boolean;
+            /**
+             * Emulator
+             * @default false
+             */
+            emulator: boolean;
+            /**
+             * Rooted
+             * @default false
+             */
+            rooted: boolean;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
         /** Body_submit_face_enrollment_api_v1_me_face_enrollment_post */
         Body_submit_face_enrollment_api_v1_me_face_enrollment_post: {
             /** Photos */
@@ -1004,6 +1402,39 @@ export interface components {
             employees_inactive: number;
             /** Pending Devices */
             pending_devices: number;
+        };
+        /** DayDetail */
+        DayDetail: {
+            employee: components["schemas"]["EmployeeBrief"];
+            day: components["schemas"]["DayOut"];
+            /** Punches */
+            punches: components["schemas"]["PunchDetail"][];
+            /** Overrides */
+            overrides: components["schemas"]["OverrideOut"][];
+        };
+        /** DayOut */
+        DayOut: {
+            /** Id */
+            id: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Status */
+            status: string;
+            /** First In At */
+            first_in_at: string | null;
+            /** Last Out At */
+            last_out_at: string | null;
+            /** Worked Minutes */
+            worked_minutes: number;
+            /** Late Minutes */
+            late_minutes: number;
+            /** Overtime Minutes */
+            overtime_minutes: number;
+            /** Flags */
+            flags: string[];
         };
         /**
          * DeviceConflict
@@ -1287,6 +1718,48 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** ExceptionItem */
+        ExceptionItem: {
+            /** Id */
+            id: number;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            employee: components["schemas"]["EmployeeBrief"];
+            /** Kind */
+            kind: string;
+            /** Nearest Branch */
+            nearest_branch: string | null;
+            /** Distance M */
+            distance_m: number | null;
+            /** Punch Event Id */
+            punch_event_id: number | null;
+            /** Details */
+            details: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** ExceptionPage */
+        ExceptionPage: {
+            /** Items */
+            items: components["schemas"]["ExceptionItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * Fix
+         * @description Where the phone says it is. The server re-checks it (invariant 2).
+         */
+        Fix: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Accuracy M */
+            accuracy_m: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1548,6 +2021,63 @@ export interface components {
             client: "web" | "mobile";
             device: components["schemas"]["MeDevice"] | null;
         };
+        /** MonthDay */
+        MonthDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "office" | "home" | "off";
+            /** Reason */
+            reason: string;
+            /** Status */
+            status: string | null;
+            /** First In At */
+            first_in_at: string | null;
+            /** Last Out At */
+            last_out_at: string | null;
+            /** Worked Minutes */
+            worked_minutes: number;
+            /** Late Minutes */
+            late_minutes: number;
+            /** Flags */
+            flags: string[];
+        };
+        /** MonthOut */
+        MonthOut: {
+            /** Month */
+            month: string;
+            /**
+             * Today
+             * Format: date
+             */
+            today: string;
+            /** Days */
+            days: components["schemas"]["MonthDay"][];
+            summary: components["schemas"]["MonthSummary"];
+        };
+        /** MonthSummary */
+        MonthSummary: {
+            /** Present */
+            present: number;
+            /** Half Day */
+            half_day: number;
+            /** Short Hours */
+            short_hours: number;
+            /** Absent */
+            absent: number;
+            /** Late */
+            late: number;
+            /** Missed Punch Out */
+            missed_punch_out: number;
+            /** Worked Minutes */
+            worked_minutes: number;
+        };
         /** MyApprovedHome */
         MyApprovedHome: {
             /** Radius M */
@@ -1591,6 +2121,33 @@ export interface components {
             reason: string | null;
             /** Decided At */
             decided_at: string | null;
+        };
+        /** NotificationOut */
+        NotificationOut: {
+            /** Id */
+            id: number;
+            /** Type */
+            type: string;
+            /** Title */
+            title: string;
+            /** Body */
+            body: string;
+            /** Deep Link */
+            deep_link: string | null;
+            /** Read At */
+            read_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** NotificationPage */
+        NotificationPage: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /**
          * OrgSettings
@@ -1675,6 +2232,67 @@ export interface components {
              * @default 30
              */
             face_retention_days_after_exit: number;
+            /**
+             * Attendance Cutoff Time
+             * @default 23:59
+             */
+            attendance_cutoff_time: string;
+            /**
+             * Punch Reminder After Shift End Min
+             * @default 30
+             */
+            punch_reminder_after_shift_end_min: number;
+            /**
+             * Punch Out Request Expiry Hours
+             * @default 48
+             */
+            punch_out_request_expiry_hours: number;
+            /**
+             * Punch Max Speed Kmh
+             * @default 150
+             */
+            punch_max_speed_kmh: number;
+            /**
+             * Offline Punch Max Age Hours
+             * @default 12
+             */
+            offline_punch_max_age_hours: number;
+        };
+        /** OverrideIn */
+        OverrideIn: {
+            /** User Id */
+            user_id: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "leave" | "work_from_home" | "on_duty";
+            /** Reason */
+            reason: string;
+        };
+        /** OverrideOut */
+        OverrideOut: {
+            /** Kind */
+            kind: string;
+            /** Reason */
+            reason: string;
+            /** Created By */
+            created_by: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** OverrideResult */
+        OverrideResult: {
+            employee: components["schemas"]["EmployeeBrief"];
+            day: components["schemas"]["DayOut"];
         };
         /** PendingHome */
         PendingHome: {
@@ -1705,14 +2323,111 @@ export interface components {
             /** Brightness */
             brightness: number;
         };
-        /** PlaceOut */
-        PlaceOut: {
-            /** Lat */
-            lat: number;
-            /** Lng */
-            lng: number;
-            /** Name */
-            name: string | null;
+        /** PrecheckOut */
+        PrecheckOut: {
+            /** Allowed */
+            allowed: boolean;
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "punch_in" | "punch_out" | "request_punch_out" | "none";
+            place: components["schemas"]["app__modules__attendance__schemas__PlaceOut"] | null;
+            /** Nearest Branch */
+            nearest_branch: string | null;
+            /** Distance M */
+            distance_m: number | null;
+            /** Code */
+            code?: string | null;
+            /** Message */
+            message?: string | null;
+            /** Details */
+            details?: unknown | null;
+        };
+        /** PunchBrief */
+        PunchBrief: {
+            /** Id */
+            id: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "in" | "out";
+            /**
+             * Time
+             * Format: date-time
+             */
+            time: string;
+            /**
+             * Review Status
+             * @enum {string}
+             */
+            review_status: "verified" | "pending" | "approved" | "rejected";
+            /** In Review */
+            in_review: boolean;
+            /** Out Of Office */
+            out_of_office: boolean;
+            /** Offline */
+            offline: boolean;
+            place: components["schemas"]["app__modules__attendance__schemas__PlaceOut"];
+        };
+        /** PunchDetail */
+        PunchDetail: {
+            /** Id */
+            id: number;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "in" | "out";
+            /**
+             * Time
+             * Format: date-time
+             */
+            time: string;
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
+            /** Device Time */
+            device_time: string | null;
+            /** Review Status */
+            review_status: string;
+            /** Review Reasons */
+            review_reasons: string[];
+            /** Face Decision */
+            face_decision: string;
+            /** Face Score */
+            face_score: number;
+            place: components["schemas"]["app__modules__attendance__schemas__PlaceOut"];
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Offline */
+            offline: boolean;
+            /** Integrity Flags */
+            integrity_flags: string[];
+            /** Selfie Url */
+            selfie_url: string;
+            /** Reviewed By */
+            reviewed_by: number | null;
+            /** Review Remarks */
+            review_remarks: string | null;
+        };
+        /** PunchResult */
+        PunchResult: {
+            punch: components["schemas"]["PunchBrief"];
+            day: components["schemas"]["DayOut"];
+            /**
+             * Result
+             * @enum {string}
+             */
+            result: "verified" | "in_review";
+            /**
+             * Replayed
+             * @default false
+             */
+            replayed: boolean;
         };
         /** Reason */
         Reason: {
@@ -1731,6 +2446,148 @@ export interface components {
             /** Refresh Token */
             refresh_token: string;
         };
+        /** RegisterPage */
+        RegisterPage: {
+            /** Items */
+            items: components["schemas"]["RegisterRow"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** RegisterRow */
+        RegisterRow: {
+            employee: components["schemas"]["EmployeeBrief"];
+            /** Status */
+            status: string;
+            /** Day Id */
+            day_id: number | null;
+            /** Branch */
+            branch: string | null;
+            /** First In At */
+            first_in_at: string | null;
+            /** Last Out At */
+            last_out_at: string | null;
+            /** Worked Minutes */
+            worked_minutes: number;
+            /** Late Minutes */
+            late_minutes: number;
+            /** Flags */
+            flags: string[];
+        };
+        /** RequestDecision */
+        RequestDecision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /** Approved Time */
+            approved_time?: string | null;
+            /** Remarks */
+            remarks?: string | null;
+        };
+        /** RequestDetail */
+        RequestDetail: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Status */
+            status: string;
+            /**
+             * Requested Time
+             * Format: date-time
+             */
+            requested_time: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Note */
+            note: string | null;
+            /** Punched In At */
+            punched_in_at: string | null;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Nearest Branch */
+            nearest_branch: string | null;
+            /** Distance M */
+            distance_m: number | null;
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Face Decision */
+            face_decision: string;
+            /** Face Score */
+            face_score: number;
+            /** Offline */
+            offline: boolean;
+            /** Review Reasons */
+            review_reasons: string[];
+            /** Selfie Url */
+            selfie_url: string;
+            first_approver: components["schemas"]["EmployeeBrief"] | null;
+            approver: components["schemas"]["EmployeeBrief"] | null;
+            /** Approved Time */
+            approved_time: string | null;
+            /** Remarks */
+            remarks: string | null;
+            /** Decided At */
+            decided_at: string | null;
+            /** Can Decide */
+            can_decide: boolean;
+            /** Final By Admin */
+            final_by_admin: boolean;
+        };
+        /** RequestItem */
+        RequestItem: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Status */
+            status: string;
+            /**
+             * Requested Time
+             * Format: date-time
+             */
+            requested_time: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+        };
+        /** RequestPage */
+        RequestPage: {
+            /** Items */
+            items: components["schemas"]["RequestItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** ResolvedDay */
         ResolvedDay: {
             /**
@@ -1748,6 +2605,113 @@ export interface components {
              * @enum {string}
              */
             reason: "holiday" | "schedule" | "weekly_off" | "shift";
+        };
+        /** ReviewDecision */
+        ReviewDecision: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /** Remarks */
+            remarks?: string | null;
+            /** Effective Time */
+            effective_time?: string | null;
+        };
+        /** ReviewDetail */
+        ReviewDetail: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "in" | "out";
+            /**
+             * Time
+             * Format: date-time
+             */
+            time: string;
+            /** Review Status */
+            review_status: string;
+            /** Review Reasons */
+            review_reasons: string[];
+            /** Face Decision */
+            face_decision: string;
+            /** Face Score */
+            face_score: number;
+            /** Offline */
+            offline: boolean;
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
+            /** Device Time */
+            device_time: string | null;
+            place: components["schemas"]["app__modules__attendance__schemas__PlaceOut"];
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Integrity Flags */
+            integrity_flags: string[];
+            /** Thresholds */
+            thresholds: {
+                [key: string]: unknown;
+            };
+            /** Model Version */
+            model_version: string;
+            /** Selfie Url */
+            selfie_url: string;
+            /** Reviewed By */
+            reviewed_by: number | null;
+            /** Review Remarks */
+            review_remarks: string | null;
+            /** Can Decide */
+            can_decide: boolean;
+        };
+        /** ReviewItem */
+        ReviewItem: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "in" | "out";
+            /**
+             * Time
+             * Format: date-time
+             */
+            time: string;
+            /** Review Status */
+            review_status: string;
+            /** Review Reasons */
+            review_reasons: string[];
+            /** Face Decision */
+            face_decision: string;
+            /** Face Score */
+            face_score: number;
+            /** Offline */
+            offline: boolean;
+        };
+        /** ReviewPage */
+        ReviewPage: {
+            /** Items */
+            items: components["schemas"]["ReviewItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** RevokedOthers */
         RevokedOthers: {
@@ -1990,6 +2954,47 @@ export interface components {
             /** Temporary Password */
             temporary_password: string;
         };
+        /** TodayOut */
+        TodayOut: {
+            /**
+             * Server Time
+             * Format: date-time
+             */
+            server_time: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "office" | "home" | "off";
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "holiday" | "schedule" | "weekly_off" | "shift";
+            /** Shift */
+            shift: string | null;
+            /** Shift Start */
+            shift_start: string | null;
+            /** Shift End */
+            shift_end: string | null;
+            day: components["schemas"]["DayOut"] | null;
+            /** Punches */
+            punches: components["schemas"]["PunchBrief"][];
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "punch_in" | "punch_out" | "none";
+            /** Blocked */
+            blocked: string | null;
+            /** Minutes So Far */
+            minutes_so_far: number | null;
+        };
         /** TokenResponse */
         TokenResponse: {
             /** Access Token */
@@ -2029,6 +3034,30 @@ export interface components {
             /** Weeks */
             weeks?: number[] | null;
         };
+        /**
+         * PlaceOut
+         * @description Where a punch was made. A home punch names no place at all (privacy).
+         */
+        app__modules__attendance__schemas__PlaceOut: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "branch" | "home" | "outside";
+            /** Branch */
+            branch?: string | null;
+            /** Distance M */
+            distance_m?: number | null;
+        };
+        /** PlaceOut */
+        app__modules__branches__schemas__PlaceOut: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Name */
+            name: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -2063,6 +3092,529 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    my_month_api_v1_attendance_me_get: {
+        parameters: {
+            query?: {
+                month?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_api_v1_admin_attendance_get: {
+        parameters: {
+            query?: {
+                date?: string | null;
+                branch_id?: number | null;
+                status?: ("working" | "present" | "half_day" | "short_hours" | "absent" | "holiday" | "weekly_off" | "pending" | "missed_punch_out" | "leave" | "work_from_home" | "on_duty" | "no_record") | null;
+                q?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegisterPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    day_detail_api_v1_admin_attendance__day_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                day_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DayDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    override_api_v1_admin_attendance_overrides_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OverrideIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverrideResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_requests_api_v1_admin_punch_out_requests_get: {
+        parameters: {
+            query?: {
+                status?: "waiting" | "pending" | "pending_admin" | "approved" | "rejected" | "expired";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_detail_api_v1_admin_punch_out_requests__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_request_api_v1_admin_punch_out_requests__request_id__decision_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reviews_api_v1_admin_punch_reviews_get: {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+                reason?: ("face_borderline" | "face_mismatch" | "offline" | "impossible_jump") | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_detail_api_v1_admin_punch_reviews__event_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_review_api_v1_admin_punch_reviews__event_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_exceptions_api_v1_admin_attendance_exceptions_get: {
+        parameters: {
+            query?: {
+                kind?: ("MOCK_LOCATION" | "ROOTED_DEVICE" | "EMULATOR" | "OUTSIDE_GEOFENCE" | "GPS_ACCURACY_POOR" | "IMPOSSIBLE_JUMP" | "FACE_MISMATCH") | null;
+                from_date?: string | null;
+                to_date?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExceptionPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    today_api_v1_attendance_today_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TodayOut"];
+                };
+            };
+        };
+    };
+    precheck_api_v1_attendance_precheck_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Fix"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrecheckOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    punch_in_api_v1_attendance_punch_in_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_punch_in_api_v1_attendance_punch_in_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PunchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    punch_out_api_v1_attendance_punch_out_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_punch_out_api_v1_attendance_punch_out_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PunchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_punch_out_api_v1_attendance_punch_out_requests_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_request_punch_out_api_v1_attendance_punch_out_requests_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PunchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2388,7 +3940,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlaceOut"];
+                    "application/json": components["schemas"]["app__modules__branches__schemas__PlaceOut"];
                 };
             };
             /** @description Validation Error */
@@ -3315,6 +4867,38 @@ export interface operations {
                 };
                 content: {
                     "image/jpeg": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_notifications_api_v1_notifications_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPage"];
                 };
             };
             /** @description Validation Error */
