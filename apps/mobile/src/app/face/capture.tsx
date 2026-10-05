@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, View } from 'react-native';
 import { CircleCheck, Info, TriangleAlert } from '@/components/icons';
@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, errorDetail, errorText } from '@/lib/api-error';
 import { cameraAvailable } from '@/lib/camera';
 import type { Step, Turn } from '@/lib/face-guidance';
-import { sendPhotos } from '@/lib/face-upload';
+import { deletePhotos, sendPhotos } from '@/lib/face-upload';
 import { useTheme } from '@/lib/theme';
 
 // Loaded on demand: the module pulls in the native camera, which Expo Go does not have, so
@@ -62,6 +62,20 @@ export default function FaceCaptureScreen() {
   // The three photos did not look like one person: only retaking all of them helps.
   const [inconsistent, setInconsistent] = useState(false);
   const [sent, setSent] = useState(false);
+  // Every photo taken here that nothing has deleted yet; they are deleted once sent, replaced,
+  // or left behind (the employee goes back, or the screen is closed).
+  const held = useRef<string[]>([]);
+  const discard = (uris: (string | null)[]) => {
+    const gone = uris.filter((uri): uri is string => uri !== null);
+    held.current = held.current.filter((uri) => !gone.includes(uri));
+    deletePhotos(gone);
+  };
+  useEffect(
+    () => () => {
+      deletePhotos(held.current);
+    },
+    [],
+  );
 
   if (!cameraAvailable) {
     return (
@@ -77,11 +91,13 @@ export default function FaceCaptureScreen() {
 
   const next = photos.findIndex((uri) => uri === null);
   const retake = (index: number) => {
+    discard([photos[index]]);
     setPhotos((all) => all.map((uri, i) => (i === index ? null : uri)));
     setFlagged(({ [index]: _gone, ...rest }) => rest);
     setFailure(null);
   };
   const retakeAll = () => {
+    discard(photos);
     setPhotos(EMPTY);
     setFirstTurn(0);
     setFlagged({});
@@ -96,6 +112,7 @@ export default function FaceCaptureScreen() {
     setInconsistent(false);
     try {
       await sendPhotos(photos as string[]);
+      discard(photos);
       await queryClient.invalidateQueries({ queryKey: FACE_KEY });
       setSent(true);
     } catch (error) {
@@ -137,6 +154,7 @@ export default function FaceCaptureScreen() {
           step={next as Step}
           firstTurn={firstTurn}
           onPhoto={(uri, turn) => {
+            held.current.push(uri);
             setPhotos((all) => all.map((existing, i) => (i === next ? uri : existing)));
             if (next === 1) setFirstTurn(turn);
           }}

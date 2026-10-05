@@ -1,6 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { convertFormDataAsync } from 'expo/src/winter/fetch/convertFormData';
-import { photoForm } from './face-upload';
+import { deletePhotos, photoForm } from './face-upload';
 
 describe('photoForm', () => {
   it('appends parts the fetch Expo installs can turn into bytes, the three photos in order', async () => {
@@ -35,5 +35,32 @@ describe('photoForm', () => {
     expect(text.indexOf('\xff\xd8\x01')).toBeLessThan(text.indexOf('\xff\xd8\x02'));
     expect(text.indexOf('\xff\xd8\x02')).toBeLessThan(text.indexOf('\xff\xd8\x03'));
     expect(text.endsWith(`--${boundary}--\r\n`)).toBe(true);
+  });
+
+  it('deletes the files, and does not fail for one that is already gone', () => {
+    const made = new File(Paths.cache, 'to-delete.jpg');
+    made.create({ overwrite: true });
+    made.write(new Uint8Array([0xff, 0xd8]));
+    expect(made.exists).toBe(true);
+
+    deletePhotos([made.uri, new File(Paths.cache, 'never-existed.jpg').uri]);
+
+    expect(made.exists).toBe(false);
+  });
+
+  it('logs a file that cannot be deleted instead of hiding it', () => {
+    const file = new File(Paths.cache, 'stuck.jpg');
+    file.create({ overwrite: true });
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const remove = jest.spyOn(File.prototype, 'delete').mockImplementation(() => {
+      throw new Error('permission denied');
+    });
+    deletePhotos([file.uri]);
+    expect(warn).toHaveBeenCalledWith(
+      '[face-photos] a photo could not be deleted',
+      expect.any(Error),
+    );
+    remove.mockRestore();
+    warn.mockRestore();
   });
 });

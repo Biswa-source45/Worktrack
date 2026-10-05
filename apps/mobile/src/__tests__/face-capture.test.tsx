@@ -1,5 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import FaceCaptureScreen from '@/app/face/capture';
+import { deletePhotos } from '@/lib/face-upload';
 import { calls, errorBody, mockApi } from '@/test/fake-api';
 import { renderWithTheme } from '@/test/render';
 
@@ -44,6 +45,14 @@ jest.mock('@/components/face-camera', () => {
       ),
   };
 });
+
+// Deleting real files is covered in face-upload.test.ts; here only what the screen asks to delete.
+jest.mock('@/lib/face-upload', () => ({
+  ...jest.requireActual('@/lib/face-upload'),
+  deletePhotos: jest.fn(),
+}));
+const deleted = () => (deletePhotos as jest.Mock).mock.calls.flatMap(([uris]) => uris as string[]);
+const PHOTO = (n: number) => `file:///photo-${n}.jpg`;
 
 const SEND = 'POST /api/v1/me/face-enrollment';
 const CONSENT_FLOW = 'GET /api/v1/me/face-enrollment';
@@ -213,6 +222,51 @@ describe('FaceCaptureScreen', () => {
     expect(await screen.findByText('camera step 1 turn 0')).toBeOnTheScreen();
     await takeAll();
     expect(screen.getByRole('button', { name: 'Send photos' })).toBeEnabled();
+  });
+
+  it('deletes the three photos from the phone once they are sent, and not again on leaving', async () => {
+    mockApi({ [SEND]: enrolled, [CONSENT_FLOW]: () => Response.json({ status: 'pending' }) });
+    await renderWithTheme(<FaceCaptureScreen />);
+    await takeAll();
+    expect(deleted()).toEqual([]);
+    await fireEvent.press(screen.getByRole('button', { name: 'Send photos' }));
+    await screen.findByText(/Photos sent\./);
+    expect(deleted().sort()).toEqual([PHOTO(1), PHOTO(2), PHOTO(3)]);
+
+    (deletePhotos as jest.Mock).mockClear();
+    await screen.unmount();
+    expect(deleted()).toEqual([]);
+  });
+
+  it('deletes only the photo that a retake replaces', async () => {
+    mockApi({});
+    await renderWithTheme(<FaceCaptureScreen />);
+    await takeAll();
+    await fireEvent.press(screen.getByRole('button', { name: 'Retake photo 2' }));
+    expect(deleted()).toEqual([PHOTO(2)]);
+  });
+
+  it('deletes all three when they are retaken together', async () => {
+    mockApi({ [SEND]: () => errorBody('FACE_INCONSISTENT', null, 422) });
+    await renderWithTheme(<FaceCaptureScreen />);
+    await takeAll();
+    await fireEvent.press(screen.getByRole('button', { name: 'Send photos' }));
+    await screen.findByText(/do not look like the same person/);
+    expect(deleted()).toEqual([]); // kept for the retry until the employee decides
+    await fireEvent.press(screen.getByRole('button', { name: 'Retake all three' }));
+    expect(deleted().sort()).toEqual([PHOTO(1), PHOTO(2), PHOTO(3)]);
+  });
+
+  it('deletes the photos that were taken but never sent when the screen is left', async () => {
+    mockApi({});
+    await renderWithTheme(<FaceCaptureScreen />);
+    await screen.findByText(/camera step 1/);
+    await take();
+    await screen.findByText(/camera step 2/);
+    await take();
+    expect(deleted()).toEqual([]);
+    await screen.unmount();
+    expect(deleted().sort()).toEqual([PHOTO(1), PHOTO(2)]);
   });
 
   it('goes back to the notice when the consent is missing', async () => {
