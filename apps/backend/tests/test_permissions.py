@@ -17,6 +17,7 @@ from app.modules.auth.permissions import (
     BRANCHES_MANAGE,
     DEVICES_MANAGE,
     EMPLOYEES_MANAGE,
+    FACE_REVIEW,
     ROLES_MANAGE,
     SETTINGS_MANAGE,
     SETTINGS_VIEW,
@@ -38,7 +39,7 @@ from tests.factories import (
 P = "/api/v1"
 MISSING = 999_999_999
 
-# What migrations 0002 and 0006 seed. Asserting it here catches an accidental change to a role.
+# What migrations 0002, 0006 and 0009 seed. Asserting it here catches an accidental role change.
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     SUPER_ADMIN: {
         WEB_ACCESS,
@@ -49,6 +50,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         BRANCHES_MANAGE,
         SETTINGS_VIEW,
         SETTINGS_MANAGE,
+        FACE_REVIEW,
     },
     ADMIN: {
         WEB_ACCESS,
@@ -57,6 +59,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         TEAM_VIEW,
         BRANCHES_MANAGE,
         SETTINGS_VIEW,
+        FACE_REVIEW,
     },
     ASSIGNER: {WEB_ACCESS, TEAM_VIEW},
     FIELD: set(),
@@ -185,6 +188,22 @@ MATRIX += [
     ]
 ]
 
+MATRIX += [
+    (
+        method,
+        f"{P}/admin/{pattern}",
+        f"{P}/admin/{pattern.format(enrollment_id=MISSING)}",
+        FACE_REVIEW,
+    )
+    for method, pattern in [
+        ("GET", "face-enrollments"),
+        ("GET", "face-enrollments/{enrollment_id}"),
+        ("POST", "face-enrollments/{enrollment_id}/approve"),
+        ("POST", "face-enrollments/{enrollment_id}/reject"),
+        ("POST", "face-enrollments/{enrollment_id}/reset"),
+    ]
+]
+
 # Signed-in users of any role, scoped to themselves.
 SELF_ONLY = [
     ("GET", f"{P}/me"),
@@ -197,10 +216,13 @@ ANY_ROLE = [
     ("GET", f"{P}/branches"),
     ("GET", f"{P}/shifts"),
     ("GET", f"{P}/me/home-location"),
+    ("GET", f"{P}/me/face-enrollment"),
 ]
 # Any role, but only from the employee's own approved phone.
 OWN_PHONE = [
     ("POST", f"{P}/me/home-location-requests"),
+    ("POST", f"{P}/me/face-enrollment/consent"),
+    ("POST", f"{P}/me/face-enrollment"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [
@@ -208,6 +230,8 @@ PUBLIC = [
     ("POST", f"{P}/auth/refresh"),
     ("POST", f"{P}/auth/logout"),
     ("GET", "/health"),
+    # The signed link is the credential (tests/modules/files/test_files.py).
+    ("GET", f"{P}/files/{{token}}"),
 ]
 
 

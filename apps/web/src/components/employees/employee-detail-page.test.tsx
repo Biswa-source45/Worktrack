@@ -267,7 +267,7 @@ describe('Home work location card', () => {
     await user.click(set);
     const dialog = await screen.findByRole('dialog', { name: 'Set home work location' });
     expect(within(dialog).getByLabelText('Radius (30 to 500 m)')).toHaveValue(80);
-    await user.click(within(dialog).getByRole('button', { name: 'move pin' }));
+    await user.click(await within(dialog).findByRole('button', { name: 'move pin' }));
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from app.core.errors import AppError
-from app.core.security import generate_temp_password, hash_password
+from app.core.security import generate_temp_password, hash_password, utcnow
 from app.modules.audit import service as audit
 from app.modules.audit.service import AuditCtx
 from app.modules.auth.deps import AuthContext
@@ -291,6 +291,11 @@ async def update_employee(
                 {"active_reports": reports},
             )
         revoke_sessions = True
+
+    if changes.get("status") == STATUS_INACTIVE and user.status == STATUS_ACTIVE:
+        user.deactivated_at = utcnow()  # starts the clock for deleting the face data (SRS 13)
+    elif changes.get("status") == STATUS_ACTIVE and user.status == STATUS_INACTIVE:
+        user.deactivated_at = None
 
     for field, value in changes.items():
         setattr(user, field, value)

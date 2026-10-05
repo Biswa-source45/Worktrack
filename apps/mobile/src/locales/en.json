@@ -51,6 +51,7 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
+    "server": "The server answered with an error ({{status}}). Please try again.",
     "network": "Cannot reach the server. Check your connection and try again.",
     "invalidCredentials": "Invalid employee ID or password.",
     "invalidCurrentPassword": "The current password is incorrect.",
@@ -290,5 +291,110 @@
     "radiusRange": "Enter a whole number from 30 to 500, or leave it empty for the default.",
     "locationReady": "Location captured. Accuracy ±{{accuracy}} m",
     "save": "Save branch"
+  },
+  "face": {
+    "title": "Face recognition",
+    "loadFailed": "Could not load your face enrollment.",
+    "intro": "To punch in and out, your face is checked against three photos you take once. An admin approves them first.",
+    "status": {
+      "none": "Not set up",
+      "consented": "Photos still needed",
+      "pending": "Waiting for approval",
+      "approved": "Face enrolled",
+      "rejected": "Rejected",
+      "reset": "Set up again"
+    },
+    "consentedBody": "You accepted the notice. Take your three photos to finish.",
+    "pendingBody": "Photos sent {{when}} (IST). An admin will review them.",
+    "approvedBody": "Your face is enrolled. You can punch in once everything else is ready.",
+    "rejected": "Your photos were rejected. Enroll again.",
+    "rejectedBecause": "Your photos were rejected: {{reason}}",
+    "reset": "Your enrollment was reset. Enroll again.",
+    "resetBecause": "Your enrollment was reset: {{reason}}",
+    "setUp": "Set up face recognition",
+    "continue": "Continue setup",
+    "again": "Enroll again",
+    "consent": {
+      "title": "Before we start",
+      "intro": "Please read how your face is used. You can only punch in after you accept and an admin approves your photos.",
+      "collected": {
+        "title": "What we keep",
+        "body": "Three photos of your face, and a numeric template made from them. Each time you punch, a new selfie is compared with the template."
+      },
+      "why": {
+        "title": "Why",
+        "body": "To check that it is really you who punches in or out."
+      },
+      "who": {
+        "title": "Who can see it",
+        "body": "Admins who review enrollments and unclear matches can see your photos. Every time they open them, it is logged."
+      },
+      "kept": {
+        "title": "How it is protected",
+        "body": "The template is encrypted. Photos are shown only through short-lived links."
+      },
+      "deleted": {
+        "title": "When it is deleted",
+        "body": "When you leave the company (after 30 days by default), or when an admin resets your enrollment."
+      },
+      "agree": "I agree and continue",
+      "notNow": "Not now"
+    },
+    "devBuild": {
+      "title": "Needs the development build",
+      "body": "The camera is not available in Expo Go. Open the WorkTrack development build on an Android phone to enroll your face."
+    },
+    "capture": {
+      "step": "Photo {{current}} of {{total}}"
+    },
+    "camera": {
+      "permissionTitle": "Allow the camera",
+      "permissionBody": "WorkTrack uses the camera only to take your enrollment photos and, later, your punch selfie.",
+      "allow": "Allow camera",
+      "openSettings": "Open settings",
+      "noFrontCamera": "This phone has no front camera that WorkTrack can use.",
+      "captureFailed": "Could not take the photo. Hold still, we will try again.",
+      "problemTitle": "The camera did not work.",
+      "problemBody": "Close other apps that use the camera, then try again.",
+      "tryAgain": "Try again",
+      "notStarting": "The camera did not start."
+    },
+    "hint": {
+      "ok": "Hold still...",
+      "noFace": "Put your face inside the oval",
+      "multiple": "Only one face, please",
+      "closer": "Move a little closer",
+      "back": "Move a little back",
+      "center": "Centre your face in the oval",
+      "eyes": "Keep your eyes open",
+      "level": "Keep your head level",
+      "straight": "Look straight at the camera",
+      "turn": "Turn your head slightly to one side",
+      "turnLess": "Turn a little less",
+      "turnOther": "Now turn slightly to the other side"
+    },
+    "issue": {
+      "NO_FACE": "No face was found. Face the camera in good light.",
+      "MULTIPLE_FACES": "More than one face was in the photo. Only you should be in it.",
+      "LOW_CONFIDENCE": "Your face was not clear. Face the camera and retake it.",
+      "FACE_TOO_SMALL": "Your face was too small. Move closer and retake it.",
+      "BLURRY": "The photo was blurry. Hold still and retake it.",
+      "TOO_DARK": "The photo was too dark. Move to a brighter place.",
+      "TOO_BRIGHT": "The photo was too bright. Move away from strong light.",
+      "UNREADABLE_IMAGE": "The photo could not be read. Retake it."
+    },
+    "review": {
+      "title": "Check your photos",
+      "intro": "Make sure your face is clear in all three, then send them.",
+      "photoLabel": "Photo {{n}}",
+      "retake": "Retake",
+      "retakeN": "Retake photo {{n}}",
+      "retakeAll": "Retake all three",
+      "send": "Send photos",
+      "fixPhotos": "Some photos need to be retaken. Retake the marked ones, then send again.",
+      "inconsistent": "The three photos do not look like the same person. Retake all three.",
+      "sent": "Photos sent. An admin will review them, and the Home screen shows when you are approved.",
+      "done": "Done"
+    }
   }
 }

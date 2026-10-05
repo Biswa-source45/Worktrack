@@ -28,7 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig =>
       bundleIdentifier: 'com.biswabhusan.worktrack',
       infoPlist: {
         NSCameraUsageDescription:
-          'WorkTrack uses the camera to verify your face when you punch in or out.',
+          'WorkTrack uses the camera to enroll your face and to verify it when you punch in or out.',
         NSLocationWhenInUseUsageDescription:
           'WorkTrack uses your location to check you are inside your branch when you punch in or out, and to show your position while you work on a field task.',
         NSLocationAlwaysAndWhenInUseUsageDescription:

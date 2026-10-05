@@ -148,7 +148,49 @@ export const SETTINGS: Schemas['OrgSettings'] = {
   punch_out_approval_levels: 1,
   regularization_approval_levels: 1,
   min_app_version: '1.0.0',
+  face_verify_threshold: 0.4,
+  face_review_threshold: 0.3,
+  face_min_detection_confidence: 0.9,
+  face_min_face_px: 80,
+  face_min_sharpness: 60,
+  face_min_brightness: 50,
+  face_max_brightness: 200,
+  face_retention_days_after_exit: 30,
 };
+
+export function makeEnrollment(
+  overrides: Partial<Schemas['EnrollmentItem']> = {},
+): Schemas['EnrollmentItem'] {
+  return {
+    id: 51,
+    employee: { id: 2, emp_code: 'EMP-001', name: 'Asha Rao' },
+    status: 'pending',
+    consent_at: '2026-02-01T04:30:00Z',
+    submitted_at: '2026-02-01T04:31:00Z',
+    decided_at: null,
+    ...overrides,
+  };
+}
+
+export function makeEnrollmentDetail(
+  overrides: Partial<Schemas['EnrollmentDetail']> = {},
+): Schemas['EnrollmentDetail'] {
+  return {
+    ...makeEnrollment(),
+    photos: ['/api/v1/files/tok.one', '/api/v1/files/tok.two', '/api/v1/files/tok.three'],
+    qualities: [281, 276, 290].map((px) => ({
+      confidence: 0.94,
+      face_px: px,
+      sharpness: 312.4,
+      brightness: 128.6,
+    })),
+    consistency_score: 0.83,
+    model_version: 'yunet-2023mar+sface-2021dec',
+    decided_by: null,
+    reason: null,
+    ...overrides,
+  };
+}
 
 export function makeHomeRequest(
   overrides: Partial<Schemas['HomeRequestItem']> = {},

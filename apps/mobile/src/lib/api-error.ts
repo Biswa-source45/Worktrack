@@ -62,6 +62,17 @@ export async function unwrap<T>(
 
 /** The server's message for a failed admin or session call (403, 409 and so on). */
 export function errorText(t: TFunction, error: unknown): string {
-  if (error instanceof ApiError && error.message) return error.message;
+  if (error instanceof ApiError) {
+    // An answer that is not the server's own error format (a gateway page, a proxy limit) has no
+    // message; the status still tells what happened.
+    return error.message || t('errors.server', { status: error.status });
+  }
   return error instanceof TypeError ? t('errors.network') : t('errors.generic');
+}
+
+/** A short technical line for a failure, to show under the message so it can be reported. */
+export function errorDetail(error: unknown): string {
+  if (error instanceof ApiError) return `${error.status} ${error.code}`;
+  if (error instanceof Error) return `${error.name}: ${error.message}`.slice(0, 160);
+  return String(error).slice(0, 160);
 }

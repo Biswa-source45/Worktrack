@@ -15,14 +15,22 @@ import { Card } from '@/components/ui/card';
 import { Input, Select } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { errorMessage, proxyApi, unwrap, type Schemas } from '@/lib/api-client';
-import { changed, isIntBetween, markRejected, RADIUS_MAX_M, RADIUS_MIN_M } from '@/lib/form';
+import {
+  changed,
+  isIntBetween,
+  isNumberBetween,
+  markRejected,
+  RADIUS_MAX_M,
+  RADIUS_MIN_M,
+} from '@/lib/form';
 import { useMe } from '@/lib/me';
 import { useSettings } from './use-settings';
 
 type Settings = Schemas['OrgSettings'];
 type Name = keyof Settings;
 
-// Bounds mirror the server's OrgSettings; the server remains the authority.
+// Bounds mirror the server's OrgSettings; the server remains the authority. Whole numbers,
+// except the face scores, sharpness and confidence, which are decimals.
 const NUMBERS = {
   geofence_default_radius_m: [RADIUS_MIN_M, RADIUS_MAX_M],
   home_default_radius_m: [RADIUS_MIN_M, RADIUS_MAX_M],
@@ -30,7 +38,15 @@ const NUMBERS = {
   geofence_accuracy_buffer_cap_m: [0, 100],
   punch_out_approval_levels: [1, 2],
   regularization_approval_levels: [1, 2],
-} as const satisfies Partial<Record<Name, readonly [number, number]>>;
+  face_verify_threshold: [0.2, 0.9, 'decimal'],
+  face_review_threshold: [0.1, 0.8, 'decimal'],
+  face_min_detection_confidence: [0.5, 0.99, 'decimal'],
+  face_min_face_px: [40, 400],
+  face_min_sharpness: [1, 2000, 'decimal'],
+  face_min_brightness: [0, 254],
+  face_max_brightness: [1, 255],
+  face_retention_days_after_exit: [0, 365],
+} as const satisfies Partial<Record<Name, readonly [number, number, 'decimal'?]>>;
 type NumberName = keyof typeof NUMBERS;
 const NUMBER_NAMES = Object.keys(NUMBERS) as NumberName[];
 
@@ -46,23 +62,67 @@ const GROUPS: { id: string; fields: Name[] }[] = [
   },
   { id: 'approvals', fields: ['punch_out_approval_levels', 'regularization_approval_levels'] },
   { id: 'app', fields: ['min_app_version'] },
+  {
+    id: 'face',
+    fields: [
+      'face_verify_threshold',
+      'face_review_threshold',
+      'face_min_detection_confidence',
+      'face_min_face_px',
+      'face_min_sharpness',
+      'face_min_brightness',
+      'face_max_brightness',
+      'face_retention_days_after_exit',
+    ],
+  },
 ];
 const LEVELS: Name[] = ['punch_out_approval_levels', 'regularization_approval_levels'];
 
-const numberField = (name: NumberName) =>
-  z.string().refine(isIntBetween(NUMBERS[name][0], NUMBERS[name][1]), 'validation.range');
-const schema = z.object({
-  geofence_default_radius_m: numberField('geofence_default_radius_m'),
-  home_default_radius_m: numberField('home_default_radius_m'),
-  gps_max_accuracy_m: numberField('gps_max_accuracy_m'),
-  geofence_accuracy_buffer_cap_m: numberField('geofence_accuracy_buffer_cap_m'),
-  punch_out_approval_levels: numberField('punch_out_approval_levels'),
-  regularization_approval_levels: numberField('regularization_approval_levels'),
-  min_app_version: z
-    .string()
-    .trim()
-    .regex(/^\d{1,4}\.\d{1,4}\.\d{1,4}$/, 'validation.appVersion'),
-});
+const isDecimal = (name: NumberName) => (NUMBERS[name] as readonly unknown[])[2] === 'decimal';
+const numberField = (name: NumberName) => {
+  const [min, max] = NUMBERS[name];
+  return isDecimal(name)
+    ? z.string().refine(isNumberBetween(min, max), 'validation.decimalRange')
+    : z.string().refine(isIntBetween(min, max), 'validation.range');
+};
+const schema = z
+  .object({
+    geofence_default_radius_m: numberField('geofence_default_radius_m'),
+    home_default_radius_m: numberField('home_default_radius_m'),
+    gps_max_accuracy_m: numberField('gps_max_accuracy_m'),
+    geofence_accuracy_buffer_cap_m: numberField('geofence_accuracy_buffer_cap_m'),
+    punch_out_approval_levels: numberField('punch_out_approval_levels'),
+    regularization_approval_levels: numberField('regularization_approval_levels'),
+    face_verify_threshold: numberField('face_verify_threshold'),
+    face_review_threshold: numberField('face_review_threshold'),
+    face_min_detection_confidence: numberField('face_min_detection_confidence'),
+    face_min_face_px: numberField('face_min_face_px'),
+    face_min_sharpness: numberField('face_min_sharpness'),
+    face_min_brightness: numberField('face_min_brightness'),
+    face_max_brightness: numberField('face_max_brightness'),
+    face_retention_days_after_exit: numberField('face_retention_days_after_exit'),
+    min_app_version: z
+      .string()
+      .trim()
+      .regex(/^\d{1,4}\.\d{1,4}\.\d{1,4}$/, 'validation.appVersion'),
+  })
+  // The same two rules the server applies to the stored values.
+  .superRefine((v, ctx) => {
+    if (Number(v.face_review_threshold) >= Number(v.face_verify_threshold)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['face_review_threshold'],
+        message: 'validation.reviewBelowVerify',
+      });
+    }
+    if (Number(v.face_min_brightness) >= Number(v.face_max_brightness)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['face_min_brightness'],
+        message: 'validation.brightnessOrder',
+      });
+    }
+  });
 type Values = z.infer<typeof schema>;
 
 const toValues = (settings: Settings): Values => ({
@@ -125,9 +185,18 @@ function SettingsForm({ settings, canManage }: { settings: Settings; canManage: 
       {/* A disabled fieldset disables every control inside it. */}
       <fieldset disabled={!canManage} className="grid gap-4 lg:grid-cols-3">
         {GROUPS.map((group) => (
-          <Card key={group.id} role="group" aria-label={t(`settings.group.${group.id}`)}>
+          <Card
+            key={group.id}
+            role="group"
+            aria-label={t(`settings.group.${group.id}`)}
+            className={group.id === 'face' ? 'lg:col-span-3' : undefined}
+          >
             <h2 className="mb-4 text-h3">{t(`settings.group.${group.id}`)}</h2>
-            <div className="grid gap-4">
+            <div
+              className={
+                group.id === 'face' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4'
+              }
+            >
               {group.fields.map((name) => (
                 <Field
                   key={name}
@@ -148,7 +217,13 @@ function SettingsForm({ settings, canManage }: { settings: Settings; canManage: 
                   ) : (
                     <Input
                       id={name}
-                      inputMode={name === 'min_app_version' ? 'text' : 'numeric'}
+                      inputMode={
+                        name === 'min_app_version'
+                          ? 'text'
+                          : isDecimal(name as NumberName)
+                            ? 'decimal'
+                            : 'numeric'
+                      }
                       invalid={!!errors[name]}
                       onInput={() => setSaved(false)}
                       {...register(name)}
@@ -201,7 +276,10 @@ function SettingsView() {
         <div role="status" className="grid gap-4 lg:grid-cols-3">
           <span className="sr-only">{t('common.loading')}</span>
           {GROUPS.map((group) => (
-            <Skeleton key={group.id} className="h-64 rounded-lg" />
+            <Skeleton
+              key={group.id}
+              className={group.id === 'face' ? 'h-48 rounded-lg lg:col-span-3' : 'h-64 rounded-lg'}
+            />
           ))}
         </div>
       )}

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { fileURLToPath } from 'node:url';
 import { ESLint } from 'eslint';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 // Runs the real apps/web ESLint config, so the rule cannot be dropped or loosened unnoticed.
 const eslint = new ESLint({ cwd: fileURLToPath(new URL('../..', import.meta.url)) });
@@ -13,8 +13,14 @@ async function rawColourErrors(code: string, filePath = 'src/components/example.
 
 const jsx = (className: string) => `export const X = () => <div className="${className}" />;\n`;
 
-// Loading the Next ESLint config takes a few seconds on the first lint.
+// Loading the Next ESLint config on the first lint took 42 s on a busy machine (a few seconds on a
+// quiet one). It happens once, in a setup hook with its own limit, so no test pays for it: that
+// made the first test fail now and then on slow CI runners.
 describe('no raw colour rule', { timeout: 60_000 }, () => {
+  beforeAll(async () => {
+    await rawColourErrors('export const warm = 1;');
+  }, 180_000);
+
   it.each([
     ['a 3-digit hex colour', `export const c = '#abc';\n`, 'Hex colour'],
     ['a 6-digit hex colour', `export const c = '#A65A2E';\n`, 'Hex colour'],

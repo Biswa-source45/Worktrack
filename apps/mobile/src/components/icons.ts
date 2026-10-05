@@ -21,6 +21,7 @@ export { default as Monitor } from 'lucide-react-native/icons/monitor';
 export { default as MonitorSmartphone } from 'lucide-react-native/icons/monitor-smartphone';
 export { default as Moon } from 'lucide-react-native/icons/moon';
 export { default as RefreshCw } from 'lucide-react-native/icons/refresh-cw';
+export { default as ScanFace } from 'lucide-react-native/icons/scan-face';
 export { default as ShieldCheck } from 'lucide-react-native/icons/shield-check';
 export { default as Smartphone } from 'lucide-react-native/icons/smartphone';
 export { default as Sun } from 'lucide-react-native/icons/sun';

@@ -8,6 +8,7 @@ TEAM_VIEW = "team.view"
 BRANCHES_MANAGE = "branches.manage"
 SETTINGS_VIEW = "settings.view"
 SETTINGS_MANAGE = "settings.manage"
+FACE_REVIEW = "face.review"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -19,6 +20,7 @@ ALL_PERMISSIONS = frozenset(
         BRANCHES_MANAGE,
         SETTINGS_VIEW,
         SETTINGS_MANAGE,
+        FACE_REVIEW,
     }
 )
 

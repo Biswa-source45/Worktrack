@@ -25,6 +25,7 @@ import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
 import { EmployeeDialog, type TemporaryPassword } from './employee-dialog';
 import type { Employee } from './employee-form';
+import { FaceEnrollmentsTab, useFaceEnrollments } from './face-enrollments';
 import { HomeRequestsTab, usePendingHomeRequests } from './home-requests';
 import { ImportDialog } from './import-dialog';
 import { TemporaryPasswordDialog } from './temp-password-dialog';
@@ -64,7 +65,9 @@ function EmployeesView() {
   const { data: me } = useMe();
   const lookups = useLookups();
   const requests = usePendingHomeRequests();
-  const [tab, setTab] = useState<'employees' | 'requests'>('employees');
+  const canReviewFaces = me?.permissions.includes('face.review') ?? false;
+  const faces = useFaceEnrollments('pending', canReviewFaces);
+  const [tab, setTab] = useState<'employees' | 'requests' | 'faces'>('employees');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'' | 'active' | 'inactive'>('');
   const [dialog, setDialog] = useState<Dialog | null>(null);
@@ -278,10 +281,15 @@ function EmployeesView() {
         tabs={[
           { id: 'employees', label: t('employees.tab') },
           { id: 'requests', label: t('home.requestsTab'), count: requests.data?.length },
+          ...(canReviewFaces
+            ? [{ id: 'faces' as const, label: t('face.tab'), count: faces.data?.length }]
+            : []),
         ]}
       />
       {tab === 'requests' ? (
         <HomeRequestsTab requests={requests} />
+      ) : tab === 'faces' && canReviewFaces ? (
+        <FaceEnrollmentsTab />
       ) : (
         <>
           {(actionError || list.error) && (

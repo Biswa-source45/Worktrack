@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
+
+// findBy* and waitFor wait up to 1 s by default. The 2-vCPU CI runner is several times slower than
+// a laptop (lazy-loaded map, dialogs), so they wait longer; a passing test is not slower for it.
+configure({ asyncUtilTimeout: 5000 });
 
 // The network boundary is the only thing mocked; openapi-fetch captures this reference at import.
 vi.stubGlobal('fetch', vi.fn());

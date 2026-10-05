@@ -35,6 +35,8 @@ function Gate({ fontsSettled }: { fontsSettled: boolean }) {
       </Stack.Protected>
       <Stack.Protected guard={guards.ready}>
         <Stack.Screen name="(app)" />
+        <Stack.Screen name="face/consent" />
+        <Stack.Screen name="face/capture" />
       </Stack.Protected>
       <Stack.Screen name="health" />
     </Stack>

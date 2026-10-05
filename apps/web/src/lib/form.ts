@@ -6,7 +6,7 @@ import { rejectedFields } from '@/lib/api-client';
 export const isIntBetween = (min: number, max: number) => (value: string) =>
   /^\d+$/.test(value.trim()) && Number(value) >= min && Number(value) <= max;
 
-const isNumberBetween = (min: number, max: number) => (value: string) =>
+export const isNumberBetween = (min: number, max: number) => (value: string) =>
   value.trim() !== '' && Number(value) >= min && Number(value) <= max;
 
 export const RADIUS_MIN_M = 30;

@@ -62,7 +62,8 @@ async def test_upgrade_creates_the_tables_and_downgrade_removes_them() -> None:
         assert not NEW_KEYS & set().union(*before.values())
         await _insert_user("M6-A", None, None)
 
-        run_alembic("upgrade", "head")
+        # To 0006 itself, not to head: later migrations (0009) grant more permissions.
+        run_alembic("upgrade", "0006")
         assert await _existing_tables() == sorted(TABLES)
         after = await _permissions()
         assert after["Super Admin"] == before["Super Admin"] | NEW_KEYS

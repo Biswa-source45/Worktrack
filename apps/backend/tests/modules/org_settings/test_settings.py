@@ -21,6 +21,14 @@ DEFAULTS: dict[str, Any] = {
     "punch_out_approval_levels": 1,
     "regularization_approval_levels": 1,
     "min_app_version": "0.0.0",
+    "face_verify_threshold": 0.40,
+    "face_review_threshold": 0.30,
+    "face_min_detection_confidence": 0.90,
+    "face_min_face_px": 80,
+    "face_min_sharpness": 60,
+    "face_min_brightness": 50,
+    "face_max_brightness": 200,
+    "face_retention_days_after_exit": 30,
 }
 
 
@@ -104,6 +112,11 @@ async def test_an_update_that_changes_nothing_writes_nothing(
         ("min_app_version", ""),
         ("gps_max_accuracy_m", None),
         ("gps_max_accuracy_m", "far"),
+        ("face_verify_threshold", 0.95),
+        ("face_review_threshold", 0.05),
+        ("face_min_detection_confidence", 0.2),
+        ("face_min_face_px", 10),
+        ("face_max_brightness", 300),
     ],
 )
 async def test_out_of_range_values_are_rejected(
@@ -129,6 +142,7 @@ async def test_out_of_range_values_are_rejected(
         ("geofence_accuracy_buffer_cap_m", 100),
         ("punch_out_approval_levels", 2),
         ("min_app_version", "12.0.345"),
+        ("face_min_face_px", 400),
     ],
 )
 async def test_values_on_the_bounds_are_accepted(
@@ -182,3 +196,50 @@ async def test_admin_hr_may_view_but_not_change_settings(
     response = await client.patch(SETTINGS, json={"gps_max_accuracy_m": 80}, headers=headers)
     assert (response.status_code, error_code(response)) == (403, "FORBIDDEN")
     assert await audit_rows(db, "settings.update") == []
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"face_review_threshold": 0.45},  # not below the stored verify threshold (0.40)
+        {"face_verify_threshold": 0.25},  # not above the stored review threshold (0.30)
+        {"face_verify_threshold": 0.35, "face_review_threshold": 0.35},
+        {"face_min_brightness": 200},  # not below the stored maximum (200)
+    ],
+)
+async def test_two_key_rules_are_checked_against_the_stored_values(
+    client: httpx.AsyncClient, db: AsyncSession, body: dict[str, Any]
+) -> None:
+    _, headers = await actor(client, db, SUPER_ADMIN)
+    response = await client.patch(SETTINGS, json=body, headers=headers)
+    assert response.status_code == 422
+    assert error_code(response) == "VALIDATION_ERROR"
+    assert (await client.get(SETTINGS, headers=headers)).json() == DEFAULTS
+
+
+async def test_both_thresholds_can_move_together(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    _, headers = await actor(client, db, SUPER_ADMIN)
+    body = {"face_verify_threshold": 0.55, "face_review_threshold": 0.45}
+    assert (await client.patch(SETTINGS, json=body, headers=headers)).status_code == 200
+    stored = (await client.get(SETTINGS, headers=headers)).json()
+    assert (stored["face_verify_threshold"], stored["face_review_threshold"]) == (0.55, 0.45)
+    # the review threshold can now rise on its own, up to just below the new verify threshold
+    assert (
+        await client.patch(SETTINGS, json={"face_review_threshold": 0.5}, headers=headers)
+    ).status_code == 200
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"face_verify_threshold": 0.2, "face_review_threshold": 0.1},
+        {"face_verify_threshold": 0.9, "face_review_threshold": 0.8},
+    ],
+)
+async def test_threshold_bounds_are_accepted_as_pairs(
+    client: httpx.AsyncClient, db: AsyncSession, body: dict[str, Any]
+) -> None:
+    _, headers = await actor(client, db, SUPER_ADMIN)
+    assert (await client.patch(SETTINGS, json=body, headers=headers)).status_code == 200

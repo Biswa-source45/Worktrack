@@ -14,6 +14,7 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: apps/backend
@@ -29,6 +30,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: apps/backend/uv.lock
       - run: uv sync --frozen
+      # Face tests need the two ONNX models (checksum-verified, git-ignored, about 39 MB).
+      - run: uv run python scripts/download_models.py
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy app
@@ -36,6 +39,7 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - run: cp .env.example .env
@@ -53,6 +57,7 @@ jobs:
 
   mobile:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - run: cp .env.example .env
@@ -68,6 +73,7 @@ jobs:
 
   api-types:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - run: cp .env.example .env
@@ -87,6 +93,7 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - run: cp .env.example .env
@@ -102,6 +109,9 @@ jobs:
           cache-dependency-glob: apps/backend/uv.lock
       - run: pnpm install --frozen-lockfile
       - run: uv sync --frozen
+        working-directory: apps/backend
+      # The face tests enroll a photo through the real backend.
+      - run: uv run python scripts/download_models.py
         working-directory: apps/backend
       - run: pnpm --filter web exec playwright install --with-deps chromium
       - run: pnpm --filter web e2e

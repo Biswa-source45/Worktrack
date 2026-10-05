@@ -105,3 +105,32 @@ def decode_access_token(settings: Settings, token: str) -> dict[str, Any] | None
     except jwt.InvalidTokenError:
         return None
     return claims if claims.get("typ") == "access" else None
+
+
+# A link to one stored file (a selfie). The token is the only credential, so it is short-lived.
+FILE_LINK_SECONDS = 300
+
+
+def create_file_token(settings: Settings, key: str) -> str:
+    now = utcnow()
+    claims: dict[str, Any] = {
+        "sub": key,
+        "typ": "file",
+        "iat": now,
+        "exp": now + timedelta(seconds=FILE_LINK_SECONDS),
+    }
+    return jwt.encode(claims, settings.jwt_secret, algorithm=_JWT_ALGORITHM)
+
+
+def decode_file_token(settings: Settings, token: str) -> str | None:
+    """Return the object key, or None for any invalid, expired or wrong-type token."""
+    try:
+        claims: dict[str, Any] = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=[_JWT_ALGORITHM],
+            options={"require": ["exp", "iat", "sub"]},
+        )
+    except jwt.InvalidTokenError:
+        return None
+    return str(claims["sub"]) if claims.get("typ") == "file" else None

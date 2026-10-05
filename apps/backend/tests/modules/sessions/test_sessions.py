@@ -393,8 +393,8 @@ async def test_purge_drops_sessions_that_ended_before_the_retention_period(
 
 async def test_the_worker_runs_the_purge_every_day() -> None:
     assert purge_sessions in WorkerSettings.functions
-    (job,) = WorkerSettings.cron_jobs
-    assert job.coroutine is purge_sessions
+    # Not the only daily job any more (M3 added the face purge): find this one by its function.
+    job = next(j for j in WorkerSettings.cron_jobs if j.coroutine is purge_sessions)
     assert (job.hour, job.minute) == (21, 30)
     assert await purge_sessions({}) >= 0
 
