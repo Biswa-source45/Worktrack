@@ -1,3 +1,5 @@
+import base64
+import binascii
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal, Self
@@ -24,6 +26,8 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = []
     allow_mock_location: bool = False
     jwt_secret: str
+    # AES-256 key for face embeddings: base64 of exactly 32 bytes (see .env.example).
+    face_encryption_key: str
     access_token_minutes: int = 15
     refresh_token_days: int = 30
     login_max_failures: int = 5
@@ -56,6 +60,18 @@ class Settings(BaseSettings):
             raise ValueError("JWT_SECRET must be at least 32 characters")
         if self.app_env == "production" and self.jwt_secret.startswith(PLACEHOLDER_PREFIX):
             raise ValueError("JWT_SECRET must be changed from the .env.example placeholder")
+        return self
+
+    @model_validator(mode="after")
+    def _strong_face_key(self) -> Self:
+        try:
+            key = base64.b64decode(self.face_encryption_key, validate=True)
+        except (binascii.Error, ValueError):
+            key = b""
+        if len(key) != 32:
+            raise ValueError("FACE_ENCRYPTION_KEY must be base64 of exactly 32 bytes")
+        if self.app_env == "production" and key.startswith(PLACEHOLDER_PREFIX.encode()):
+            raise ValueError("FACE_ENCRYPTION_KEY must be changed from the .env.example value")
         return self
 
 

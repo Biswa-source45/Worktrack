@@ -30,6 +30,7 @@ if not _test_db_name.endswith("_test") or os.environ["TEST_DATABASE_URL"] == os.
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = os.environ["TEST_DATABASE_URL"]
 os.environ.setdefault("JWT_SECRET", "test-only-jwt-secret-test-only-jwt-secret")
+os.environ.setdefault("FACE_ENCRYPTION_KEY", "dGVzdC1vbmx5LWZhY2Uta2V5LXRlc3Qtb25seS0xMjM=")
 
 from argon2 import PasswordHasher  # noqa: E402
 

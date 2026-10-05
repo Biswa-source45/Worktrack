@@ -1,3 +1,5 @@
+import base64
+
 import pytest
 from pydantic import ValidationError
 
@@ -12,6 +14,7 @@ BASE = {
     "s3_secret_key": "s",
     "s3_bucket": "b",
     "jwt_secret": "x" * 40,
+    "face_encryption_key": base64.b64encode(b"k" * 32).decode(),
 }
 
 
@@ -54,3 +57,16 @@ def test_short_jwt_secret_is_rejected() -> None:
 def test_production_rejects_the_example_jwt_secret() -> None:
     with pytest.raises(ValidationError, match="placeholder"):
         make(app_env="production", jwt_secret="dev-only-" + "x" * 40)
+
+
+def test_face_key_must_be_base64_of_32_bytes() -> None:
+    for bad in ("short", "not base64!!", base64.b64encode(b"k" * 16).decode()):
+        with pytest.raises(ValidationError, match="FACE_ENCRYPTION_KEY"):
+            make(face_encryption_key=bad)
+
+
+def test_production_rejects_the_example_face_key() -> None:
+    placeholder = base64.b64encode(b"dev-only-" + b"k" * 23).decode()
+    assert make(face_encryption_key=placeholder).face_encryption_key == placeholder
+    with pytest.raises(ValidationError, match="FACE_ENCRYPTION_KEY"):
+        make(app_env="production", face_encryption_key=placeholder)
