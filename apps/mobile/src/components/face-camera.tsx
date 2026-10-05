@@ -63,7 +63,10 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
   const device = useCameraDevice('front');
   const photoOutput = usePhotoOutput({
     targetResolution: CommonResolutions.HD_4_3,
-    qualityPrioritization: 'speed',
+    // Not 'speed': that is CameraX zero-shutter-lag, which adds an extra camera stream, and on
+    // the Redmi 13C 5G (MediaTek) the picture then stays black. Checked on the phone: 'balanced'
+    // and 'quality' work.
+    qualityPrioritization: 'balanced',
   });
 
   const [hint, setHint] = useState<Hint>('noFace');
@@ -231,9 +234,6 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
         device={device}
         isActive
         outputs={[photoOutput, scanner]}
-        // The default is a SurfaceView, which Android draws behind the app window: on some phones
-        // (this Redmi) the picture stays black. A TextureView is drawn like any other view.
-        implementationMode="compatible"
         onStarted={() => setStarted(true)}
         onError={reportProblem}
       />
