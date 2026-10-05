@@ -19,11 +19,18 @@ export function e2eRedisUrl(): string {
   return redisUrl.replace(/\/\d+$/, '/14');
 }
 
+// Photos go to a bucket of their own (the dev one holds real enrollments under the same keys).
+export const E2E_BUCKET = 'worktrack-e2e';
+
 export function backendEnv(): Record<string, string> {
   return {
     DATABASE_URL: e2eDatabaseUrl(),
     REDIS_URL: e2eRedisUrl(),
     JWT_SECRET: process.env.JWT_SECRET ?? 'e2e-test-only-jwt-secret-e2e-test-only-jwt-secret',
+    // Any valid key works here: the e2e database is thrown away like the test one.
+    FACE_ENCRYPTION_KEY:
+      process.env.FACE_ENCRYPTION_KEY ?? 'dGVzdC1vbmx5LWZhY2Uta2V5LXRlc3Qtb25seS0xMjM=',
+    S3_BUCKET: E2E_BUCKET,
     APP_ENV: 'test',
     CORS_ORIGINS: 'http://localhost:3100',
     LOGIN_IP_LIMIT: '1000',

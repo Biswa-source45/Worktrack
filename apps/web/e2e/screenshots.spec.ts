@@ -4,6 +4,8 @@ import {
   adminToken,
   apiLogin,
   createEmployee,
+  employeeOnPhone,
+  enrollFace,
   stubMapTiles,
   uiLoginAsReadyAdmin,
   uniqueMobile,
@@ -19,6 +21,7 @@ const WIDTHS = [1280, 768];
 
 let fresh: Created; // an Admin/HR account still on its temporary password
 let planned: Created; // an employee whose schedule and home location page is captured
+let enrolled: Created; // an employee whose face enrollment waits for review
 
 test.beforeAll(async () => {
   const token = await adminToken();
@@ -34,6 +37,9 @@ test.beforeAll(async () => {
   };
   await apiLogin(holder.code, holder.password, 'mobile', phone);
   await apiLogin(mover.code, mover.password, 'mobile', phone);
+
+  enrolled = await createEmployee(token, `Face Review ${uniqueSuffix()}`);
+  await enrollFace(await employeeOnPhone(enrolled));
 });
 
 for (const theme of THEMES) {
@@ -155,6 +161,24 @@ for (const theme of THEMES) {
       await page.getByRole('tab', { name: /^Home requests/ }).click();
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await shot('home-requests');
+
+      await page.getByRole('tab', { name: /^Face enrollments/ }).click();
+      await expect(page.getByRole('tabpanel').getByText(enrolled.name)).toBeVisible();
+      await shot('face-enrollments');
+      await page
+        .getByRole('button', { name: `Review the face enrollment of ${enrolled.name}` })
+        .click();
+      const review = page.getByRole('dialog', { name: 'Face enrollment' });
+      await expect(review.getByRole('img')).toHaveCount(3);
+      await expect
+        .poll(() =>
+          review
+            .getByRole('img')
+            .evaluateAll((imgs) => imgs.every((i) => (i as HTMLImageElement).naturalWidth > 0)),
+        )
+        .toBe(true);
+      await shot('face-review-dialog', false);
+      await page.keyboard.press('Escape');
     });
   }
 }

@@ -158,7 +158,11 @@ function ReviewForm({ detail, onClose }: { detail: Detail; onClose: () => void }
   return (
     <form onSubmit={(event) => event.preventDefault()} noValidate className="grid gap-4">
       <Photos detail={detail} />
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-small">
+      <dl className="grid grid-cols-2 items-center gap-x-4 gap-y-1 text-small">
+        <dt className="text-muted-foreground">{t('face.col.status')}</dt>
+        <dd>
+          <StatusBadge status={detail.status} />
+        </dd>
         <dt className="text-muted-foreground">{t('face.consent')}</dt>
         <dd>{formatIst(detail.consent_at)}</dd>
         <dt className="text-muted-foreground">{t('face.submitted')}</dt>
@@ -289,11 +293,6 @@ export function FaceEnrollmentsTab() {
             </span>
           ),
         }),
-        col.display({
-          id: 'status',
-          header: t('face.col.status'),
-          cell: ({ row: { original: r } }) => <StatusBadge status={r.status} />,
-        }),
         col.accessor((r) => formatIst(r.consent_at), {
           id: 'consent',
           header: t('face.col.consent'),
@@ -344,7 +343,14 @@ export function FaceEnrollmentsTab() {
       {list.isPending ? (
         <TableSkeleton />
       ) : (
-        <DataTable columns={columns} data={list.data ?? []} empty={t(`face.empty.${status}`)} />
+        <DataTable
+          columns={columns}
+          data={list.data ?? []}
+          empty={t(`face.empty.${status}`)}
+          // The notice time is also in the review dialog; dropping it keeps Review in view at 768.
+          // There is no status column: the list is already filtered by status.
+          columnClass={{ consent: 'hidden lg:table-cell' }}
+        />
       )}
       {reviewing !== null && (
         <FaceReviewDialog enrollmentId={reviewing} onClose={() => setReviewing(null)} />

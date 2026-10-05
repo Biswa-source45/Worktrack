@@ -86,7 +86,8 @@ describe('Face enrollments tab', () => {
     const table = await screen.findByRole('table');
     expect(within(table).getByText('Asha Rao (EMP-001)')).toBeVisible();
     expect(within(table).getByText('Ravi Kumar (EMP-002)')).toBeVisible();
-    expect(within(table).getAllByText('Waiting for review')).toHaveLength(2);
+    // The list is filtered by status, so rows carry no status of their own.
+    expect(within(table).queryByText('Waiting for review')).not.toBeInTheDocument();
     // Ravi has not sent photos yet: the column says so instead of showing a date.
     expect(within(table).getByText('-')).toBeVisible();
   });
@@ -121,6 +122,7 @@ describe('Face review dialog', () => {
     const { user } = setup();
     const dialog = await openReview(user);
     expect(within(dialog).getByText(/recorded in the audit log/)).toBeVisible();
+    expect(within(dialog).getByText('Waiting for review')).toBeVisible();
     const photos = await within(dialog).findAllByRole('img');
     expect(photos.map((p) => p.getAttribute('src'))).toEqual([
       '/api/proxy/api/v1/files/tok.one',

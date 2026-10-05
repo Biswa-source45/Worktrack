@@ -1,4 +1,6 @@
 import { randomBytes, randomInt } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { expect, type Page } from '@playwright/test';
 
 export const API = 'http://127.0.0.1:8001/api/v1';
@@ -106,6 +108,42 @@ export async function createEmployee(
     password: created.temporary_password,
   };
 }
+
+// A public-domain, computer-generated face (see the SOURCES.md next to it), sent three times.
+const FACE_PHOTO = path.resolve(__dirname, '../../backend/tests/fixtures/face/person_a.jpg');
+
+/** The employee signed in on their first phone (approved at once) after the forced password change. */
+export async function employeeOnPhone(employee: Created): Promise<string> {
+  const phone: Device = {
+    device_id: `e2e-face-${employee.code}`.toLowerCase(),
+    model: 'Pixel 8',
+    os: 'Android 14',
+    app_version: '1.0.0',
+  };
+  const first = await apiLogin(employee.code, employee.password, 'mobile', phone);
+  const password = 'E2e-Employee-Pass-9';
+  await changePassword(first.access_token, employee.password, password);
+  return (await apiLogin(employee.code, password, 'mobile', phone)).access_token;
+}
+
+/** Accepts the notice and sends three photos, as the app does: the enrollment waits for review. */
+export async function enrollFace(token: string) {
+  await api('POST', '/me/face-enrollment/consent', token);
+  const form = new FormData();
+  const bytes = readFileSync(FACE_PHOTO);
+  for (let n = 1; n <= 3; n++) {
+    form.append('photos', new Blob([bytes], { type: 'image/jpeg' }), `photo-${n}.jpg`);
+  }
+  const response = await fetch(`${API}/me/face-enrollment`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (!response.ok) throw new Error(`enroll -> ${response.status} ${await response.text()}`);
+}
+
+export const myFaceEnrollment = (token: string) =>
+  api<{ status: string; reason: string | null }>('GET', '/me/face-enrollment', token);
 
 export const setEmployeeStatus = (token: string, id: number, status: 'active' | 'inactive') =>
   api('PATCH', `/admin/employees/${id}`, token, { status });

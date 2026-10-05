@@ -60,6 +60,8 @@ const GROUPS: { id: string; fields: Name[] }[] = [
       'geofence_accuracy_buffer_cap_m',
     ],
   },
+  { id: 'approvals', fields: ['punch_out_approval_levels', 'regularization_approval_levels'] },
+  { id: 'app', fields: ['min_app_version'] },
   {
     id: 'face',
     fields: [
@@ -73,8 +75,6 @@ const GROUPS: { id: string; fields: Name[] }[] = [
       'face_retention_days_after_exit',
     ],
   },
-  { id: 'approvals', fields: ['punch_out_approval_levels', 'regularization_approval_levels'] },
-  { id: 'app', fields: ['min_app_version'] },
 ];
 const LEVELS: Name[] = ['punch_out_approval_levels', 'regularization_approval_levels'];
 
