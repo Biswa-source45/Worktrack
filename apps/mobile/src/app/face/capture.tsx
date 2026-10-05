@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ApiError, errorText } from '@/lib/api-error';
+import { ApiError, errorDetail, errorText } from '@/lib/api-error';
 import { cameraAvailable } from '@/lib/camera';
 import type { Step, Turn } from '@/lib/face-guidance';
 import { sendPhotos } from '@/lib/face-upload';
@@ -57,6 +57,8 @@ export default function FaceCaptureScreen() {
   const [flagged, setFlagged] = useState<Record<number, string>>({});
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  // The status or error behind a failure the app cannot explain better, for the employee to report.
+  const [detail, setDetail] = useState<string | null>(null);
   // The three photos did not look like one person: only retaking all of them helps.
   const [inconsistent, setInconsistent] = useState(false);
   const [sent, setSent] = useState(false);
@@ -90,6 +92,7 @@ export default function FaceCaptureScreen() {
   async function send() {
     setBusy(true);
     setFailure(null);
+    setDetail(null);
     setInconsistent(false);
     try {
       await sendPhotos(photos as string[]);
@@ -110,6 +113,8 @@ export default function FaceCaptureScreen() {
         router.replace('/face/consent');
       } else {
         setFailure(errorText(t, error));
+        setDetail(errorDetail(error));
+        console.warn('[face-send]', error);
       }
     } finally {
       setBusy(false);
@@ -149,6 +154,11 @@ export default function FaceCaptureScreen() {
       </AppText>
       <AppText color="muted">{t('face.review.intro')}</AppText>
       {failure ? <Banner status="danger" icon={TriangleAlert} message={failure} /> : null}
+      {detail ? (
+        <AppText variant="caption" color="muted" selectable>
+          {detail}
+        </AppText>
+      ) : null}
       {photos.map((uri, index) => (
         <Card key={index}>
           <View style={{ flexDirection: 'row', gap: space[3], alignItems: 'center' }}>

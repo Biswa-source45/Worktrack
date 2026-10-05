@@ -51,6 +51,7 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
+    "server": "The server answered with an error ({{status}}). Please try again.",
     "network": "Cannot reach the server. Check your connection and try again.",
     "invalidCredentials": "Invalid employee ID or password.",
     "invalidCurrentPassword": "The current password is incorrect.",

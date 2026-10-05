@@ -1,7 +1,7 @@
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { calls, errorBody, mockApi } from '@/test/fake-api';
 import { renderWithTheme } from '@/test/render';
-import { FaceEnrollmentCard } from './face-enrollment-card';
+import { FaceEnrollmentCard, waitingRefresh } from './face-enrollment-card';
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
 jest.mock('expo-router', () => ({ useRouter: () => mockRouter }));
@@ -87,23 +87,12 @@ describe('FaceEnrollmentCard', () => {
     expect(screen.getByTestId('face-status')).toHaveAccessibleName('Face enrolled');
   });
 
-  it('looks again while waiting for an admin, and stops once decided', async () => {
-    jest.useFakeTimers();
-    try {
-      let status = 'pending';
-      mockApi({
-        [MINE]: () => Response.json(enrollment({ status, submitted_at: '2026-02-01T04:31:00Z' })),
-      });
-      await renderWithTheme(<FaceEnrollmentCard />);
-      expect(await screen.findByText('Waiting for approval')).toBeOnTheScreen();
-      status = 'approved';
-      await act(() => jest.advanceTimersByTimeAsync(15_000));
-      expect(await screen.findByText('Face enrolled')).toBeOnTheScreen();
-      const asked = calls.length;
-      await act(() => jest.advanceTimersByTimeAsync(60_000));
-      expect(calls).toHaveLength(asked); // approved: no more asking
-    } finally {
-      jest.useRealTimers();
+  // A plain function, not a fake-timer test: that one never finished under Node 22 (CI) and hung
+  // the whole mobile job.
+  it('looks again every 15 seconds while an admin has to decide, and never otherwise', () => {
+    expect(waitingRefresh('pending')).toBe(15_000);
+    for (const status of ['none', 'consented', 'approved', 'rejected', 'reset', undefined]) {
+      expect(waitingRefresh(status)).toBe(false);
     }
   });
 });

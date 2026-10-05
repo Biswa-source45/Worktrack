@@ -23,6 +23,10 @@ import { useTheme } from '@/lib/theme';
 export const FACE_KEY = ['my-face-enrollment'];
 const WAITING_REFRESH_MS = 15_000;
 
+/** How long to wait before asking again: only while an admin still has to decide. */
+export const waitingRefresh = (status: string | undefined) =>
+  status === 'pending' ? WAITING_REFRESH_MS : false;
+
 const LOOK = {
   none: { status: 'neutral', icon: ScanFace },
   consented: { status: 'warning', icon: Clock },
@@ -44,8 +48,7 @@ export function FaceEnrollmentCard() {
     retry: false,
     // While an admin has to decide, look again now and then: the phone is usually in hand while
     // the admin acts on the web, and nothing else would tell the employee.
-    refetchInterval: (query) =>
-      query.state.data?.status === 'pending' ? WAITING_REFRESH_MS : false,
+    refetchInterval: (query) => waitingRefresh(query.state.data?.status),
   });
   const data = enrollment.data;
   const look = data ? LOOK[data.status] : null;

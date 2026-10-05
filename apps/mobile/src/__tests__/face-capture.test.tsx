@@ -177,6 +177,32 @@ describe('FaceCaptureScreen', () => {
     expect(screen.getByRole('button', { name: 'Send photos' })).toBeEnabled();
   });
 
+  it('says what the server answered when the answer is not its own error format', async () => {
+    // A gateway or proxy page: no JSON error, so no message to show.
+    mockApi({ [SEND]: () => new Response('<html>Bad Gateway</html>', { status: 502 }) });
+    await renderWithTheme(<FaceCaptureScreen />);
+    await takeAll();
+    await fireEvent.press(screen.getByRole('button', { name: 'Send photos' }));
+    expect(
+      await screen.findByText('The server answered with an error (502). Please try again.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('502 HTTP_502')).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Send photos' })).toBeEnabled();
+  });
+
+  it('shows the error name for a failure that is neither the network nor the server', async () => {
+    mockApi({
+      [SEND]: () => {
+        throw new RangeError('request body too large');
+      },
+    });
+    await renderWithTheme(<FaceCaptureScreen />);
+    await takeAll();
+    await fireEvent.press(screen.getByRole('button', { name: 'Send photos' }));
+    expect(await screen.findByText('Something went wrong. Please try again.')).toBeOnTheScreen();
+    expect(screen.getByText('RangeError: request body too large')).toBeOnTheScreen();
+  });
+
   it('asks for all three again when they do not look like one person', async () => {
     mockApi({ [SEND]: () => errorBody('FACE_INCONSISTENT', null, 422) });
     await renderWithTheme(<FaceCaptureScreen />);
