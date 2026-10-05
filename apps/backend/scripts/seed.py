@@ -9,6 +9,11 @@ The demo users' password comes from WORKTRACK_SEED_PASSWORD, or is generated and
 A local overlay file adds real branches and per-employee settings: seed.local.json next to this
 folder is used with --dev, any other file with --local. Nothing from it is ever printed except
 names and codes.
+
+The two demo branches (Demo HQ, Demo Branch 2) are sample data. On a database with real branches,
+deactivate them (web: Branches, the row's menu, Deactivate; it is audited) so that only real
+branches count as punch locations. A later run never reactivates them, and the demo users keep
+their Demo HQ as home branch, which an inactive branch no longer lets them punch at.
 """
 
 import argparse

@@ -66,6 +66,23 @@ test('admin adds a branch from a pasted link, moves the pin on the map and deact
   await expect(row.getByTestId('status-inactive')).toBeVisible();
 });
 
+test('the map tiles are dimmed in the dark theme and left alone in the light theme', async ({
+  page,
+}) => {
+  await page.getByRole('link', { name: 'Branches' }).click();
+  await page.getByRole('button', { name: 'Add branch' }).click();
+  const tiles = page.getByRole('dialog', { name: 'Add branch' }).locator('.leaflet-tile-pane');
+  const filter = () => tiles.evaluate((el) => getComputedStyle(el).filter);
+
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect.poll(filter).toBe('none');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect.poll(filter).toContain('invert');
+  // Only the tiles: the pin keeps its own colour.
+  const pin = page.getByRole('dialog', { name: 'Add branch' }).locator('.leaflet-marker-pane');
+  await expect(pin).toHaveCSS('filter', 'none');
+});
+
 test('a link that is not a Google Maps link is refused with a clear message', async ({ page }) => {
   await page.getByRole('link', { name: 'Branches' }).click();
   await page.getByRole('button', { name: 'Add branch' }).click();

@@ -108,7 +108,10 @@ export default function GeofenceMap({ center, radiusM, onChange }: Props) {
       aria-label={t(editable ? 'map.labelEdit' : 'map.label')}
       // isolate: the z-indexes Leaflet uses (up to 1000) stay below dialogs and menus. The
       // important classes replace the grey background and font of Leaflet's own stylesheet.
-      className="isolate h-64 w-full overflow-hidden rounded-md border bg-raised! font-sans!"
+      // The dark filter (no paid tile style needed) inverts only the tile pane: the pin and the
+      // circle are other panes and keep their token colours. The zoom buttons and the attribution
+      // box take token colours too, so they follow the theme instead of staying white.
+      className="isolate h-64 w-full overflow-hidden rounded-md border bg-raised! font-sans! dark:[&_.leaflet-tile-pane]:[filter:invert(1)_hue-rotate(180deg)_brightness(0.9)_contrast(0.9)] [&_.leaflet-bar]:border-border-strong! [&_.leaflet-bar_a]:border-border! [&_.leaflet-bar_a]:bg-surface! [&_.leaflet-bar_a]:text-foreground! [&_.leaflet-bar_a:hover]:bg-raised! [&_.leaflet-control-attribution]:bg-surface/80! [&_.leaflet-control-attribution]:text-muted-foreground! [&_.leaflet-control-attribution_a]:text-primary-text!"
     />
   );
 }

@@ -17,8 +17,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.clock import today_ist
 from app.modules.audit.models import AuditLog
+from app.modules.branches.geofence import nearest_geofences
 from app.modules.branches.models import Branch
 from app.modules.employees.models import Department, User
+from app.modules.org_settings.schemas import OrgSettings
 from app.modules.schedule.models import HomeLocation, WorkSchedule
 from app.modules.shifts.models import Holiday, Shift
 from scripts.seed import apply_overlay, load_overlay, refusal, seed_demo
@@ -192,6 +194,26 @@ async def test_a_second_run_changes_nothing(db: AsyncSession) -> None:
     assert await counts(db) == before
     # Existing users keep their password.
     assert dict((await db.execute(select(User.emp_code, User.password_hash))).all()) == hashes
+
+
+async def test_a_deactivated_demo_branch_stays_deactivated_and_is_not_a_punch_location(
+    db: AsyncSession,
+) -> None:
+    await seed_demo(db, PASSWORD, lambda _: None)
+    demo = list((await db.execute(select(Branch).where(Branch.name.like("Demo %")))).scalars())
+    assert len(demo) == 2
+    for branch in demo:
+        branch.is_active = False
+    await db.flush()
+
+    await seed_demo(db, PASSWORD, lambda _: None)
+    await db.refresh(demo[0])
+    assert [b.is_active for b in demo] == [False, False]
+
+    # Only an active branch is a candidate fence, so standing in the demo branch is "outside".
+    hq = next(b for b in demo if b.name == "Demo HQ")
+    fences = await nearest_geofences(db, OrgSettings(), lat=hq.lat, lng=hq.lng, accuracy_m=5.0)
+    assert fences == []
 
 
 async def test_a_partly_seeded_database_is_completed(db: AsyncSession) -> None:
