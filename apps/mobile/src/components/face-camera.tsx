@@ -20,6 +20,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Screen } from '@/components/ui/screen';
+import { CameraProblem } from '@/components/camera-problem';
 import { assess, HOLD_MS } from '@/lib/face-guidance';
 import type { Hint, SeenFace, Step, Turn } from '@/lib/face-guidance';
 import { useTheme } from '@/lib/theme';
@@ -39,6 +40,8 @@ const STALE_MS = 1000;
 const FAILURE_MS = 2500;
 // The camera list is empty for a moment while it loads: only then say there is no front camera.
 const DEVICE_WAIT_MS = 1500;
+// Neither "started" nor a single scanner result by now: the camera is not delivering pictures.
+const START_WAIT_MS = 10_000;
 
 const toSeen = (face: Face): SeenFace => ({
   x: face.bounds.x,
@@ -66,6 +69,10 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
   const [hint, setHint] = useState<Hint>('noFace');
   const [failed, setFailed] = useState(false);
   const [waited, setWaited] = useState(false);
+  // What went wrong with the camera, or null; `attempt` remounts the camera for a retry.
+  const [problem, setProblem] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [started, setStarted] = useState(false);
   const goodSince = useRef<number | null>(null);
   const lastResult = useRef(0);
   const busy = useRef(false);
@@ -79,6 +86,22 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
     const timer = setTimeout(() => setWaited(true), DEVICE_WAIT_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  const reportProblem = useCallback((error: Error | string) => {
+    const text = typeof error === 'string' ? error : error.message;
+    // Metro's terminal gets the whole text; the screen gets the first lines.
+    console.warn('[face-camera]', text);
+    setProblem(text.split('\n').slice(0, 3).join(' ').slice(0, 240));
+  }, []);
+
+  // No picture and no scanner result for a while: say so instead of leaving a black screen.
+  useEffect(() => {
+    if (started || problem !== null || !hasPermission) return;
+    const timer = setTimeout(() => {
+      if (lastResult.current === 0) reportProblem(t('face.camera.notStarting'));
+    }, START_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [attempt, hasPermission, problem, reportProblem, started, t]);
 
   // A stalled camera must not keep an old "good" moment alive.
   useEffect(() => {
@@ -155,6 +178,20 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
     [view.width, view.height, onFaces, flashFailure],
   );
 
+  if (problem !== null) {
+    return (
+      <CameraProblem
+        detail={problem}
+        onRetry={() => {
+          lastResult.current = 0;
+          setStarted(false);
+          setProblem(null);
+          setAttempt((n) => n + 1);
+        }}
+      />
+    );
+  }
+
   if (!hasPermission) {
     return (
       <Screen>
@@ -189,10 +226,16 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
   return (
     <View style={[styles.fill, { backgroundColor: colors.background }]}>
       <Camera
+        key={attempt}
         style={StyleSheet.absoluteFill}
         device={device}
         isActive
         outputs={[photoOutput, scanner]}
+        // The default is a SurfaceView, which Android draws behind the app window: on some phones
+        // (this Redmi) the picture stays black. A TextureView is drawn like any other view.
+        implementationMode="compatible"
+        onStarted={() => setStarted(true)}
+        onError={reportProblem}
       />
       <View pointerEvents="none" style={[styles.fill, styles.center]}>
         <View

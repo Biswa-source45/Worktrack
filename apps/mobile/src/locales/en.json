@@ -352,7 +352,11 @@
       "allow": "Allow camera",
       "openSettings": "Open settings",
       "noFrontCamera": "This phone has no front camera that WorkTrack can use.",
-      "captureFailed": "Could not take the photo. Hold still, we will try again."
+      "captureFailed": "Could not take the photo. Hold still, we will try again.",
+      "problemTitle": "The camera did not work.",
+      "problemBody": "Close other apps that use the camera, then try again.",
+      "tryAgain": "Try again",
+      "notStarting": "The camera did not start."
     },
     "hint": {
       "ok": "Hold still...",
