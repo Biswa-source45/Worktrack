@@ -14,10 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
 from app.modules.auth.permissions import (
+    ATTENDANCE_OVERRIDE,
+    ATTENDANCE_VIEW_ALL,
     BRANCHES_MANAGE,
     DEVICES_MANAGE,
     EMPLOYEES_MANAGE,
     FACE_REVIEW,
+    PUNCHOUT_APPROVE,
     ROLES_MANAGE,
     SETTINGS_MANAGE,
     SETTINGS_VIEW,
@@ -39,7 +42,7 @@ from tests.factories import (
 P = "/api/v1"
 MISSING = 999_999_999
 
-# What migrations 0002, 0006 and 0009 seed. Asserting it here catches an accidental role change.
+# What migrations 0002, 0006, 0009 and 0010 seed; this catches an accidental role change.
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     SUPER_ADMIN: {
         WEB_ACCESS,
@@ -51,6 +54,9 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         SETTINGS_VIEW,
         SETTINGS_MANAGE,
         FACE_REVIEW,
+        ATTENDANCE_VIEW_ALL,
+        ATTENDANCE_OVERRIDE,
+        PUNCHOUT_APPROVE,
     },
     ADMIN: {
         WEB_ACCESS,
@@ -60,8 +66,11 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         BRANCHES_MANAGE,
         SETTINGS_VIEW,
         FACE_REVIEW,
+        ATTENDANCE_VIEW_ALL,
+        ATTENDANCE_OVERRIDE,
+        PUNCHOUT_APPROVE,
     },
-    ASSIGNER: {WEB_ACCESS, TEAM_VIEW},
+    ASSIGNER: {WEB_ACCESS, TEAM_VIEW, PUNCHOUT_APPROVE},
     FIELD: set(),
     OFFICE: set(),
 }

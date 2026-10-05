@@ -9,6 +9,9 @@ BRANCHES_MANAGE = "branches.manage"
 SETTINGS_VIEW = "settings.view"
 SETTINGS_MANAGE = "settings.manage"
 FACE_REVIEW = "face.review"
+ATTENDANCE_VIEW_ALL = "attendance.view_all"
+ATTENDANCE_OVERRIDE = "attendance.override"
+PUNCHOUT_APPROVE = "punchout.approve"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -21,6 +24,9 @@ ALL_PERMISSIONS = frozenset(
         SETTINGS_VIEW,
         SETTINGS_MANAGE,
         FACE_REVIEW,
+        ATTENDANCE_VIEW_ALL,
+        ATTENDANCE_OVERRIDE,
+        PUNCHOUT_APPROVE,
     }
 )
 
