@@ -17,6 +17,10 @@ export function Field({ label, error, trailing, onFocus, onBlur, ...input }: Fie
   const { colors, radius, space, text, minTouchTarget } = useTheme();
   const [focused, setFocused] = useState(false);
   const edge = error ? colors.dangerFg : focused ? colors.ring : colors.borderStrong;
+  // The body font without its lineHeight: on iOS a lineHeight pushes single-line input text off
+  // centre. The key is left out, never set to undefined: Android's TextInput turns an undefined
+  // lineHeight into 0, and once something is typed the text is measured with no height at all.
+  const { lineHeight: _lineHeight, ...font } = text('body');
 
   return (
     <View style={{ gap: space[1] }}>
@@ -40,11 +44,7 @@ export function Field({ label, error, trailing, onFocus, onBlur, ...input }: Fie
           autoCorrect={false}
           placeholderTextColor={colors.muted}
           selectionColor={colors.primary}
-          // No lineHeight: on iOS it pushes single-line input text off centre.
-          style={[
-            text('body'),
-            { lineHeight: undefined, flex: 1, color: colors.text, padding: space[3] },
-          ]}
+          style={[font, { flex: 1, color: colors.text, padding: space[3] }]}
           onFocus={(event) => {
             setFocused(true);
             onFocus?.(event);
