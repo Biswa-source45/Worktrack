@@ -12,6 +12,14 @@ export const calls: Request[] = [];
 const DEFAULT_ROUTES: Record<string, Handler> = {
   'GET /api/v1/me/home-location': () =>
     Response.json({ approved: null, pending: null, last_rejected: null }),
+  'GET /api/v1/me/face-enrollment': () =>
+    Response.json({
+      status: 'none',
+      consent_at: null,
+      submitted_at: null,
+      decided_at: null,
+      reason: null,
+    }),
 };
 
 export function mockApi(routes: Record<string, Handler>) {
