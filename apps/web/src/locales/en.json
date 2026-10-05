@@ -82,7 +82,10 @@
     "endAfterStart": "The shift must end after it starts on the same day.",
     "halfOverFull": "Half-day hours cannot be more than full-day hours.",
     "weeksRequired": "Choose at least one week.",
-    "reasonRequired": "Give a reason for rejecting."
+    "reasonRequired": "Give a reason for rejecting.",
+    "decimalRange": "Enter a number within the allowed range.",
+    "reviewBelowVerify": "The review threshold must be below the verify threshold.",
+    "brightnessOrder": "The minimum brightness must be below the maximum."
   },
   "errors": {
     "GENERIC": "Something went wrong. Please try again.",
@@ -443,6 +446,7 @@
     "readOnly": "Only a Super Admin can change settings. You can view them here.",
     "group": {
       "geofence": "Geofence",
+      "face": "Face matching",
       "approvals": "Approvals",
       "app": "App"
     },
@@ -457,7 +461,15 @@
       "geofence_accuracy_buffer_cap_m": "Accuracy buffer cap (m)",
       "punch_out_approval_levels": "Punch-out approval levels",
       "regularization_approval_levels": "Regularization approval levels",
-      "min_app_version": "Minimum app version"
+      "min_app_version": "Minimum app version",
+      "face_verify_threshold": "Verify threshold",
+      "face_review_threshold": "Review threshold",
+      "face_min_detection_confidence": "Minimum face confidence",
+      "face_min_face_px": "Minimum face width (px)",
+      "face_min_sharpness": "Minimum sharpness",
+      "face_min_brightness": "Minimum brightness",
+      "face_max_brightness": "Maximum brightness",
+      "face_retention_days_after_exit": "Keep face data after exit (days)"
     },
     "help": {
       "geofence_default_radius_m": "Used for a new branch when no radius is given. 30 to 500 m.",
@@ -466,7 +478,15 @@
       "geofence_accuracy_buffer_cap_m": "The most that GPS inaccuracy may widen a geofence. 0 to 100 m.",
       "punch_out_approval_levels": "How many managers must approve a punch-out.",
       "regularization_approval_levels": "How many managers must approve an attendance correction.",
-      "min_app_version": "Older versions of the mobile app are asked to update. Format 1.4.0."
+      "min_app_version": "Older versions of the mobile app are asked to update. Format 1.4.0.",
+      "face_verify_threshold": "A selfie scoring at or above this is accepted automatically. Match score 0.2 to 0.9.",
+      "face_review_threshold": "From here up to the verify threshold an admin decides; below it is a mismatch. 0.1 to 0.8, below the verify threshold.",
+      "face_min_detection_confidence": "How sure the detector must be that it sees a face. 0.5 to 0.99.",
+      "face_min_face_px": "Face width in the photo after it is resized to 640 px. Smaller faces are retaken. 40 to 400.",
+      "face_min_sharpness": "Blurrier photos are retaken. Higher is stricter. 1 to 2000.",
+      "face_min_brightness": "Darker photos are retaken (average grey of the face). 0 to 254, below the maximum.",
+      "face_max_brightness": "Brighter photos are retaken. 1 to 255.",
+      "face_retention_days_after_exit": "Photos and templates are deleted this many days after an employee is deactivated. 0 to 365."
     }
   },
   "schedule": {

@@ -148,6 +148,14 @@ export const SETTINGS: Schemas['OrgSettings'] = {
   punch_out_approval_levels: 1,
   regularization_approval_levels: 1,
   min_app_version: '1.0.0',
+  face_verify_threshold: 0.4,
+  face_review_threshold: 0.3,
+  face_min_detection_confidence: 0.9,
+  face_min_face_px: 80,
+  face_min_sharpness: 60,
+  face_min_brightness: 50,
+  face_max_brightness: 200,
+  face_retention_days_after_exit: 30,
 };
 
 export function makeHomeRequest(

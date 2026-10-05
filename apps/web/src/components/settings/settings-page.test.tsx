@@ -42,6 +42,76 @@ describe('SettingsPage', () => {
     expect(within(app).getByLabelText('Minimum app version')).toHaveValue('1.0.0');
   });
 
+  it('shows the face matching settings with their current values', async () => {
+    setup();
+    const face = await screen.findByRole('group', { name: 'Face matching' });
+    expect(within(face).getByLabelText('Verify threshold')).toHaveValue('0.4');
+    expect(within(face).getByLabelText('Review threshold')).toHaveValue('0.3');
+    expect(within(face).getByLabelText('Minimum face confidence')).toHaveValue('0.9');
+    expect(within(face).getByLabelText('Minimum face width (px)')).toHaveValue('80');
+    expect(within(face).getByLabelText('Minimum sharpness')).toHaveValue('60');
+    expect(within(face).getByLabelText('Minimum brightness')).toHaveValue('50');
+    expect(within(face).getByLabelText('Maximum brightness')).toHaveValue('200');
+    expect(within(face).getByLabelText('Keep face data after exit (days)')).toHaveValue('30');
+    expect(within(face).getByLabelText('Verify threshold')).toHaveAttribute('inputmode', 'decimal');
+    expect(within(face).getByText(/accepted automatically/)).toBeVisible();
+  });
+
+  it('saves a pair of thresholds with decimals', async () => {
+    const { calls, user } = setup({
+      routes: { 'PATCH /admin/settings': (call: Call) => ({ ...SETTINGS, ...jsonBody(call) }) },
+    });
+    const verify = await screen.findByLabelText('Verify threshold');
+    const review = screen.getByLabelText('Review threshold');
+    await user.clear(verify);
+    await user.type(verify, '0.45');
+    await user.clear(review);
+    await user.type(review, '0.35');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Settings saved.')).toBeVisible();
+    expect(jsonBody(patches(calls)[0])).toEqual({
+      face_verify_threshold: 0.45,
+      face_review_threshold: 0.35,
+    });
+  });
+
+  it.each([
+    ['Verify threshold', '0.95'],
+    ['Verify threshold', 'high'],
+    ['Review threshold', '0.05'],
+    ['Minimum face confidence', '1'],
+    ['Minimum face width (px)', '10.5'],
+    ['Minimum sharpness', '0'],
+    ['Maximum brightness', '256'],
+    ['Keep face data after exit (days)', '-1'],
+  ])('rejects %s = %s', async (label, value) => {
+    const { calls, user } = setup();
+    const input = await screen.findByLabelText(label);
+    await user.clear(input);
+    await user.type(input, value);
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(
+      await screen.findByText(/Enter a (whole )?number within the allowed range\./),
+    ).toBeVisible();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(patches(calls)).toHaveLength(0);
+  });
+
+  it.each([
+    ['Review threshold', '0.4', 'The review threshold must be below the verify threshold.'],
+    ['Review threshold', '0.5', 'The review threshold must be below the verify threshold.'],
+    ['Minimum brightness', '200', 'The minimum brightness must be below the maximum.'],
+  ])('rejects %s = %s when it breaks a rule between two settings', async (label, value, rule) => {
+    const { calls, user } = setup();
+    const input = await screen.findByLabelText(label);
+    await user.clear(input);
+    await user.type(input, value);
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText(rule)).toBeVisible();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(patches(calls)).toHaveLength(0);
+  });
+
   it('shows a loading state, then an error', async () => {
     let release: () => void = () => {};
     const gate = new Promise<void>((resolve) => (release = resolve));
