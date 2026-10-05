@@ -226,12 +226,17 @@ ANY_ROLE = [
     ("GET", f"{P}/shifts"),
     ("GET", f"{P}/me/home-location"),
     ("GET", f"{P}/me/face-enrollment"),
+    ("GET", f"{P}/attendance/today"),
 ]
 # Any role, but only from the employee's own approved phone.
 OWN_PHONE = [
     ("POST", f"{P}/me/home-location-requests"),
     ("POST", f"{P}/me/face-enrollment/consent"),
     ("POST", f"{P}/me/face-enrollment"),
+    ("POST", f"{P}/attendance/precheck"),
+    ("POST", f"{P}/attendance/punch-in"),
+    ("POST", f"{P}/attendance/punch-out"),
+    ("POST", f"{P}/attendance/punch-out-requests"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [

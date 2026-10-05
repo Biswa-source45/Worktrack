@@ -113,6 +113,7 @@ def upgrade() -> None:
         sa.Column("accuracy_m", sa.Float(), nullable=False),
         sa.Column("location_type", sa.String(length=8), nullable=False),
         sa.Column("branch_id", sa.Integer(), nullable=True),
+        sa.Column("nearest_branch_id", sa.Integer(), nullable=True),
         sa.Column("distance_m", sa.Float(), nullable=True),
         sa.Column("selfie_key", sa.String(length=255), nullable=False),
         sa.Column("face_score", sa.Float(), nullable=False),
@@ -162,6 +163,11 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["branch_id"], ["branches.id"], name=op.f("fk_punch_events_branch_id_branches")
+        ),
+        sa.ForeignKeyConstraint(
+            ["nearest_branch_id"],
+            ["branches.id"],
+            name=op.f("fk_punch_events_nearest_branch_id_branches"),
         ),
         sa.ForeignKeyConstraint(
             ["reviewed_by"], ["users.id"], name=op.f("fk_punch_events_reviewed_by_users")

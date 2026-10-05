@@ -165,6 +165,8 @@ class PunchEvent(Base):
     accuracy_m: Mapped[float]
     location_type: Mapped[str] = mapped_column(String(8))
     branch_id: Mapped[int | None] = mapped_column(ForeignKey("branches.id"))
+    # An "outside" punch has no branch, but the approver is told which one was nearest.
+    nearest_branch_id: Mapped[int | None] = mapped_column(ForeignKey("branches.id"))
     distance_m: Mapped[float | None]
     selfie_key: Mapped[str] = mapped_column(String(255))
     face_score: Mapped[float]
