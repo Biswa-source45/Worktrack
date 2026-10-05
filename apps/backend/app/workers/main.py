@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from app.core import storage
 from app.core.config import get_settings
 from app.modules.audit.service import AuditCtx
-from app.modules.face.service import purge_departed
+from app.modules.face.service import purge_departed, sweep_orphans
 from app.modules.sessions.service import purge_ended
 
 
@@ -27,14 +27,15 @@ async def purge_sessions(ctx: dict[str, Any]) -> int:
 
 
 async def purge_faces(ctx: dict[str, Any]) -> int:
-    """Delete the face photos and templates of people who left long enough ago."""
+    """Delete the face data of people who left long enough ago, and photos nothing refers to."""
     settings = get_settings()
     engine = create_async_engine(settings.database_url)
     try:
         async with AsyncSession(engine) as session:
-            return await purge_departed(
-                session, storage.make_client(settings), settings.s3_bucket, AuditCtx(None, None)
-            )
+            s3 = storage.make_client(settings)
+            purged = await purge_departed(session, s3, settings.s3_bucket, AuditCtx(None, None))
+            # Photos whose earlier delete failed (storage down for a moment).
+            return purged + await sweep_orphans(session, s3, settings.s3_bucket)
     finally:
         await engine.dispose()
 

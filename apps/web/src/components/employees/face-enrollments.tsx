@@ -69,6 +69,7 @@ type Action = 'approve' | 'reject' | 'reset';
 
 function Photos({ detail }: { detail: Detail }) {
   const { t } = useTranslation();
+  const [broken, setBroken] = useState<number[]>([]);
   if (detail.photos.length === 0) {
     return <p className="text-small text-muted-foreground">{t('face.deleted')}</p>;
   }
@@ -78,13 +79,23 @@ function Photos({ detail }: { detail: Detail }) {
         const quality = detail.qualities[index];
         return (
           <li key={url} className="grid gap-1">
-            {/* The signed link is relative; the proxy adds the backend's base. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/proxy${url}`}
-              alt={t('face.photoAlt', { n: index + 1 })}
-              className="aspect-square w-full rounded-md border bg-raised object-cover"
-            />
+            {broken.includes(index) ? (
+              <p
+                role="alert"
+                className="flex aspect-square items-center justify-center rounded-md border bg-raised p-2 text-center text-caption text-muted-foreground"
+              >
+                {t('face.photoFailed')}
+              </p>
+            ) : (
+              // The signed link is relative; the proxy adds the backend's base.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/proxy${url}`}
+                alt={t('face.photoAlt', { n: index + 1 })}
+                onError={() => setBroken((all) => [...all, index])}
+                className="aspect-square w-full rounded-md border bg-raised object-cover"
+              />
+            )}
             {quality && (
               <span className="text-caption text-muted-foreground tabular-nums">
                 {t('face.quality', {
@@ -120,7 +131,11 @@ function ReviewForm({ detail, onClose }: { detail: Detail; onClose: () => void }
       const body = { reason: getValues('reason').trim() };
       if (action === 'approve') {
         return unwrap(
-          proxyApi().POST('/api/v1/admin/face-enrollments/{enrollment_id}/approve', { params }),
+          proxyApi().POST('/api/v1/admin/face-enrollments/{enrollment_id}/approve', {
+            params,
+            // Names the photos that were on screen: refused if the employee sent new ones since.
+            body: { submitted_at: detail.submitted_at ?? '' },
+          }),
         );
       }
       return unwrap(
@@ -186,7 +201,7 @@ function ReviewForm({ detail, onClose }: { detail: Detail; onClose: () => void }
           label={t(pending ? 'face.rejectReason' : 'face.resetReason')}
           error={errors.reason?.message}
         >
-          <Input id="reason" invalid={!!errors.reason} {...register('reason')} />
+          <Input id="reason" maxLength={255} invalid={!!errors.reason} {...register('reason')} />
         </Field>
       )}
       {serverError && (
@@ -239,7 +254,9 @@ export function FaceReviewDialog({
   const { t } = useTranslation();
   // gcTime 0: the signed photo links must not linger in the cache. Opening it is audited.
   const detail = useQuery({
-    queryKey: ['face-enrollments', 'detail', enrollmentId],
+    // Not under 'face-enrollments': a decision refreshes the lists, and must not reload this
+    // (a reload is another audited look and brings new links).
+    queryKey: ['face-enrollment-detail', enrollmentId],
     queryFn: () =>
       unwrap(
         proxyApi().GET('/api/v1/admin/face-enrollments/{enrollment_id}', {

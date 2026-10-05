@@ -43,9 +43,19 @@ def test_changed_bytes_fail() -> None:
 
 def test_every_encryption_uses_a_new_nonce() -> None:
     first, second = crypto.encrypt(KEY, b"x", AAD), crypto.encrypt(KEY, b"x", AAD)
-    assert first[: crypto.NONCE_BYTES] != second[: crypto.NONCE_BYTES]
+    assert first[1 : 1 + crypto.NONCE_BYTES] != second[1 : 1 + crypto.NONCE_BYTES]
     assert first != second
 
 
 def test_the_configured_key_is_32_bytes() -> None:
     assert len(crypto.face_key()) == 32
+
+
+def test_the_blob_says_which_key_version_sealed_it() -> None:
+    assert crypto.encrypt(KEY, b"x", AAD)[0] == crypto.KEY_VERSION
+
+
+@pytest.mark.parametrize("blob", [b"", b"\x02" + bytes(40), b"\x00" + bytes(40)])
+def test_a_blob_from_an_unknown_key_version_or_an_empty_one_is_refused_clearly(blob: bytes) -> None:
+    with pytest.raises(ValueError, match="key version"):
+        crypto.decrypt(KEY, blob, AAD)

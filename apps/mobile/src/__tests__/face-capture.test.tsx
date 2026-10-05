@@ -167,6 +167,16 @@ describe('FaceCaptureScreen', () => {
     expect(await screen.findByText('The photo could not be read. Retake it.')).toBeOnTheScreen();
   });
 
+  it('shows the server message, and marks nothing, when the refusal names no photo', async () => {
+    mockApi({ [SEND]: () => errorBody('FACE_QUALITY', null, 422) });
+    await renderWithTheme(<FaceCaptureScreen />);
+    await takeAll();
+    await fireEvent.press(screen.getByRole('button', { name: 'Send photos' }));
+    expect(await screen.findByText('FACE_QUALITY')).toBeOnTheScreen();
+    expect(screen.queryByText(/Retake the marked ones/)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Send photos' })).toBeEnabled();
+  });
+
   it('asks for all three again when they do not look like one person', async () => {
     mockApi({ [SEND]: () => errorBody('FACE_INCONSISTENT', null, 422) });
     await renderWithTheme(<FaceCaptureScreen />);

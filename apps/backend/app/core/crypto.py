@@ -9,17 +9,23 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from app.core.config import get_settings
 
 NONCE_BYTES = 12
+# Which key sealed a blob. A rotation then knows which key to try instead of guessing.
+KEY_VERSION = 1
 
 
 def encrypt(key: bytes, plaintext: bytes, aad: bytes) -> bytes:
-    """`nonce || ciphertext+tag`. `aad` binds the blob to its owner: it must match on decrypt."""
+    """`version || nonce || ciphertext+tag`. `aad` binds the blob to its owner."""
     nonce = os.urandom(NONCE_BYTES)
-    return nonce + AESGCM(key).encrypt(nonce, plaintext, aad)
+    return bytes([KEY_VERSION]) + nonce + AESGCM(key).encrypt(nonce, plaintext, aad)
 
 
 def decrypt(key: bytes, blob: bytes, aad: bytes) -> bytes:
-    """Raises `cryptography.exceptions.InvalidTag` for a wrong key, wrong `aad` or changed bytes."""
-    return AESGCM(key).decrypt(blob[:NONCE_BYTES], blob[NONCE_BYTES:], aad)
+    """Raises `InvalidTag` for a wrong key, wrong `aad` or changed bytes, ValueError for a blob
+    that is not ours (empty, or sealed by a key version this code does not know)."""
+    if not blob or blob[0] != KEY_VERSION:
+        raise ValueError("unknown key version")
+    body = blob[1:]
+    return AESGCM(key).decrypt(body[:NONCE_BYTES], body[NONCE_BYTES:], aad)
 
 
 @lru_cache

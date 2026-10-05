@@ -35,7 +35,9 @@ export type SeenFace = {
 export type View = { width: number; height: number };
 
 // Face width as a share of the screen width.
-const MIN_WIDTH = 0.38;
+// Low on purpose: the scanner scales to the screen with the width and height of the camera
+// picture separately, so on a tall phone the share it reports is smaller than what is seen.
+const MIN_WIDTH = 0.25;
 const MAX_WIDTH = 0.85;
 // How far the face centre may be from the oval's centre, as a share of the screen.
 const CENTER_TOLERANCE = 0.18;

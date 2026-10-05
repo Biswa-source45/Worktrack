@@ -52,5 +52,11 @@ class EnrollmentDetail(EnrollmentItem):
     reason: str | None
 
 
+class Approve(BaseModel):
+    # The `submitted_at` of the detail the reviewer looked at: if the employee sent new photos
+    # since, the approval is refused so nobody approves photos they have not seen.
+    submitted_at: dt.datetime
+
+
 class Reason(BaseModel):
     reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]

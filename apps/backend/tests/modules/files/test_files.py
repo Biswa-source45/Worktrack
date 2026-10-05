@@ -109,3 +109,17 @@ async def test_deleting_missing_keys_or_nothing_is_fine(client: httpx.AsyncClien
     state = _state(client)
     await storage.delete(state.s3, state.settings.s3_bucket, [])
     await storage.delete(state.s3, state.settings.s3_bucket, ["test-files/never-existed.jpg"])
+
+
+async def test_a_big_delete_is_sent_in_requests_of_at_most_1000_keys() -> None:
+    sizes: list[int] = []
+
+    class Recorder:
+        def delete_objects(self, **kwargs: dict[str, list[object]]) -> None:
+            sizes.append(len(kwargs["Delete"]["Objects"]))
+
+    await storage.delete(Recorder(), "bucket", [f"k{n}" for n in range(2500)])  # type: ignore[arg-type]
+    assert sizes == [1000, 1000, 500]
+    sizes.clear()
+    await storage.delete(Recorder(), "bucket", [])  # type: ignore[arg-type]
+    assert sizes == []

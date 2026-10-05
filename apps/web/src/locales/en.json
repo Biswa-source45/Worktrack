@@ -604,7 +604,9 @@
       "ENROLLMENT_ALREADY_DECIDED": "Someone has already decided this enrollment. The list was refreshed.",
       "ENROLLMENT_NOT_RESETTABLE": "This enrollment can no longer be reset. The list was refreshed.",
       "NOT_FOUND": "This enrollment no longer exists.",
-      "FORBIDDEN": "You may not review this employee's enrollment."
-    }
+      "FORBIDDEN": "You may not review this employee's enrollment.",
+      "ENROLLMENT_CHANGED": "The employee sent new photos after you opened this. Review them again."
+    },
+    "photoFailed": "This photo could not be loaded. Close and open the review again."
   }
 }

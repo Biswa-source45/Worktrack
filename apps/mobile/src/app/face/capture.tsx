@@ -57,6 +57,8 @@ export default function FaceCaptureScreen() {
   const [flagged, setFlagged] = useState<Record<number, string>>({});
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  // The three photos did not look like one person: only retaking all of them helps.
+  const [inconsistent, setInconsistent] = useState(false);
   const [sent, setSent] = useState(false);
 
   if (!cameraAvailable) {
@@ -82,20 +84,27 @@ export default function FaceCaptureScreen() {
     setFirstTurn(0);
     setFlagged({});
     setFailure(null);
+    setInconsistent(false);
   };
 
   async function send() {
     setBusy(true);
     setFailure(null);
+    setInconsistent(false);
     try {
       await sendPhotos(photos as string[]);
       await queryClient.invalidateQueries({ queryKey: FACE_KEY });
       setSent(true);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'FACE_QUALITY') {
-        setFlagged(flaggedPhotos(error));
-        setFailure(t('face.review.fixPhotos'));
+        const marked = flaggedPhotos(error);
+        setFlagged(marked);
+        // Without a photo to point at, say what the server said instead of an empty instruction.
+        setFailure(
+          Object.keys(marked).length > 0 ? t('face.review.fixPhotos') : errorText(t, error),
+        );
       } else if (error instanceof ApiError && error.code === 'FACE_INCONSISTENT') {
+        setInconsistent(true);
         setFailure(t('face.review.inconsistent'));
       } else if (error instanceof ApiError && error.code === 'CONSENT_REQUIRED') {
         router.replace('/face/consent');
@@ -173,7 +182,7 @@ export default function FaceCaptureScreen() {
           />
         </Card>
       ))}
-      {failure === t('face.review.inconsistent') ? (
+      {inconsistent ? (
         <Button variant="secondary" label={t('face.review.retakeAll')} onPress={retakeAll} />
       ) : null}
       <Button

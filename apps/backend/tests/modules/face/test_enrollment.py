@@ -4,6 +4,7 @@ The face is personal data: much of this file checks where the photos, their stor
 template do NOT appear.
 """
 
+import datetime as dt
 import json
 from typing import Any
 
@@ -84,12 +85,25 @@ async def enrolled(
     return user, headers, (await rows(db, user))[-1].id
 
 
+async def approve(
+    client: httpx.AsyncClient, db: AsyncSession, admin: Headers, enrollment_id: int
+) -> httpx.Response:
+    """Approves what the admin saw: the enrollment as it stands in the database now."""
+    row = await db.get(FaceEnrollment, enrollment_id, populate_existing=True)
+    assert row is not None and row.submitted_at is not None
+    return await client.post(
+        f"{QUEUE}/{enrollment_id}/approve",
+        json={"submitted_at": row.submitted_at.isoformat()},
+        headers=admin,
+    )
+
+
 async def approved(
     client: httpx.AsyncClient, db: AsyncSession, n: int = 1, name: str = "a"
 ) -> tuple[User, Headers, int, Headers]:
     user, headers, enrollment_id = await enrolled(client, db, n, name)
     _, admin = await actor(client, db, ADMIN)
-    response = await client.post(f"{QUEUE}/{enrollment_id}/approve", headers=admin)
+    response = await approve(client, db, admin, enrollment_id)
     assert response.status_code == 200
     return user, headers, enrollment_id, admin
 
@@ -165,7 +179,8 @@ async def test_the_template_is_stored_encrypted_and_bound_to_its_row(
     (row,) = await rows(db, user)
     assert row.embeddings is not None
     plain_size = 3 * 128 * 4
-    assert len(row.embeddings) == crypto.NONCE_BYTES + plain_size + 16  # nonce, data, GCM tag
+    # key version, nonce, data, GCM tag
+    assert len(row.embeddings) == 1 + crypto.NONCE_BYTES + plain_size + 16
     template = service._unseal(row)
     assert template.shape == (3, 128)
     assert np.allclose(np.linalg.norm(template, axis=1), 1, atol=1e-5)
@@ -354,7 +369,7 @@ async def test_a_reviewer_sees_only_people_they_may_manage(
     assert (await client.get(QUEUE, headers=limited)).json()["items"] == []
     for method, path, body in (
         ("GET", f"{QUEUE}/{enrollment_id}", None),
-        ("POST", f"{QUEUE}/{enrollment_id}/approve", None),
+        ("POST", f"{QUEUE}/{enrollment_id}/approve", {"submitted_at": "2026-01-01T00:00:00Z"}),
         ("POST", f"{QUEUE}/{enrollment_id}/reject", {"reason": "no"}),
         ("POST", f"{QUEUE}/{enrollment_id}/reset", {"reason": "no"}),
     ):
@@ -370,7 +385,7 @@ async def test_an_unknown_enrollment_is_not_found(
     _, admin = await actor(client, db, ADMIN)
     for method, path, body in (
         ("GET", f"{QUEUE}/999999", None),
-        ("POST", f"{QUEUE}/999999/approve", None),
+        ("POST", f"{QUEUE}/999999/approve", {"submitted_at": "2026-01-01T00:00:00Z"}),
         ("POST", f"{QUEUE}/999999/reject", {"reason": "x"}),
         ("POST", f"{QUEUE}/999999/reset", {"reason": "x"}),
     ):
@@ -386,14 +401,14 @@ async def test_approving_records_who_and_when_and_cannot_be_done_twice(
 ) -> None:
     user, headers, enrollment_id = await enrolled(client, db)
     admin_user, admin = await actor(client, db, ADMIN)
-    response = await client.post(f"{QUEUE}/{enrollment_id}/approve", headers=admin)
+    response = await approve(client, db, admin, enrollment_id)
     assert response.status_code == 200
     assert response.json()["status"] == "approved"
     (row,) = await rows(db, user)
     assert (row.status, row.decided_by) == ("approved", admin_user.id)
     assert row.decided_at is not None and row.embeddings is not None
     assert (await client.get(MINE, headers=headers)).json()["status"] == "approved"
-    again = await client.post(f"{QUEUE}/{enrollment_id}/approve", headers=admin)
+    again = await approve(client, db, admin, enrollment_id)
     assert (again.status_code, error_code(again)) == (409, "ENROLLMENT_ALREADY_DECIDED")
     late = await client.post(f"{QUEUE}/{enrollment_id}/reject", json={"reason": "x"}, headers=admin)
     assert (late.status_code, error_code(late)) == (409, "ENROLLMENT_ALREADY_DECIDED")
@@ -471,7 +486,7 @@ async def test_reset_deletes_the_face_and_a_new_enrollment_needs_approval(
     user, headers, enrollment_id = await enrolled(client, db)
     _, admin = await actor(client, db, ADMIN)
     if was == "approved":
-        await client.post(f"{QUEUE}/{enrollment_id}/approve", headers=admin)
+        await approve(client, db, admin, enrollment_id)
     keys = list((await rows(db, user))[0].image_keys or [])
     response = await client.post(
         f"{QUEUE}/{enrollment_id}/reset", json={"reason": "Grew a beard"}, headers=admin
@@ -520,7 +535,7 @@ async def test_punches_are_blocked_until_the_enrollment_is_approved(
     assert await blocked()  # waiting for an admin
     _, admin = await actor(client, db, ADMIN)
     enrollment_id = (await rows(db, user))[0].id
-    await client.post(f"{QUEUE}/{enrollment_id}/approve", headers=admin)
+    await approve(client, db, admin, enrollment_id)
     assert not await blocked()
     await client.post(f"{QUEUE}/{enrollment_id}/reset", json={"reason": "x"}, headers=admin)
     assert await blocked()
@@ -568,3 +583,125 @@ async def test_a_wrong_encryption_key_makes_matching_unavailable_not_wrong(
     with pytest.raises(AppError) as caught:
         await service.verify_face(db, user.id, images.photo("a"))
     assert (caught.value.code, caught.value.status_code) == ("FACE_UNAVAILABLE", 503)
+
+
+# --- review hardening -------------------------------------------------------------------------
+
+
+async def test_an_approval_names_what_the_admin_looked_at(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    user, headers, enrollment_id = await enrolled(client, db)
+    _, admin = await actor(client, db, ADMIN)
+    seen = (await client.get(f"{QUEUE}/{enrollment_id}", headers=admin)).json()["submitted_at"]
+    # The employee sends other photos while the admin has the first ones open.
+    assert (await send(client, headers, good("b"))).status_code == 201
+    stale = await client.post(
+        f"{QUEUE}/{enrollment_id}/approve", json={"submitted_at": seen}, headers=admin
+    )
+    assert (stale.status_code, error_code(stale)) == (409, "ENROLLMENT_CHANGED")
+    assert (await rows(db, user))[0].status == "pending"
+    # Looking again shows the new photos, and approving those works.
+    now = (await client.get(f"{QUEUE}/{enrollment_id}", headers=admin)).json()["submitted_at"]
+    assert now != seen
+    fresh = await client.post(
+        f"{QUEUE}/{enrollment_id}/approve", json={"submitted_at": now}, headers=admin
+    )
+    assert fresh.status_code == 200
+
+
+@pytest.mark.parametrize("body", [None, {}, {"submitted_at": "yesterday"}])
+async def test_an_approval_without_a_valid_submission_time_is_refused(
+    client: httpx.AsyncClient, db: AsyncSession, body: dict[str, str] | None
+) -> None:
+    user, _, enrollment_id = await enrolled(client, db)
+    _, admin = await actor(client, db, ADMIN)
+    response = await client.post(f"{QUEUE}/{enrollment_id}/approve", json=body, headers=admin)
+    assert (response.status_code, error_code(response)) == (422, "VALIDATION_ERROR")
+    assert (await rows(db, user))[0].status == "pending"
+
+
+async def test_a_request_with_too_many_photos_is_refused_before_any_is_read(
+    client: httpx.AsyncClient, db: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, headers = await phone(client, db)
+    await client.post(CONSENT, headers=headers)
+    reads: list[int] = []
+    original = service.get_provider
+
+    def spy() -> object:  # the provider is never reached for a bad count
+        reads.append(1)
+        return original()
+
+    monkeypatch.setattr(service, "get_provider", spy)
+    response = await send(client, headers, [images.photo("a")] * 40)
+    assert (response.status_code, error_code(response)) == (422, "PHOTO_COUNT")
+    assert reads == []
+
+
+async def test_a_tiny_file_that_describes_a_huge_picture_is_not_decoded(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    import cv2
+
+    bomb = cv2.imencode(".png", np.zeros((7200, 7200, 3), np.uint8))[1].tobytes()
+    assert len(bomb) < service.MAX_PHOTO_BYTES  # small on the wire, 52 million pixels decoded
+    user, headers = await phone(client, db)
+    await client.post(CONSENT, headers=headers)
+    response = await send(client, headers, [images.photo("a"), bomb, images.photo("a")])
+    assert (response.status_code, error_code(response)) == (422, "FACE_QUALITY")
+    assert response.json()["error"]["details"] == {
+        "photos": [{"index": 1, "code": Issue.UNREADABLE_IMAGE.value}]
+    }
+    assert (await rows(db, user))[0].status == "consented"
+
+
+async def test_a_failed_photo_delete_is_logged_without_the_storage_keys(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    class Down:
+        def delete_objects(self, **_: object) -> None:
+            raise RuntimeError("storage is down")
+
+    secret = "face/7/abcdef0123456789/0.jpg"
+    with caplog.at_level("ERROR"):
+        await service._delete_photos(Down(), "bucket", [secret])  # type: ignore[arg-type]
+    assert "could not delete 1 face photo(s)" in caplog.text
+    assert secret not in caplog.text and "abcdef0123456789" not in caplog.text
+
+
+async def test_a_template_that_cannot_be_read_makes_matching_unavailable(
+    client: httpx.AsyncClient, db: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    user, _, _, _ = await approved(client, db)
+
+    def broken(*_: object) -> bytes:
+        raise ValueError("unknown key version")
+
+    monkeypatch.setattr(crypto, "decrypt", broken)
+    with pytest.raises(AppError) as caught:
+        await service.verify_face(db, user.id, images.photo("a"))
+    assert (caught.value.code, caught.value.status_code) == ("FACE_UNAVAILABLE", 503)
+
+
+async def test_the_sweep_deletes_only_old_photos_that_no_enrollment_refers_to(
+    client: httpx.AsyncClient, db: AsyncSession
+) -> None:
+    from app.core import storage
+
+    user, _, _ = await enrolled(client, db)
+    kept = list((await rows(db, user))[0].image_keys or [])
+    state = _state(client)
+    s3, bucket = state.s3, state.settings.s3_bucket
+    orphan = "face/999999/orphan/0.jpg"
+    await storage.put(s3, bucket, orphan, b"\xff\xd8 leftover")
+
+    # Just written: could belong to a submission that is still being saved, so it stays.
+    assert await service.sweep_orphans(db, s3, bucket) == 0
+    assert stored(client, orphan)
+
+    zero = dt.timedelta(0)
+    assert await service.sweep_orphans(db, s3, bucket, min_age=zero) == 1
+    assert not stored(client, orphan)
+    assert all(stored(client, key) for key in kept)  # a live enrollment's photos are never touched
+    assert await service.sweep_orphans(db, s3, bucket, min_age=zero) == 0

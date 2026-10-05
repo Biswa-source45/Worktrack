@@ -5,12 +5,17 @@ Only this file touches OpenCV. Everything else talks to `FaceProvider`, so a dif
 Thresholds and gates are always passed in from Settings; nothing here decides a limit.
 """
 
+import os
 import threading
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Protocol
+
+# A small PNG or JPEG can describe a picture of billions of pixels; OpenCV refuses to decode
+# anything bigger than this (phone selfies are 12 to 32 million). Read when cv2 loads.
+os.environ.setdefault("OPENCV_IO_MAX_IMAGE_PIXELS", "50000000")
 
 import cv2
 import numpy as np

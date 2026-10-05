@@ -899,6 +899,14 @@ export interface components {
             approved: components["schemas"]["ApprovedHome"] | null;
             pending: components["schemas"]["PendingHome"] | null;
         };
+        /** Approve */
+        Approve: {
+            /**
+             * Submitted At
+             * Format: date-time
+             */
+            submitted_at: string;
+        };
         /** ApprovedHome */
         ApprovedHome: {
             /** Id */
@@ -3193,7 +3201,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Approve"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

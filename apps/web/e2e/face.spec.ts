@@ -95,13 +95,13 @@ test('admin resets an approved enrollment, and the employee must enroll again', 
   page,
 }) => {
   const { employee, phone, token } = await employeeWithEnrollment();
-  const list = await api<{ items: { id: number; employee: { id: number } }[] }>(
-    'GET',
-    '/admin/face-enrollments?limit=200',
-    token,
-  );
-  const id = list.items.find((item) => item.employee.id === employee.id)?.id;
-  await api('POST', `/admin/face-enrollments/${id}/approve`, token);
+  const list = await api<{
+    items: { id: number; submitted_at: string; employee: { id: number } }[];
+  }>('GET', '/admin/face-enrollments?limit=200', token);
+  const mine = list.items.find((item) => item.employee.id === employee.id);
+  await api('POST', `/admin/face-enrollments/${mine?.id}/approve`, token, {
+    submitted_at: mine?.submitted_at,
+  });
 
   const dialog = await openReview(page, employee.name, 'Approved');
   await expect(dialog.getByRole('button', { name: 'Approve' })).toBeHidden();

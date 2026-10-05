@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from cryptography.exceptions import InvalidTag
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
@@ -105,8 +105,9 @@ async def _delete_photos(s3: "S3Client", bucket: str, keys: list[str]) -> None:
     """After the database change is committed. A failure leaves orphan files, not a wrong state."""
     try:
         await storage.delete(s3, bucket, keys)
-    except Exception:  # logged with the keys; the caller's work is already saved
-        logger.exception("could not delete %d face photo(s): %s", len(keys), keys)
+    except Exception:  # the caller's work is already saved; the daily sweep removes leftovers
+        # Only the count: storage keys are not logged.
+        logger.exception("could not delete %d face photo(s)", len(keys))
 
 
 async def _open_row(
@@ -345,12 +346,22 @@ def _close(row: FaceEnrollment, status: str, actor: User, reason: str | None) ->
 
 
 async def approve(
-    session: AsyncSession, actor: AuthContext, ctx: AuditCtx, enrollment_id: int
+    session: AsyncSession,
+    actor: AuthContext,
+    ctx: AuditCtx,
+    enrollment_id: int,
+    seen_submitted_at: dt.datetime,
 ) -> EnrollmentItem:
     row, user = await _managed(session, actor, enrollment_id, lock=True)
     if row.status != PENDING:
         raise AppError(
             "ENROLLMENT_ALREADY_DECIDED", "This enrollment is not waiting for a decision.", 409
+        )
+    if row.submitted_at != seen_submitted_at:
+        raise AppError(
+            "ENROLLMENT_CHANGED",
+            "The employee sent new photos after you opened this. Review them again.",
+            409,
         )
     before = _audit_view(row)
     row.status = APPROVED
@@ -459,7 +470,7 @@ async def verify_face(session: AsyncSession, user_id: int, image: bytes) -> Face
     row = await ensure_face_approved(session, user_id)
     try:
         enrolled = _unseal(row)
-    except InvalidTag:
+    except (InvalidTag, ValueError):
         logger.error("face template %s does not decrypt: wrong FACE_ENCRYPTION_KEY?", row.id)
         raise AppError(
             "FACE_UNAVAILABLE", "Face matching is not available right now.", 503
@@ -516,3 +527,32 @@ async def purge_departed(session: AsyncSession, s3: "S3Client", bucket: str, ctx
     await session.commit()
     await _delete_photos(s3, bucket, keys)
     return len(rows)
+
+
+async def sweep_orphans(
+    session: AsyncSession,
+    s3: "S3Client",
+    bucket: str,
+    min_age: dt.timedelta = dt.timedelta(hours=1),
+) -> int:
+    """Delete stored photos that no enrollment refers to.
+
+    A delete after a rejection, reset or replacement can fail (the storage may be down for a
+    moment) and nothing would retry it. Photos younger than `min_age` are left alone: they may
+    belong to a submission that is still being saved.
+    """
+    old = await storage.list_keys(s3, bucket, "face/", utcnow() - min_age)
+    if not old:
+        return 0
+    referenced = set(
+        (
+            await session.execute(
+                select(func.unnest(FaceEnrollment.image_keys)).where(
+                    FaceEnrollment.image_keys.is_not(None)
+                )
+            )
+        ).scalars()
+    )
+    orphans = [key for key in old if key not in referenced]
+    await storage.delete(s3, bucket, orphans)
+    return len(orphans)

@@ -1,7 +1,7 @@
 // The only file that imports the native camera and face scanner (VisionCamera 5, ML Kit). It is
 // loaded on demand by the capture screen, never in Expo Go. Not exercised by Jest (there is no
 // camera there): the decisions it makes live in lib/face-guidance.ts, which is.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, StyleSheet, useWindowDimensions, View } from 'react-native';
 import {
@@ -12,12 +12,14 @@ import {
   usePhotoOutput,
 } from 'react-native-vision-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFaceScannerOutput } from 'vision-camera-face-detection';
+import { createFaceScannerOutput } from 'vision-camera-face-detection';
 import type { Face } from 'vision-camera-face-detection';
+import { TriangleAlert } from '@/components/icons';
 import { AppText } from '@/components/ui/app-text';
+import { BackButton } from '@/components/ui/back-button';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
-import { TriangleAlert } from '@/components/icons';
+import { Screen } from '@/components/ui/screen';
 import { assess, HOLD_MS } from '@/lib/face-guidance';
 import type { Hint, SeenFace, Step, Turn } from '@/lib/face-guidance';
 import { useTheme } from '@/lib/theme';
@@ -33,6 +35,10 @@ type Props = {
 const COOLDOWN_MS = 1200;
 // No scanner result for this long means the camera stalled: start the hold over.
 const STALE_MS = 1000;
+// How long "could not take the photo" stays instead of the hint.
+const FAILURE_MS = 2500;
+// The camera list is empty for a moment while it loads: only then say there is no front camera.
+const DEVICE_WAIT_MS = 1500;
 
 const toSeen = (face: Face): SeenFace => ({
   x: face.bounds.x,
@@ -59,20 +65,37 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
 
   const [hint, setHint] = useState<Hint>('noFace');
   const [failed, setFailed] = useState(false);
+  const [waited, setWaited] = useState(false);
   const goodSince = useRef<number | null>(null);
   const lastResult = useRef(0);
   const busy = useRef(false);
+  const failureTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (canRequestPermission) void requestPermission();
   }, [canRequestPermission, requestPermission]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setWaited(true), DEVICE_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   // A stalled camera must not keep an old "good" moment alive.
   useEffect(() => {
     const timer = setInterval(() => {
       if (Date.now() - lastResult.current > STALE_MS) goodSince.current = null;
     }, STALE_MS);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (failureTimer.current) clearTimeout(failureTimer.current);
+    };
+  }, []);
+
+  // Shown for a moment, then the hints come back: the camera keeps looking meanwhile.
+  const flashFailure = useCallback(() => {
+    setFailed(true);
+    if (failureTimer.current) clearTimeout(failureTimer.current);
+    failureTimer.current = setTimeout(() => setFailed(false), FAILURE_MS);
   }, []);
 
   const take = useCallback(
@@ -81,50 +104,61 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
       try {
         const file = await photoOutput.capturePhotoToFile({ enableShutterSound: false }, {});
         const path = file.filePath;
-        setFailed(false);
         onPhoto(path.startsWith('file://') ? path : `file://${path}`, turn);
       } catch {
-        // The employee sees a retry hint and the camera keeps looking; nothing was captured.
-        setFailed(true);
+        // Nothing was captured; the employee sees it, and the camera keeps looking.
+        flashFailure();
       } finally {
         goodSince.current = null;
         setTimeout(() => (busy.current = false), COOLDOWN_MS);
       }
     },
-    [onPhoto, photoOutput],
+    [flashFailure, onPhoto, photoOutput],
   );
 
-  const scanner = useFaceScannerOutput({
-    performanceMode: 'fast',
-    runClassifications: true,
-    cameraFacing: 'front',
-    autoMode: true,
-    windowWidth: view.width,
-    windowHeight: view.height,
-    onFaceScanned: (faces: Face[]) => {
-      const now = Date.now();
-      lastResult.current = now;
-      const result = assess(faces.map(toSeen), step, view, firstTurn);
-      setHint((previous) => (previous === result.hint ? previous : result.hint));
-      if (result.hint !== 'ok' || busy.current) {
-        goodSince.current = null;
-        return;
-      }
-      goodSince.current ??= now;
-      if (now - goodSince.current >= HOLD_MS) void take(result.turn);
-    },
-    onError: () => setFailed(true),
+  // The scanner is made once. The library's own hook builds a new one on every render, and every
+  // new output makes the camera session reconfigure (the preview flickers and the hold restarts),
+  // which a hint that changes several times a second would trigger all the time. It calls a stable
+  // function that runs the latest handler, so it sees the current step and head turn.
+  const handleFaces = (faces: Face[]) => {
+    const now = Date.now();
+    lastResult.current = now;
+    const result = assess(faces.map(toSeen), step, view, firstTurn);
+    setHint((previous) => (previous === result.hint ? previous : result.hint));
+    if (result.hint !== 'ok' || busy.current) {
+      goodSince.current = null;
+      return;
+    }
+    goodSince.current ??= now;
+    if (now - goodSince.current >= HOLD_MS) void take(result.turn);
+  };
+  const latestHandler = useRef(handleFaces);
+  useEffect(() => {
+    latestHandler.current = handleFaces;
   });
+  const onFaces = useCallback((faces: Face[]) => latestHandler.current(faces), []);
+  const scanner = useMemo(
+    () =>
+      // The callbacks read refs only when the scanner calls them (a frame later), never while
+      // rendering; the rule cannot tell. Not a render-time ref access.
+      // eslint-disable-next-line react-hooks/refs
+      createFaceScannerOutput({
+        performanceMode: 'fast',
+        runClassifications: true,
+        cameraFacing: 'front',
+        autoMode: true,
+        windowWidth: view.width,
+        windowHeight: view.height,
+        onFaceScanned: onFaces,
+        onError: flashFailure,
+      }),
+    [view.width, view.height, onFaces, flashFailure],
+  );
 
   if (!hasPermission) {
     return (
-      <View
-        style={[
-          styles.fill,
-          styles.center,
-          { backgroundColor: colors.background, padding: space[5], gap: space[4] },
-        ]}
-      >
+      <Screen>
+        <BackButton />
         <AppText variant="h3" accessibilityRole="header">
           {t('face.camera.permissionTitle')}
         </AppText>
@@ -137,20 +171,17 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
             onPress={() => void Linking.openSettings()}
           />
         )}
-      </View>
+      </Screen>
     );
   }
   if (!device) {
     return (
-      <View
-        style={[
-          styles.fill,
-          styles.center,
-          { backgroundColor: colors.background, padding: space[5] },
-        ]}
-      >
-        <Banner status="danger" icon={TriangleAlert} message={t('face.camera.noFrontCamera')} />
-      </View>
+      <Screen>
+        <BackButton />
+        {waited ? (
+          <Banner status="danger" icon={TriangleAlert} message={t('face.camera.noFrontCamera')} />
+        ) : null}
+      </Screen>
     );
   }
 
@@ -174,6 +205,19 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
             borderColor: hint === 'ok' ? colors.successFg : colors.primary,
           }}
         />
+      </View>
+      {/* Over the camera picture the arrow needs a background of its own. */}
+      <View
+        style={{
+          position: 'absolute',
+          top: insets.top + space[2],
+          left: space[4],
+          paddingLeft: space[2],
+          borderRadius: radius.pill,
+          backgroundColor: colors.surface,
+        }}
+      >
+        <BackButton />
       </View>
       <View
         style={{

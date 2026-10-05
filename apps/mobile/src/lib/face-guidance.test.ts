@@ -27,7 +27,7 @@ describe('assess: finding one clear face', () => {
   });
 
   it.each([
-    [{ x: 130, width: 140, height: 140, y: 266 }, 'closer'], // 35% of the screen width
+    [{ x: 155, width: 90, height: 90, y: 291 }, 'closer'], // 22% of the screen width
     [{ x: 30, width: 350, height: 350, y: 100 }, 'back'], // 87%
     [{ x: 0 }, 'center'],
     [{ x: 200 }, 'center'],

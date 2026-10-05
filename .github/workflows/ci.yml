@@ -85,8 +85,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: uv sync --frozen
         working-directory: apps/backend
-      - run: uv run python scripts/download_models.py
-        working-directory: apps/backend
       - run: node scripts/api-types-check.mjs
 
   e2e:
@@ -106,6 +104,9 @@ jobs:
           cache-dependency-glob: apps/backend/uv.lock
       - run: pnpm install --frozen-lockfile
       - run: uv sync --frozen
+        working-directory: apps/backend
+      # The face tests enroll a photo through the real backend.
+      - run: uv run python scripts/download_models.py
         working-directory: apps/backend
       - run: pnpm --filter web exec playwright install --with-deps chromium
       - run: pnpm --filter web e2e

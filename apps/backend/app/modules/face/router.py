@@ -13,7 +13,9 @@ from app.modules.auth.deps import (
 )
 from app.modules.auth.permissions import FACE_REVIEW
 from app.modules.face import service
+from app.modules.face.provider import REQUIRED_PHOTOS
 from app.modules.face.schemas import (
+    Approve,
     EnrollmentDetail,
     EnrollmentItem,
     EnrollmentPage,
@@ -51,6 +53,9 @@ async def submit_face_enrollment(
     auth: OnOwnPhone,
     photos: Annotated[list[UploadFile], File()],
 ) -> MyEnrollment:
+    # Before any photo is read: a request with a hundred files must not fill memory first.
+    if len(photos) != REQUIRED_PHOTOS:
+        raise AppError("PHOTO_COUNT", f"Send exactly {REQUIRED_PHOTOS} photos.", 422)
     data: list[bytes] = []
     for photo in photos:
         # One byte past the limit is enough to know it is too big, without reading it all.
@@ -92,9 +97,11 @@ async def get_face_enrollment(
 
 @router.post("/admin/face-enrollments/{enrollment_id}/approve", response_model=EnrollmentItem)
 async def approve_face_enrollment(
-    enrollment_id: int, request: Request, session: Session, actor: Reviewer
+    enrollment_id: int, body: Approve, request: Request, session: Session, actor: Reviewer
 ) -> EnrollmentItem:
-    return await service.approve(session, actor, actor.audit(request), enrollment_id)
+    return await service.approve(
+        session, actor, actor.audit(request), enrollment_id, body.submitted_at
+    )
 
 
 @router.post("/admin/face-enrollments/{enrollment_id}/reject", response_model=EnrollmentItem)

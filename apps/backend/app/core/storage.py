@@ -1,5 +1,6 @@
 """Object storage (MinIO / S3) for photos. boto3 is blocking, so every call runs in a thread."""
 
+import datetime as dt
 from typing import TYPE_CHECKING
 
 import boto3
@@ -44,11 +45,24 @@ async def get(s3: "S3Client", bucket: str, key: str) -> bytes:
         raise
 
 
+async def list_keys(s3: "S3Client", bucket: str, prefix: str, older_than: dt.datetime) -> list[str]:
+    """Keys under `prefix` last written before `older_than`."""
+
+    def run() -> list[str]:
+        keys: list[str] = []
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix=prefix):
+            keys += [o["Key"] for o in page.get("Contents", []) if o["LastModified"] < older_than]
+        return keys
+
+    return await run_in_threadpool(run)
+
+
 async def delete(s3: "S3Client", bucket: str, keys: list[str]) -> None:
-    """Missing keys are fine (S3 deletes are idempotent)."""
-    if keys:
+    """Missing keys are fine (S3 deletes are idempotent). One request takes at most 1000 keys."""
+    for start in range(0, len(keys), 1000):
+        chunk = keys[start : start + 1000]
         await run_in_threadpool(
             s3.delete_objects,
             Bucket=bucket,
-            Delete={"Objects": [{"Key": key} for key in keys], "Quiet": True},
+            Delete={"Objects": [{"Key": key} for key in chunk], "Quiet": True},
         )

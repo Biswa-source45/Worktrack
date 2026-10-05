@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -137,7 +137,7 @@ describe('Face review dialog', () => {
     expect(dialog.innerHTML).not.toContain('face/');
   });
 
-  it('approves, refreshes the list and closes', async () => {
+  it('approves what was on screen, refreshes the list and closes', async () => {
     const { calls, user } = setup();
     const dialog = await openReview(user);
     await within(dialog).findAllByRole('img');
@@ -146,6 +146,11 @@ describe('Face review dialog', () => {
     expect(posts(calls).map((c) => c.path.split('/api/v1')[1])).toEqual([
       '/admin/face-enrollments/51/approve',
     ]);
+    // The approval names the photos the admin saw; the server refuses it if they changed.
+    expect(jsonBody(posts(calls)[0])).toEqual({ submitted_at: '2026-02-01T04:31:00Z' });
+    // The decision refreshed the list, not the detail: no second audited look, no new links.
+    const detailGets = calls.filter((c) => c.path.endsWith('/admin/face-enrollments/51'));
+    expect(detailGets).toHaveLength(1);
     await waitFor(() => expect(screen.getByTestId('count-faces')).toHaveTextContent('1'));
   });
 
@@ -234,5 +239,31 @@ describe('Face review dialog', () => {
       "You may not review this employee's enrollment.",
     );
     expect(within(dialog).queryByRole('img')).not.toBeInTheDocument();
+  });
+});
+
+describe('Face review dialog: changed photos and expired links', () => {
+  it('explains that new photos arrived and keeps the dialog open to look again', async () => {
+    const { user } = setup({
+      routes: {
+        'POST /admin/face-enrollments/51/approve': () => apiError(409, 'ENROLLMENT_CHANGED'),
+      },
+    });
+    const dialog = await openReview(user);
+    await within(dialog).findAllByRole('img');
+    await user.click(within(dialog).getByRole('button', { name: 'Approve' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'The employee sent new photos after you opened this.',
+    );
+    expect(screen.getByRole('dialog')).toBeVisible();
+  });
+
+  it('says so when a photo link no longer works, instead of a broken picture', async () => {
+    const { user } = setup();
+    const dialog = await openReview(user);
+    const photos = await within(dialog).findAllByRole('img');
+    fireEvent.error(photos[1]);
+    expect(await within(dialog).findByText(/could not be loaded/)).toBeVisible();
+    expect(within(dialog).getAllByRole('img')).toHaveLength(2);
   });
 });
