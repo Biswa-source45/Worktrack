@@ -1,16 +1,19 @@
 """Test data helpers shared by every module's tests."""
 
 import itertools
-from datetime import date
+from datetime import date, time
 from typing import Any
 
 import httpx
+from geoalchemy2 import WKTElement
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
+from app.modules.branches.models import Branch
 from app.modules.employees.models import Department, Designation, Role, User
 from app.modules.employees.schemas import normalize_mobile
+from app.modules.shifts.models import Shift
 
 PASSWORD = "Correct-Horse-1234"
 _counter = itertools.count(1)
@@ -51,6 +54,46 @@ async def make_department(session: AsyncSession, name: str | None = None) -> Dep
     return row
 
 
+async def make_branch(
+    session: AsyncSession,
+    name: str | None = None,
+    *,
+    lat: float = 20.2961,
+    lng: float = 85.8245,
+    radius_m: int = 100,
+    is_active: bool = True,
+) -> Branch:
+    branch = Branch(
+        name=name or f"Branch {next(_counter)}",
+        location=WKTElement(f"POINT({lng} {lat})", srid=4326),
+        radius_m=radius_m,
+        is_active=is_active,
+    )
+    session.add(branch)
+    await session.flush()
+    await session.refresh(branch)
+    return branch
+
+
+async def make_shift(
+    session: AsyncSession, name: str | None = None, *, is_active: bool = True, **fields: Any
+) -> Shift:
+    shift = Shift(
+        name=name or f"Shift {next(_counter)}",
+        start_time=time(9, 30),
+        end_time=time(18, 30),
+        grace_min=10,
+        half_day_hours=4,
+        full_day_hours=8,
+        weekly_offs=fields.pop("weekly_offs", [{"weekday": 6, "weeks": None}]),
+        is_active=is_active,
+        **fields,
+    )
+    session.add(shift)
+    await session.flush()
+    return shift
+
+
 async def make_user(
     session: AsyncSession,
     role: str = OFFICE,
@@ -81,6 +124,26 @@ async def make_user(
     await session.flush()
     await session.refresh(user)
     return user
+
+
+async def make_user_with(session: AsyncSession, *permissions: str) -> User:
+    """A user whose custom role holds exactly these permissions."""
+    role = Role(name=f"Custom {next(_counter)}", permissions=sorted(permissions))
+    session.add(role)
+    await session.flush()
+    user = await make_user(session)
+    user.role_id = role.id
+    await session.flush()
+    await session.refresh(user)
+    return user
+
+
+async def headers_with(
+    client: httpx.AsyncClient, session: AsyncSession, *permissions: str
+) -> dict[str, str]:
+    """A signed-in user holding exactly these permissions (on a phone: web needs web.access)."""
+    user = await make_user_with(session, *permissions)
+    return await auth_headers(client, user, kind="mobile", device_info=device(next(_counter)))
 
 
 async def login(

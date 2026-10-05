@@ -106,6 +106,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/branches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Branches */
+        get: operations["list_branches_api_v1_admin_branches_get"];
+        put?: never;
+        /** Create Branch */
+        post: operations["create_branch_api_v1_admin_branches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/branches/{branch_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Branch */
+        get: operations["get_branch_api_v1_admin_branches__branch_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Branch */
+        patch: operations["update_branch_api_v1_admin_branches__branch_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/branches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Branch Names */
+        get: operations["branch_names_api_v1_branches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/geo/resolve-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Link */
+        post: operations["resolve_link_api_v1_admin_geo_resolve_link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/geo/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Places */
+        get: operations["search_places_api_v1_admin_geo_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/devices": {
         parameters: {
             query?: never;
@@ -350,6 +437,145 @@ export interface paths {
         patch: operations["update_role_api_v1_admin_roles__role_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/employees/{employee_id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Schedule */
+        get: operations["get_schedule_api_v1_admin_employees__employee_id__schedule_get"];
+        /** Set Schedule */
+        put: operations["set_schedule_api_v1_admin_employees__employee_id__schedule_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/employees/{employee_id}/home-location": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Home Location */
+        get: operations["get_home_location_api_v1_admin_employees__employee_id__home_location_get"];
+        /** Set Home Location */
+        put: operations["set_home_location_api_v1_admin_employees__employee_id__home_location_put"];
+        post?: never;
+        /** Remove Home Location */
+        delete: operations["remove_home_location_api_v1_admin_employees__employee_id__home_location_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/home-location-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Home Requests */
+        get: operations["list_home_requests_api_v1_admin_home_location_requests_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/home-location-requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Home Request */
+        get: operations["get_home_request_api_v1_admin_home_location_requests__request_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/home-location-requests/{request_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Home Request */
+        post: operations["approve_home_request_api_v1_admin_home_location_requests__request_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/home-location-requests/{request_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Home Request */
+        post: operations["reject_home_request_api_v1_admin_home_location_requests__request_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/home-location-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Home Location */
+        post: operations["request_home_location_api_v1_me_home_location_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/home-location": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Home Location */
+        get: operations["my_home_location_api_v1_me_home_location_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/sessions": {
         parameters: {
             query?: never;
@@ -418,14 +644,195 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings */
+        get: operations["get_settings_api_v1_admin_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Settings */
+        patch: operations["update_settings_api_v1_admin_settings_patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Shifts */
+        get: operations["list_shifts_api_v1_admin_shifts_get"];
+        put?: never;
+        /** Create Shift */
+        post: operations["create_shift_api_v1_admin_shifts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/shifts/{shift_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Shift */
+        patch: operations["update_shift_api_v1_admin_shifts__shift_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shift Names */
+        get: operations["shift_names_api_v1_shifts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Holidays */
+        get: operations["list_holidays_api_v1_admin_holidays_get"];
+        put?: never;
+        /** Create Holiday */
+        post: operations["create_holiday_api_v1_admin_holidays_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/holidays/{holiday_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Holiday */
+        delete: operations["delete_holiday_api_v1_admin_holidays__holiday_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Holiday */
+        patch: operations["update_holiday_api_v1_admin_holidays__holiday_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdminHomeOut */
+        AdminHomeOut: {
+            approved: components["schemas"]["ApprovedHome"] | null;
+            pending: components["schemas"]["PendingHome"] | null;
+        };
+        /** ApprovedHome */
+        ApprovedHome: {
+            /** Id */
+            id: number;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m: number;
+            /** Source */
+            source: string;
+            /** Decided At */
+            decided_at: string | null;
+        };
         /** Body_import_employees_api_v1_admin_employees_import_post */
         Body_import_employees_api_v1_admin_employees_import_post: {
             /** File */
             file: string;
+        };
+        /** BranchCreate */
+        BranchCreate: {
+            /** Name */
+            name: string;
+            /** Address */
+            address?: string | null;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m?: number | null;
+        };
+        /** BranchOut */
+        BranchOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Address */
+            address: string | null;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m: number;
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** BranchPage */
+        BranchPage: {
+            /** Items */
+            items: components["schemas"]["BranchOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * BranchUpdate
+         * @description Partial update: only the fields sent are changed (null clears the address).
+         */
+        BranchUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Address */
+            address?: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Radius M */
+            radius_m?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -535,6 +942,15 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** EmployeeBrief */
+        EmployeeBrief: {
+            /** Id */
+            id: number;
+            /** Emp Code */
+            emp_code: string;
+            /** Name */
+            name: string;
+        };
         /** EmployeeCreate */
         EmployeeCreate: {
             /** Emp Code */
@@ -563,6 +979,15 @@ export interface components {
              * @default false
              */
             field_eligible: boolean;
+            /** Home Branch Id */
+            home_branch_id?: number | null;
+            /** Shift Id */
+            shift_id?: number | null;
+            /**
+             * Restrict To Home Branch
+             * @default false
+             */
+            restrict_to_home_branch: boolean;
             /** Password */
             password?: string | null;
         };
@@ -591,6 +1016,10 @@ export interface components {
             manager_id: number | null;
             /** Field Eligible */
             field_eligible: boolean;
+            home_branch: components["schemas"]["Ref"] | null;
+            shift: components["schemas"]["Ref"] | null;
+            /** Restrict To Home Branch */
+            restrict_to_home_branch: boolean;
             /** Status */
             status: string;
             /**
@@ -617,7 +1046,9 @@ export interface components {
         };
         /**
          * EmployeeUpdate
-         * @description Partial update: only the fields sent are changed (null clears email/department/manager).
+         * @description Partial update: only the fields sent are changed.
+         *
+         *     Null clears email, department, manager, home branch and shift.
          */
         EmployeeUpdate: {
             /** Name */
@@ -638,6 +1069,12 @@ export interface components {
             joined_on?: string | null;
             /** Field Eligible */
             field_eligible?: boolean | null;
+            /** Home Branch Id */
+            home_branch_id?: number | null;
+            /** Shift Id */
+            shift_id?: number | null;
+            /** Restrict To Home Branch */
+            restrict_to_home_branch?: boolean | null;
             /** Status */
             status?: ("active" | "inactive") | null;
         };
@@ -673,6 +1110,141 @@ export interface components {
             status: "ok" | "error";
             checks: components["schemas"]["HealthChecks"];
         };
+        /** HolidayCreate */
+        HolidayCreate: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Name */
+            name: string;
+            /** Branch Id */
+            branch_id?: number | null;
+        };
+        /** HolidayOut */
+        HolidayOut: {
+            /** Id */
+            id: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Name */
+            name: string;
+            /** Branch Id */
+            branch_id: number | null;
+        };
+        /** HolidayPage */
+        HolidayPage: {
+            /** Items */
+            items: components["schemas"]["HolidayOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * HolidayUpdate
+         * @description Partial update: only the fields sent are changed (a null branch_id means every branch).
+         */
+        HolidayUpdate: {
+            /** Date */
+            date?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Branch Id */
+            branch_id?: number | null;
+        };
+        /** HomeApprove */
+        HomeApprove: {
+            /** Radius M */
+            radius_m?: number | null;
+        };
+        /** HomeReject */
+        HomeReject: {
+            /** Reason */
+            reason: string;
+        };
+        /** HomeRequestDetail */
+        HomeRequestDetail: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /** Status */
+            status: string;
+            /** Accuracy M */
+            accuracy_m: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Lat */
+            lat: number | null;
+            /** Lng */
+            lng: number | null;
+            /** Radius M */
+            radius_m: number;
+            /** Decided At */
+            decided_at: string | null;
+            /** Reject Reason */
+            reject_reason: string | null;
+        };
+        /** HomeRequestIn */
+        HomeRequestIn: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Accuracy M */
+            accuracy_m: number;
+        };
+        /**
+         * HomeRequestItem
+         * @description A request as listed: who and when, never where.
+         */
+        HomeRequestItem: {
+            /** Id */
+            id: number;
+            employee: components["schemas"]["EmployeeBrief"];
+            /** Status */
+            status: string;
+            /** Accuracy M */
+            accuracy_m: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** HomeRequestPage */
+        HomeRequestPage: {
+            /** Items */
+            items: components["schemas"]["HomeRequestItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** HomeRequested */
+        HomeRequested: {
+            /** Status */
+            status: string;
+            /** Radius M */
+            radius_m: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** HomeSet */
+        HomeSet: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m?: number | null;
+        };
         /** ImportCredential */
         ImportCredential: {
             /** Emp Code */
@@ -701,6 +1273,11 @@ export interface components {
             row: number;
             /** Message */
             message: string;
+        };
+        /** LinkIn */
+        LinkIn: {
+            /** Url */
+            url: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -762,6 +1339,105 @@ export interface components {
             client: "web" | "mobile";
             device: components["schemas"]["MeDevice"] | null;
         };
+        /** MyApprovedHome */
+        MyApprovedHome: {
+            /** Radius M */
+            radius_m: number;
+            /** Decided At */
+            decided_at: string | null;
+        };
+        /** MyHomeOut */
+        MyHomeOut: {
+            approved: components["schemas"]["MyApprovedHome"] | null;
+            pending: components["schemas"]["MyPendingHome"] | null;
+            last_rejected: components["schemas"]["MyRejectedHome"] | null;
+        };
+        /** MyPendingHome */
+        MyPendingHome: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** MyRejectedHome */
+        MyRejectedHome: {
+            /** Reason */
+            reason: string | null;
+            /** Decided At */
+            decided_at: string | null;
+        };
+        /**
+         * OrgSettings
+         * @description Every organisation setting, with its default and bounds. There are no other keys.
+         *
+         *     Also the PATCH body: every field has a default, so a request may send any subset, and only
+         *     the fields it sent (`model_fields_set`) are changed.
+         */
+        OrgSettings: {
+            /**
+             * Geofence Default Radius M
+             * @default 100
+             */
+            geofence_default_radius_m: number;
+            /**
+             * Home Default Radius M
+             * @default 100
+             */
+            home_default_radius_m: number;
+            /**
+             * Gps Max Accuracy M
+             * @default 50
+             */
+            gps_max_accuracy_m: number;
+            /**
+             * Geofence Accuracy Buffer Cap M
+             * @default 30
+             */
+            geofence_accuracy_buffer_cap_m: number;
+            /**
+             * Punch Out Approval Levels
+             * @default 1
+             */
+            punch_out_approval_levels: number;
+            /**
+             * Regularization Approval Levels
+             * @default 1
+             */
+            regularization_approval_levels: number;
+            /**
+             * Min App Version
+             * @default 0.0.0
+             */
+            min_app_version: string;
+        };
+        /** PendingHome */
+        PendingHome: {
+            /** Id */
+            id: number;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m: number;
+            /** Accuracy M */
+            accuracy_m: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** PlaceOut */
+        PlaceOut: {
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Name */
+            name: string | null;
+        };
         /** Ref */
         Ref: {
             /** Id */
@@ -773,6 +1449,24 @@ export interface components {
         RefreshRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /** ResolvedDay */
+        ResolvedDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "office" | "home" | "off";
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "holiday" | "schedule" | "weekly_off" | "shift";
         };
         /** RevokedOthers */
         RevokedOthers: {
@@ -803,6 +1497,49 @@ export interface components {
             name?: string | null;
             /** Permissions */
             permissions?: string[] | null;
+        };
+        /** ScheduleOut */
+        ScheduleOut: {
+            /** Rows */
+            rows: components["schemas"]["ScheduleRowOut"][];
+            /** Resolved */
+            resolved: components["schemas"]["ResolvedDay"][];
+        };
+        /** ScheduleRowOut */
+        ScheduleRowOut: {
+            /** Id */
+            id: number;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Days */
+            days: (("office" | "home" | "off") | null)[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ScheduleSet */
+        ScheduleSet: {
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Days */
+            days: (("office" | "home" | "off") | null)[];
+        };
+        /** SearchHit */
+        SearchHit: {
+            /** Label */
+            label: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
         };
         /** SessionCounts */
         SessionCounts: {
@@ -864,6 +1601,88 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** ShiftCreate */
+        ShiftCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Start Time
+             * Format: time
+             */
+            start_time: string;
+            /**
+             * End Time
+             * Format: time
+             */
+            end_time: string;
+            /** Grace Min */
+            grace_min: number;
+            /** Half Day Hours */
+            half_day_hours: number | string;
+            /** Full Day Hours */
+            full_day_hours: number | string;
+            /**
+             * Weekly Offs
+             * @default []
+             */
+            weekly_offs: components["schemas"]["WeeklyOff"][];
+        };
+        /** ShiftOut */
+        ShiftOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /**
+             * Start Time
+             * Format: time
+             */
+            start_time: string;
+            /**
+             * End Time
+             * Format: time
+             */
+            end_time: string;
+            /** Grace Min */
+            grace_min: number;
+            /** Half Day Hours */
+            half_day_hours: number;
+            /** Full Day Hours */
+            full_day_hours: number;
+            /** Weekly Offs */
+            weekly_offs: components["schemas"]["WeeklyOff"][];
+            /** Is Active */
+            is_active: boolean;
+        };
+        /** ShiftPage */
+        ShiftPage: {
+            /** Items */
+            items: components["schemas"]["ShiftOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * ShiftUpdate
+         * @description Partial update: only the fields sent are changed. Nothing here can be null.
+         */
+        ShiftUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Start Time */
+            start_time?: string | null;
+            /** End Time */
+            end_time?: string | null;
+            /** Grace Min */
+            grace_min?: number | null;
+            /** Half Day Hours */
+            half_day_hours?: number | string | null;
+            /** Full Day Hours */
+            full_day_hours?: number | string | null;
+            /** Weekly Offs */
+            weekly_offs?: components["schemas"]["WeeklyOff"][] | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
         /** TeamMemberOut */
         TeamMemberOut: {
             /** Id */
@@ -921,6 +1740,13 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** WeeklyOff */
+        WeeklyOff: {
+            /** Weekday */
+            weekday: number;
+            /** Weeks */
+            weeks?: number[] | null;
         };
     };
     responses: never;
@@ -1106,6 +1932,222 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
+    list_branches_api_v1_admin_branches_get: {
+        parameters: {
+            query?: {
+                is_active?: boolean | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_branch_api_v1_admin_branches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_branch_api_v1_admin_branches__branch_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                branch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_branch_api_v1_admin_branches__branch_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                branch_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    branch_names_api_v1_branches_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ref"][];
+                };
+            };
+        };
+    };
+    resolve_link_api_v1_admin_geo_resolve_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_places_api_v1_admin_geo_search_get: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchHit"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1732,6 +2774,357 @@ export interface operations {
             };
         };
     };
+    get_schedule_api_v1_admin_employees__employee_id__schedule_get: {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path: {
+                employee_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_schedule_api_v1_admin_employees__employee_id__schedule_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employee_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleRowOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_home_location_api_v1_admin_employees__employee_id__home_location_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employee_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHomeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_home_location_api_v1_admin_employees__employee_id__home_location_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employee_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HomeSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHomeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_home_location_api_v1_admin_employees__employee_id__home_location_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                employee_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_home_requests_api_v1_admin_home_location_requests_get: {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeRequestPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_home_request_api_v1_admin_home_location_requests__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeRequestDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_home_request_api_v1_admin_home_location_requests__request_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["HomeApprove"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeRequestItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_home_request_api_v1_admin_home_location_requests__request_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HomeReject"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeRequestItem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_home_location_api_v1_me_home_location_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HomeRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeRequested"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_home_location_api_v1_me_home_location_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyHomeOut"];
+                };
+            };
+        };
+    };
     list_sessions_api_v1_admin_sessions_get: {
         parameters: {
             query?: {
@@ -1834,6 +3227,310 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RevokedOthers"];
+                };
+            };
+        };
+    };
+    get_settings_api_v1_admin_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSettings"];
+                };
+            };
+        };
+    };
+    update_settings_api_v1_admin_settings_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrgSettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrgSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_shifts_api_v1_admin_shifts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_shift_api_v1_admin_shifts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_shift_api_v1_admin_shifts__shift_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shift_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    shift_names_api_v1_shifts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ref"][];
+                };
+            };
+        };
+    };
+    list_holidays_api_v1_admin_holidays_get: {
+        parameters: {
+            query: {
+                year: number;
+                branch_id?: number | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HolidayPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_holiday_api_v1_admin_holidays_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HolidayCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HolidayOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_holiday_api_v1_admin_holidays__holiday_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_holiday_api_v1_admin_holidays__holiday_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HolidayUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HolidayOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

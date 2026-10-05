@@ -14,9 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
 from app.modules.auth.permissions import (
+    BRANCHES_MANAGE,
     DEVICES_MANAGE,
     EMPLOYEES_MANAGE,
     ROLES_MANAGE,
+    SETTINGS_MANAGE,
+    SETTINGS_VIEW,
     TEAM_VIEW,
     WEB_ACCESS,
 )
@@ -35,10 +38,26 @@ from tests.factories import (
 P = "/api/v1"
 MISSING = 999_999_999
 
-# What migration 0002 seeds. Asserting it here catches an accidental change to a role.
+# What migrations 0002 and 0006 seed. Asserting it here catches an accidental change to a role.
 ROLE_PERMISSIONS: dict[str, set[str]] = {
-    SUPER_ADMIN: {WEB_ACCESS, EMPLOYEES_MANAGE, DEVICES_MANAGE, ROLES_MANAGE, TEAM_VIEW},
-    ADMIN: {WEB_ACCESS, EMPLOYEES_MANAGE, DEVICES_MANAGE, TEAM_VIEW},
+    SUPER_ADMIN: {
+        WEB_ACCESS,
+        EMPLOYEES_MANAGE,
+        DEVICES_MANAGE,
+        ROLES_MANAGE,
+        TEAM_VIEW,
+        BRANCHES_MANAGE,
+        SETTINGS_VIEW,
+        SETTINGS_MANAGE,
+    },
+    ADMIN: {
+        WEB_ACCESS,
+        EMPLOYEES_MANAGE,
+        DEVICES_MANAGE,
+        TEAM_VIEW,
+        BRANCHES_MANAGE,
+        SETTINGS_VIEW,
+    },
     ASSIGNER: {WEB_ACCESS, TEAM_VIEW},
     FIELD: set(),
     OFFICE: set(),
@@ -108,6 +127,62 @@ MATRIX: list[tuple[str, str, str, str]] = [
         f"{P}/admin/sessions/{MISSING}/revoke",
         DEVICES_MANAGE,
     ),
+    ("GET", f"{P}/admin/settings", f"{P}/admin/settings", SETTINGS_VIEW),
+    ("PATCH", f"{P}/admin/settings", f"{P}/admin/settings", SETTINGS_MANAGE),
+    ("GET", f"{P}/admin/branches", f"{P}/admin/branches", BRANCHES_MANAGE),
+    ("POST", f"{P}/admin/branches", f"{P}/admin/branches", BRANCHES_MANAGE),
+    (
+        "GET",
+        f"{P}/admin/branches/{{branch_id}}",
+        f"{P}/admin/branches/{MISSING}",
+        BRANCHES_MANAGE,
+    ),
+    (
+        "PATCH",
+        f"{P}/admin/branches/{{branch_id}}",
+        f"{P}/admin/branches/{MISSING}",
+        BRANCHES_MANAGE,
+    ),
+    # Either branches.manage or employees.manage; the seeded roles hold both or neither.
+    ("POST", f"{P}/admin/geo/resolve-link", f"{P}/admin/geo/resolve-link", BRANCHES_MANAGE),
+    ("GET", f"{P}/admin/geo/search", f"{P}/admin/geo/search", BRANCHES_MANAGE),
+    ("GET", f"{P}/admin/shifts", f"{P}/admin/shifts", BRANCHES_MANAGE),
+    ("POST", f"{P}/admin/shifts", f"{P}/admin/shifts", BRANCHES_MANAGE),
+    ("PATCH", f"{P}/admin/shifts/{{shift_id}}", f"{P}/admin/shifts/{MISSING}", BRANCHES_MANAGE),
+    ("GET", f"{P}/admin/holidays", f"{P}/admin/holidays", BRANCHES_MANAGE),
+    ("POST", f"{P}/admin/holidays", f"{P}/admin/holidays", BRANCHES_MANAGE),
+    (
+        "PATCH",
+        f"{P}/admin/holidays/{{holiday_id}}",
+        f"{P}/admin/holidays/{MISSING}",
+        BRANCHES_MANAGE,
+    ),
+    (
+        "DELETE",
+        f"{P}/admin/holidays/{{holiday_id}}",
+        f"{P}/admin/holidays/{MISSING}",
+        BRANCHES_MANAGE,
+    ),
+]
+
+MATRIX += [
+    (
+        method,
+        f"{P}/admin/{pattern}",
+        f"{P}/admin/{pattern.format(employee_id=MISSING, request_id=MISSING)}",
+        EMPLOYEES_MANAGE,
+    )
+    for method, pattern in [
+        ("GET", "employees/{employee_id}/schedule"),
+        ("PUT", "employees/{employee_id}/schedule"),
+        ("GET", "employees/{employee_id}/home-location"),
+        ("PUT", "employees/{employee_id}/home-location"),
+        ("DELETE", "employees/{employee_id}/home-location"),
+        ("GET", "home-location-requests"),
+        ("GET", "home-location-requests/{request_id}"),
+        ("POST", "home-location-requests/{request_id}/approve"),
+        ("POST", "home-location-requests/{request_id}/reject"),
+    ]
 ]
 
 # Signed-in users of any role, scoped to themselves.
@@ -116,6 +191,16 @@ SELF_ONLY = [
     ("POST", f"{P}/auth/change-password"),
     ("GET", f"{P}/me/sessions"),
     ("POST", f"{P}/me/sessions/revoke-others"),
+]
+# Signed-in users of any role, once the temporary password is changed: names for pickers.
+ANY_ROLE = [
+    ("GET", f"{P}/branches"),
+    ("GET", f"{P}/shifts"),
+    ("GET", f"{P}/me/home-location"),
+]
+# Any role, but only from the employee's own approved phone.
+OWN_PHONE = [
+    ("POST", f"{P}/me/home-location-requests"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [
@@ -147,7 +232,8 @@ def _registered_routes() -> set[tuple[str, str]]:
 
 
 def test_every_route_is_listed_in_the_permission_matrix() -> None:
-    covered = {(method, path) for method, path, _, _ in MATRIX} | set(SELF_ONLY) | set(PUBLIC)
+    covered = {(method, path) for method, path, _, _ in MATRIX}
+    covered |= set(SELF_ONLY) | set(ANY_ROLE) | set(OWN_PHONE) | set(PUBLIC)
     assert _registered_routes() == covered
 
 
@@ -187,6 +273,49 @@ async def test_self_only_endpoints_need_a_session_but_no_permission(
     for role in ALL_ROLES:
         response = await client.request(method, path, headers=tokens[role])
         assert response.status_code not in (401, 403), (role, response.text)
+
+
+@pytest.mark.parametrize(("method", "path"), ANY_ROLE)
+async def test_any_role_endpoints_need_a_session_and_a_changed_password(
+    client: httpx.AsyncClient,
+    db: AsyncSession,
+    tokens: dict[str, dict[str, str]],
+    method: str,
+    path: str,
+) -> None:
+    assert (await client.request(method, path)).status_code == 401
+    for role in ALL_ROLES:
+        response = await client.request(method, path, headers=tokens[role])
+        assert response.status_code == 200, (role, response.text)
+    newcomer = await make_user(db, OFFICE, must_change=True)
+    headers = await auth_headers(client, newcomer, kind="mobile", device_info=device(99))
+    response = await client.request(method, path, headers=headers)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "PASSWORD_CHANGE_REQUIRED"
+
+
+@pytest.mark.parametrize(("method", "path"), OWN_PHONE)
+async def test_own_phone_endpoints_need_the_approved_phone(
+    client: httpx.AsyncClient,
+    db: AsyncSession,
+    tokens: dict[str, dict[str, str]],
+    method: str,
+    path: str,
+) -> None:
+    assert (await client.request(method, path)).status_code == 401
+    # The fixture signs every role in on its own first phone, which is approved at once.
+    for role in ALL_ROLES:
+        response = await client.request(method, path, headers=tokens[role])
+        assert response.status_code not in (401, 403), (role, response.text)
+    on_the_web = await auth_headers(client, await make_user(db, ADMIN))
+    response = await client.request(method, path, headers=on_the_web)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "DEVICE_NOT_APPROVED"
+    newcomer = await make_user(db, OFFICE, must_change=True)
+    headers = await auth_headers(client, newcomer, kind="mobile", device_info=device(98))
+    response = await client.request(method, path, headers=headers)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "PASSWORD_CHANGE_REQUIRED"
 
 
 @pytest.mark.parametrize(("method", "pattern", "path", "needed"), MATRIX)

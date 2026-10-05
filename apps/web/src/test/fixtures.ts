@@ -1,6 +1,8 @@
 import type { Schemas } from '@/lib/api-client';
 
 export const ALL = ['web.access', 'employees.manage', 'devices.manage', 'team.view'];
+// The Super Admin of M2: everything above plus branches, shifts, holidays and settings.
+export const ADMIN = [...ALL, 'branches.manage', 'settings.view', 'settings.manage'];
 
 export function makeMe(overrides: Partial<Schemas['MeResponse']> = {}): Schemas['MeResponse'] {
   return {
@@ -36,6 +38,9 @@ export function makeEmployee(
     department: { id: 1, name: 'Operations' },
     manager_id: 1,
     field_eligible: true,
+    home_branch: null,
+    shift: null,
+    restrict_to_home_branch: false,
     status: 'active',
     joined_on: '2026-01-15',
     must_change_password: false,
@@ -94,6 +99,66 @@ export function makeSession(overrides: Partial<Schemas['SessionOut']> = {}): Sch
     ended_at: null,
     end_reason: null,
     current: false,
+    ...overrides,
+  };
+}
+
+export const BRANCHES: Schemas['Ref'][] = [
+  { id: 1, name: 'Head Office' },
+  { id: 2, name: 'Warehouse' },
+];
+export const SHIFTS: Schemas['Ref'][] = [{ id: 1, name: 'General' }];
+
+export function makeBranch(overrides: Partial<Schemas['BranchOut']> = {}): Schemas['BranchOut'] {
+  return {
+    id: 1,
+    name: 'Head Office',
+    address: '12 MG Road, Bhubaneswar',
+    lat: 20.2961,
+    lng: 85.8245,
+    radius_m: 100,
+    is_active: true,
+    ...overrides,
+  };
+}
+
+export function makeShift(overrides: Partial<Schemas['ShiftOut']> = {}): Schemas['ShiftOut'] {
+  return {
+    id: 1,
+    name: 'General',
+    start_time: '09:30:00',
+    end_time: '18:30:00',
+    grace_min: 10,
+    half_day_hours: 4,
+    full_day_hours: 8,
+    weekly_offs: [
+      { weekday: 6, weeks: null },
+      { weekday: 5, weeks: [2, 4] },
+    ],
+    is_active: true,
+    ...overrides,
+  };
+}
+
+export const SETTINGS: Schemas['OrgSettings'] = {
+  geofence_default_radius_m: 120,
+  home_default_radius_m: 80,
+  gps_max_accuracy_m: 50,
+  geofence_accuracy_buffer_cap_m: 30,
+  punch_out_approval_levels: 1,
+  regularization_approval_levels: 1,
+  min_app_version: '1.0.0',
+};
+
+export function makeHomeRequest(
+  overrides: Partial<Schemas['HomeRequestItem']> = {},
+): Schemas['HomeRequestItem'] {
+  return {
+    id: 31,
+    employee: { id: 2, emp_code: 'EMP-001', name: 'Asha Rao' },
+    status: 'pending',
+    accuracy_m: 12,
+    created_at: '2026-02-01T04:30:00Z',
     ...overrides,
   };
 }

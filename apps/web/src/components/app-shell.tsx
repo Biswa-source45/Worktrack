@@ -18,8 +18,11 @@ import { cn } from '@/lib/utils';
 
 const NAV = [
   { href: '/employees', permission: 'employees.manage', label: 'nav.employees' },
+  { href: '/branches', permission: 'branches.manage', label: 'nav.branches' },
+  { href: '/shifts', permission: 'branches.manage', label: 'nav.shifts' },
   { href: '/devices', permission: 'devices.manage', label: 'nav.devices' },
   { href: '/sessions', permission: 'devices.manage', label: 'nav.sessions' },
+  { href: '/settings', permission: 'settings.view', label: 'nav.settings' },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -108,7 +111,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             disabled={logout.isPending}
           >
             <LogOut aria-hidden="true" />
-            {t('nav.logout')}
+            {/* Six nav links fill a 1280 px header: the label stays for screen readers only there. */}
+            <span className="sr-only 2xl:not-sr-only">{t('nav.logout')}</span>
           </Button>
         </div>
       </header>

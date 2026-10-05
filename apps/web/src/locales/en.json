@@ -16,13 +16,22 @@
     "select": "Select...",
     "none": "None",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "delete": "Delete",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "actionsFor": "Actions for {{name}}"
   },
   "nav": {
     "label": "Main",
     "employees": "Employees",
+    "branches": "Branches",
+    "shifts": "Shifts",
     "devices": "Devices",
     "sessions": "Sessions",
+    "settings": "Settings",
     "logout": "Sign out"
   },
   "theme": {
@@ -61,7 +70,19 @@
     "passwordLength": "Use 10 to 128 characters, or leave empty to generate one.",
     "empCode": "Use letters, digits, '-', '_' or '/' (up to 32 characters).",
     "mobile": "Enter a valid mobile number (10 to 15 digits).",
-    "email": "Enter a valid email address."
+    "email": "Enter a valid email address.",
+    "rejected": "The server did not accept this value. Check it and try again.",
+    "radius": "Enter a whole number from 30 to 500.",
+    "latitude": "Enter a latitude from -90 to 90.",
+    "longitude": "Enter a longitude from -180 to 180.",
+    "range": "Enter a whole number within the allowed range.",
+    "appVersion": "Use three numbers separated by dots, for example 1.4.0.",
+    "grace": "Enter a whole number from 0 to 120.",
+    "hours": "Enter hours above 0 and up to 24, with at most two decimals.",
+    "endAfterStart": "The shift must end after it starts on the same day.",
+    "halfOverFull": "Half-day hours cannot be more than full-day hours.",
+    "weeksRequired": "Choose at least one week.",
+    "reasonRequired": "Give a reason for rejecting."
   },
   "errors": {
     "GENERIC": "Something went wrong. Please try again.",
@@ -84,7 +105,9 @@
     "INVALID_FILE": "The file could not be read. Upload a UTF-8 CSV or an Excel (.xlsx) file.",
     "CONFLICT": "This action is no longer possible. Reload and try again.",
     "NOT_FOUND": "Not found. It may have been removed.",
-    "UNAUTHENTICATED": "Your session has expired. Sign in again."
+    "UNAUTHENTICATED": "Your session has expired. Sign in again.",
+    "SCHEDULE_BACKDATED": "A schedule cannot start in the past. Choose today or later.",
+    "REQUEST_ALREADY_DECIDED": "This request has already been decided."
   },
   "employees": {
     "title": "Employees",
@@ -131,9 +154,18 @@
       "joinedOn": "Joined on",
       "fieldEligible": "Field-eligible (can be assigned field tasks)",
       "password": "Password (optional)",
-      "passwordHint": "Leave empty to generate a temporary password."
+      "passwordHint": "Leave empty to generate a temporary password.",
+      "homeBranch": "Home branch (optional)",
+      "shift": "Shift (optional)",
+      "restrict": "Can punch only at the home branch",
+      "restrictHint": "Choose a home branch first."
     },
-    "actionsFor": "Actions for {{name}}"
+    "actionsFor": "Actions for {{name}}",
+    "tab": "Employees",
+    "scheduleAndHome": "Schedule and home location",
+    "back": "Employees",
+    "noBranch": "No home branch",
+    "noShift": "No shift"
   },
   "temporaryPassword": {
     "title": "Temporary password",
@@ -257,5 +289,256 @@
     "inactive": "Inactive employees",
     "pendingDevices": "Pending devices",
     "review": "Review"
+  },
+  "weekday": {
+    "0": "Monday",
+    "1": "Tuesday",
+    "2": "Wednesday",
+    "3": "Thursday",
+    "4": "Friday",
+    "5": "Saturday",
+    "6": "Sunday"
+  },
+  "weekdayShort": {
+    "0": "Mon",
+    "1": "Tue",
+    "2": "Wed",
+    "3": "Thu",
+    "4": "Fri",
+    "5": "Sat",
+    "6": "Sun"
+  },
+  "ordinal": {
+    "1": "1st",
+    "2": "2nd",
+    "3": "3rd",
+    "4": "4th",
+    "5": "5th"
+  },
+  "map": {
+    "label": "Map of the location and its geofence circle",
+    "labelEdit": "Map: click to place the pin, or drag the pin. Latitude and longitude can also be typed below.",
+    "pin": "Location pin",
+    "pinDrag": "Location pin: drag to move",
+    "search": "Search for an address",
+    "searchAction": "Search",
+    "results": "Search results",
+    "noResults": "No places found. Try a different address.",
+    "link": "Paste a Google Maps link",
+    "linkAction": "Use link",
+    "hint": "Click the map or drag the pin to set the exact spot. The circle shows the geofence.",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "errors": {
+      "LINK_NOT_RESOLVED": "No location could be read from that link. Paste a Google Maps link to a place, or set the pin on the map.",
+      "SEARCH_BUSY": "Search is busy. Try again in a moment.",
+      "SEARCH_UNAVAILABLE": "Address search is not available right now.",
+      "VALIDATION_ERROR": "That text cannot be used here. Check it and try again."
+    }
+  },
+  "branches": {
+    "title": "Branches",
+    "create": "Add branch",
+    "createTitle": "Add branch",
+    "editTitle": "Edit branch",
+    "dialogHint": "Employees can punch in only inside the circle around the pin.",
+    "empty": "No branches yet. Add the first branch to start using geofenced attendance.",
+    "radiusValue": "{{radius}} m",
+    "deactivateConfirm": "Deactivate {{name}}? Employees can no longer punch in at this branch.",
+    "activateConfirm": "Activate {{name}}? Employees can punch in at this branch again.",
+    "col": {
+      "name": "Name",
+      "address": "Address",
+      "radius": "Radius",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Branch name",
+      "address": "Address (optional)",
+      "radius": "Geofence radius (30 to 500 m)",
+      "radiusHint": "Leave empty to use the organisation default."
+    },
+    "errors": {
+      "DUPLICATE": "A branch with that name already exists."
+    }
+  },
+  "shifts": {
+    "title": "Shifts and holidays",
+    "tab": "Shifts",
+    "create": "Add shift",
+    "createTitle": "Add shift",
+    "editTitle": "Edit shift",
+    "dialogHint": "Shift times are local (IST). Overnight shifts are not supported.",
+    "empty": "No shifts yet. Add a shift to set working hours and weekly offs.",
+    "timeRange": "{{start}} to {{end}}",
+    "graceValue": "{{count}} min",
+    "hoursValue": "{{half}} h / {{full}} h",
+    "deactivateConfirm": "Deactivate {{name}}? It can no longer be assigned to employees.",
+    "activateConfirm": "Activate {{name}}? It can be assigned to employees again.",
+    "col": {
+      "name": "Name",
+      "time": "Hours",
+      "grace": "Grace",
+      "hours": "Half / full day",
+      "offs": "Weekly offs",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Shift name",
+      "start": "Starts at",
+      "end": "Ends at",
+      "grace": "Grace period (0 to 120 minutes)",
+      "halfDay": "Half-day hours",
+      "fullDay": "Full-day hours",
+      "weeklyOffs": "Weekly offs"
+    },
+    "offs": {
+      "none": "No weekly off",
+      "some": "{{weeks}} {{day}}",
+      "work": "Working day",
+      "every": "Off every week",
+      "weeks": "Off on selected weeks",
+      "weeksOf": "Weeks of the month off on {{day}}"
+    },
+    "errors": {
+      "DUPLICATE": "A shift with that name already exists.",
+      "VALIDATION_ERROR": "These shift details do not fit together. Check the times and hours and try again."
+    }
+  },
+  "holidays": {
+    "tab": "Holidays",
+    "create": "Add holiday",
+    "createTitle": "Add holiday",
+    "editTitle": "Edit holiday",
+    "dialogHint": "A holiday for all branches applies to everyone; a branch holiday only to that branch.",
+    "empty": "No holidays found for this year.",
+    "allBranches": "All branches",
+    "year": "Year",
+    "branchFilter": "Branch",
+    "editOf": "Edit {{name}}",
+    "deleteOf": "Delete {{name}}",
+    "deleteTitle": "Delete holiday",
+    "deleteConfirm": "Delete {{name}} on {{date}}? That day becomes a normal working day.",
+    "col": {
+      "date": "Date",
+      "name": "Name",
+      "branch": "Branch",
+      "actions": "Actions"
+    },
+    "form": {
+      "date": "Date",
+      "name": "Holiday name",
+      "branch": "Branch"
+    },
+    "errors": {
+      "DUPLICATE": "There is already a holiday on that date for that branch.",
+      "INVALID_REFERENCE": "The selected branch does not exist. Reload and try again."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "saved": "Settings saved.",
+    "readOnly": "Only a Super Admin can change settings. You can view them here.",
+    "group": {
+      "geofence": "Geofence",
+      "approvals": "Approvals",
+      "app": "App"
+    },
+    "levels": {
+      "1": "1 level",
+      "2": "2 levels"
+    },
+    "field": {
+      "geofence_default_radius_m": "Default branch radius (m)",
+      "home_default_radius_m": "Default home radius (m)",
+      "gps_max_accuracy_m": "GPS maximum accuracy (m)",
+      "geofence_accuracy_buffer_cap_m": "Accuracy buffer cap (m)",
+      "punch_out_approval_levels": "Punch-out approval levels",
+      "regularization_approval_levels": "Regularization approval levels",
+      "min_app_version": "Minimum app version"
+    },
+    "help": {
+      "geofence_default_radius_m": "Used for a new branch when no radius is given. 30 to 500 m.",
+      "home_default_radius_m": "Used for a new home work location when no radius is given. 30 to 500 m.",
+      "gps_max_accuracy_m": "A punch is refused when the phone reports a weaker fix than this. 5 to 500 m.",
+      "geofence_accuracy_buffer_cap_m": "The most that GPS inaccuracy may widen a geofence. 0 to 100 m.",
+      "punch_out_approval_levels": "How many managers must approve a punch-out.",
+      "regularization_approval_levels": "How many managers must approve an attendance correction.",
+      "min_app_version": "Older versions of the mobile app are asked to update. Format 1.4.0."
+    }
+  },
+  "schedule": {
+    "title": "Weekly schedule",
+    "next": "Next 14 days",
+    "editTitle": "Change the weekly schedule",
+    "followShift": "Follow shift",
+    "effectiveFrom": "Effective from",
+    "save": "Save schedule",
+    "saved": "Schedule saved.",
+    "history": "Schedule history",
+    "noHistory": "No own schedule yet: this employee follows the shift.",
+    "from": "From {{date}}",
+    "kind": {
+      "office": "Office",
+      "home": "Home",
+      "off": "Off"
+    },
+    "reason": {
+      "holiday": "Holiday",
+      "schedule": "Own schedule",
+      "weekly_off": "Weekly off",
+      "shift": "Shift"
+    },
+    "col": {
+      "date": "Date",
+      "weekday": "Day",
+      "kind": "Works from",
+      "reason": "Because of"
+    }
+  },
+  "home": {
+    "title": "Home work location",
+    "none": "No approved home work location. On home days this employee cannot punch in until one is set.",
+    "set": "Set location",
+    "change": "Change",
+    "remove": "Remove",
+    "setTitle": "Set home work location",
+    "changeTitle": "Change home work location",
+    "dialogHint": "On home days the employee can punch in only inside the circle around the pin.",
+    "removeConfirm": "Remove the home work location of {{name}}? They cannot punch in from home until a new one is approved.",
+    "approved": "Approved",
+    "pending": "Pending request",
+    "pendingSince": "Requested {{when}} (IST)",
+    "reviewRequest": "Review request",
+    "radius": "Radius (30 to 500 m)",
+    "sourceLabel": "Set by",
+    "source": {
+      "admin": "An administrator",
+      "self": "Employee request"
+    },
+    "coordinates": "Coordinates",
+    "decidedAt": "Approved (IST)",
+    "notRecorded": "Not recorded",
+    "metres": "{{value}} m",
+    "requested": "Requested (IST)",
+    "accuracy": "GPS accuracy",
+    "requestsTab": "Home requests",
+    "emptyRequests": "No pending home location requests.",
+    "review": "Review",
+    "reviewOf": "Review the request of {{name}}",
+    "reviewTitle": "Home location request",
+    "reviewFor": "{{name}} ({{code}}) asked to work from this location on home days.",
+    "reviewHint": "Loading the request...",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectReason": "Reason (needed to reject)",
+    "col": {
+      "employee": "Employee",
+      "accuracy": "GPS accuracy",
+      "requested": "Requested (IST)",
+      "actions": "Actions"
+    }
   }
 }

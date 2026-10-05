@@ -10,7 +10,7 @@ import {
 } from '@/lib/server/bff';
 
 // Only the endpoints the admin portal uses; everything else stays unreachable from the browser.
-const ALLOWED = [/^me$/, /^admin(\/|$)/, /^employees\/team$/];
+const ALLOWED = [/^me$/, /^admin(\/|$)/, /^employees\/team$/, /^(branches|shifts)$/];
 
 // The typed client's paths already start with /api/v1, so the proxy URL mirrors them.
 function backendPath(segments: string[]): string | null {

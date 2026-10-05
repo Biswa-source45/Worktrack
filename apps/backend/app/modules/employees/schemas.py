@@ -60,6 +60,9 @@ Password = Annotated[str, Field(min_length=MIN_PASSWORD_LENGTH, max_length=MAX_P
 MasterName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)]
 
 
+NO_HOME_BRANCH = "Choose a home branch before restricting punches to it"
+
+
 class Ref(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -78,12 +81,24 @@ class EmployeeCreate(BaseModel):
     manager_id: int | None = None
     joined_on: date
     field_eligible: bool = False
+    home_branch_id: int | None = None
+    shift_id: int | None = None
+    restrict_to_home_branch: bool = False
     # Omit to have the server generate a temporary password (returned once).
     password: Password | None = None
 
+    @model_validator(mode="after")
+    def _restriction_needs_a_branch(self) -> "EmployeeCreate":
+        if self.restrict_to_home_branch and self.home_branch_id is None:
+            raise ValueError(NO_HOME_BRANCH)
+        return self
+
 
 class EmployeeUpdate(BaseModel):
-    """Partial update: only the fields sent are changed (null clears email/department/manager)."""
+    """Partial update: only the fields sent are changed.
+
+    Null clears email, department, manager, home branch and shift.
+    """
 
     name: Name | None = None
     mobile: Mobile | None = None
@@ -94,12 +109,15 @@ class EmployeeUpdate(BaseModel):
     manager_id: int | None = None
     joined_on: date | None = None
     field_eligible: bool | None = None
+    home_branch_id: int | None = None
+    shift_id: int | None = None
+    restrict_to_home_branch: bool | None = None
     status: Literal["active", "inactive"] | None = None
 
     @model_validator(mode="after")
     def _required_fields_not_null(self) -> "EmployeeUpdate":
         required = ("name", "mobile", "designation_id", "role_id", "joined_on", "field_eligible")
-        for field in (*required, "status"):
+        for field in (*required, "restrict_to_home_branch", "status"):
             if field in self.model_fields_set and getattr(self, field) is None:
                 raise ValueError(f"{field} cannot be null")
         return self
@@ -118,6 +136,9 @@ class EmployeeOut(BaseModel):
     department: Ref | None
     manager_id: int | None
     field_eligible: bool
+    home_branch: Ref | None
+    shift: Ref | None
+    restrict_to_home_branch: bool
     status: str
     joined_on: date
     must_change_password: bool

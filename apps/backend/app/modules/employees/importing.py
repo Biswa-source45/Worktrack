@@ -15,6 +15,7 @@ from app.core.security import generate_temp_password, hash_passwords
 from app.modules.audit import service as audit
 from app.modules.audit.service import AuditCtx
 from app.modules.auth.deps import AuthContext
+from app.modules.branches.models import Branch
 from app.modules.employees.models import STATUS_ACTIVE, Department, Designation, Role, User
 from app.modules.employees.schemas import (
     EmployeeCreate,
@@ -23,6 +24,7 @@ from app.modules.employees.schemas import (
     ImportRowError,
 )
 from app.modules.employees.service import snapshot
+from app.modules.shifts.models import Shift
 
 MAX_BYTES = 1_000_000
 # Each row costs one Argon2 hash, so the cap keeps an import within a few seconds.
@@ -38,10 +40,12 @@ COLUMNS = (
     "manager_emp_code",
     "joined_on",
     "field_eligible",
+    "branch",
+    "shift",
 )
 REQUIRED = ("emp_code", "name", "mobile", "designation", "role", "joined_on")
 _EXAMPLE = "EMP-001,Asha Rao,9876543210,asha@example.com,Engineer,,Field Employee,,"
-TEMPLATE_CSV = ",".join(COLUMNS) + "\n" + _EXAMPLE + "2026-01-15,yes\n"
+TEMPLATE_CSV = ",".join(COLUMNS) + "\n" + _EXAMPLE + "2026-01-15,yes,,\n"
 
 
 def _cell(value: Any) -> str:
@@ -127,6 +131,19 @@ async def import_employees(
         for i, n in (await session.execute(select(Department.id, Department.name))).all()
     }
     roles = {r.name.lower(): r for r in (await session.execute(select(Role))).scalars()}
+    # One lookup per table for the whole file; only active branches and shifts can be assigned.
+    branches = {
+        n.lower(): i
+        for i, n in (
+            await session.execute(select(Branch.id, Branch.name).where(Branch.is_active))
+        ).all()
+    }
+    shifts = {
+        n.lower(): i
+        for i, n in (
+            await session.execute(select(Shift.id, Shift.name).where(Shift.is_active))
+        ).all()
+    }
     existing = (
         await session.execute(select(User.id, User.emp_code, User.mobile, User.email, User.status))
     ).all()
@@ -145,6 +162,8 @@ async def import_employees(
         manager_code = raw.get("manager_emp_code", "").strip().lower() or None
         role = roles.get(raw.get("role", "").lower())
         department = raw.get("department", "")
+        branch = raw.get("branch", "")
+        shift = raw.get("shift", "")
         try:
             data = EmployeeCreate.model_validate(
                 {
@@ -157,6 +176,8 @@ async def import_employees(
                     "role_id": role.id if role else 0,
                     "joined_on": raw.get("joined_on", ""),
                     "field_eligible": _truthy(raw.get("field_eligible", "")),
+                    "home_branch_id": branches.get(branch.lower()) if branch else None,
+                    "shift_id": shifts.get(shift.lower()) if shift else None,
                 }
             )
         except ValidationError as exc:
@@ -170,6 +191,10 @@ async def import_employees(
                 problems.append(f"designation: unknown designation '{raw.get('designation', '')}'")
             if department and data.department_id is None:
                 problems.append(f"department: unknown department '{department}'")
+            if branch and data.home_branch_id is None:
+                problems.append(f"branch: unknown or inactive branch '{branch}'")
+            if shift and data.shift_id is None:
+                problems.append(f"shift: unknown or inactive shift '{shift}'")
             if role is None:
                 problems.append(f"role: unknown role '{raw.get('role', '')}'")
             elif not set(role.permissions) <= actor.permissions:

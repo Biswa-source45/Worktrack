@@ -1,0 +1,14 @@
+{
+  "branches": [
+    { "name": "Example Branch", "address": "Street, City", "lat": 0, "lng": 0, "radius_m": 100 }
+  ],
+  "employees": [
+    {
+      "emp_code": "EXAMPLE-1",
+      "home_branch": "Example Branch",
+      "shift": "General",
+      "schedule": ["office", "office", "home", "office", "office", null, null],
+      "home": { "lat": 0, "lng": 0, "radius_m": 100 }
+    }
+  ]
+}

@@ -180,6 +180,7 @@ describe('proxy route', () => {
     'api/v1/health',
     'api/v1/employees',
     'api/v1/administrator',
+    'api/v1/branches/1',
     'api/v1/admin/../auth/refresh',
     'api/v1/admin/%2e%2e/auth/refresh',
     'me',
@@ -211,6 +212,8 @@ describe('proxy route', () => {
     'api/v1/admin/devices',
     'api/v1/admin/employees/import/template',
     'api/v1/employees/team',
+    'api/v1/branches',
+    'api/v1/shifts',
   ])('allows %s', async (path) => {
     backend(() => Response.json({}));
     const response = await GET(request(path, { cookies: 'wt_access=a; wt_refresh=r' }), ctx(path));

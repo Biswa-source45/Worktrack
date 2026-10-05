@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     login_ip_window_minutes: int = 15
     # Ended sign-in sessions are kept this long for the admin's sessions list, then deleted.
     session_retention_days: int = 90
+    # Address search for placing a pin (Nominatim's API; one request per second at most).
+    geocoder_url: str = "https://nominatim.openstreetmap.org/search"
 
     @field_validator("cors_origins", mode="before")
     @classmethod

@@ -57,13 +57,31 @@ function retryAfterSeconds(details: unknown): number {
   return typeof seconds === 'number' ? seconds : 60;
 }
 
-export function errorMessage(t: TFunction, error: unknown): string {
-  if (error instanceof ApiError && i18n.exists(`errors.${error.code}`)) {
-    const fields = (error.details as { fields?: unknown } | null)?.fields;
-    return t(`errors.${error.code}`, {
-      minutes: Math.max(1, Math.ceil(retryAfterSeconds(error.details) / 60)),
-      fields: Array.isArray(fields) ? fields.join(', ') : '',
-    });
+/**
+ * The message for an API error code. With a `scope` (e.g. "branches"), `<scope>.errors.<CODE>`
+ * wins over the general `errors.<CODE>`, so "duplicate" can name the thing that is duplicated.
+ */
+export function errorMessage(t: TFunction, error: unknown, scope?: string): string {
+  if (error instanceof ApiError) {
+    const key = [`${scope}.errors.${error.code}`, `errors.${error.code}`].find((k) =>
+      i18n.exists(k),
+    );
+    if (key) {
+      const fields = (error.details as { fields?: unknown } | null)?.fields;
+      return t(key, {
+        minutes: Math.max(1, Math.ceil(retryAfterSeconds(error.details) / 60)),
+        fields: Array.isArray(fields) ? fields.join(', ') : '',
+      });
+    }
   }
   return error instanceof TypeError ? t('errors.NETWORK') : t('errors.GENERIC');
+}
+
+/** The body fields a 422 VALIDATION_ERROR names, so a form can mark the matching inputs. */
+export function rejectedFields(error: unknown): string[] {
+  if (!(error instanceof ApiError) || !Array.isArray(error.details)) return [];
+  return error.details.flatMap((detail: unknown) => {
+    const loc = (detail as { loc?: unknown } | null)?.loc;
+    return Array.isArray(loc) && typeof loc[1] === 'string' ? [loc[1]] : [];
+  });
 }

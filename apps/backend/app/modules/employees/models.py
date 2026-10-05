@@ -4,6 +4,8 @@ from sqlalchemy import CheckConstraint, ForeignKey, Index, String, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
+from app.modules.branches.models import Branch
+from app.modules.shifts.models import Shift
 
 STATUS_ACTIVE = "active"
 STATUS_INACTIVE = "inactive"
@@ -53,9 +55,10 @@ class User(Base):
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"))
     designation_id: Mapped[int] = mapped_column(ForeignKey("designations.id"))
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id"))
-    # M2 adds the foreign keys to branches and shifts, which do not exist yet.
-    home_branch_id: Mapped[int | None]
-    shift_id: Mapped[int | None]
+    home_branch_id: Mapped[int | None] = mapped_column(ForeignKey("branches.id"))
+    shift_id: Mapped[int | None] = mapped_column(ForeignKey("shifts.id"))
+    # True: punches are accepted only at the home branch, not at any branch.
+    restrict_to_home_branch: Mapped[bool] = mapped_column(default=False, server_default=false())
     manager_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     field_eligible: Mapped[bool] = mapped_column(default=False, server_default=false())
     status: Mapped[str] = mapped_column(String(16), default=STATUS_ACTIVE, server_default="active")
@@ -69,6 +72,8 @@ class User(Base):
     role: Mapped[Role] = relationship(lazy="joined")
     designation: Mapped[Designation] = relationship(lazy="joined")
     department: Mapped[Department | None] = relationship(lazy="joined")
+    home_branch: Mapped[Branch | None] = relationship(lazy="joined")
+    shift: Mapped[Shift | None] = relationship(lazy="joined")
 
 
 # Case-insensitive uniqueness, so "ENG-1" and "eng-1" cannot both exist.

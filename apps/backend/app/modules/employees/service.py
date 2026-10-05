@@ -12,6 +12,7 @@ from app.modules.audit.service import AuditCtx
 from app.modules.auth.deps import AuthContext
 from app.modules.auth.permissions import ALL_PERMISSIONS, SUPER_ADMIN_ROLE
 from app.modules.auth.service import revoke_tokens
+from app.modules.branches.models import Branch
 from app.modules.employees.models import (
     STATUS_ACTIVE,
     STATUS_INACTIVE,
@@ -22,11 +23,13 @@ from app.modules.employees.models import (
     User,
 )
 from app.modules.employees.schemas import (
+    NO_HOME_BRANCH,
     EmployeeCreate,
     EmployeeUpdate,
     RoleCreate,
     RoleUpdate,
 )
+from app.modules.shifts.models import Shift
 
 MASTERS: dict[str, type[Master]] = {
     "departments": Department,
@@ -47,6 +50,9 @@ def snapshot(user: User) -> dict[str, Any]:
         "department_id": user.department_id,
         "manager_id": user.manager_id,
         "field_eligible": user.field_eligible,
+        "home_branch_id": user.home_branch_id,
+        "shift_id": user.shift_id,
+        "restrict_to_home_branch": user.restrict_to_home_branch,
         "status": user.status,
         "joined_on": user.joined_on.isoformat(),
     }
@@ -95,6 +101,17 @@ async def _require(session: AsyncSession, model: type[Master], id_: int) -> None
     if await session.get(model, id_) is None:
         raise AppError(
             "INVALID_REFERENCE", f"The selected {model.__tablename__[:-1]} does not exist.", 422
+        )
+
+
+async def _require_active(
+    session: AsyncSession, model: type[Branch] | type[Shift], id_: int
+) -> None:
+    row: Branch | Shift | None = await session.get(model, id_)
+    if row is None or not row.is_active:
+        kind = "branch" if model is Branch else "shift"
+        raise AppError(
+            "INVALID_REFERENCE", f"The selected {kind} does not exist or is inactive.", 422
         )
 
 
@@ -190,6 +207,10 @@ async def create_employee(
         await _require(session, Department, data.department_id)
     if data.manager_id is not None:
         await _check_manager(session, data.manager_id, None)
+    if data.home_branch_id is not None:
+        await _require_active(session, Branch, data.home_branch_id)
+    if data.shift_id is not None:
+        await _require_active(session, Shift, data.shift_id)
     await _check_unique(session, data.emp_code, data.mobile, data.email)
 
     temp_password = None if data.password else generate_temp_password()
@@ -235,6 +256,17 @@ async def update_employee(
         await _require(session, Department, changes["department_id"])
     if changes.get("manager_id") is not None:
         await _check_manager(session, changes["manager_id"], user.id)
+    # A branch or shift the employee already has may have been deactivated since; only a new
+    # choice must be active.
+    if changes.get("home_branch_id") not in (None, user.home_branch_id):
+        await _require_active(session, Branch, changes["home_branch_id"])
+    if changes.get("shift_id") not in (None, user.shift_id):
+        await _require_active(session, Shift, changes["shift_id"])
+    if (
+        changes.get("restrict_to_home_branch", user.restrict_to_home_branch)
+        and changes.get("home_branch_id", user.home_branch_id) is None
+    ):
+        raise AppError("VALIDATION_ERROR", f"{NO_HOME_BRANCH}.", 422)
     await _check_unique(
         session,
         None,

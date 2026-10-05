@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import {
-  ArrowLeft,
   CircleX,
   Info,
   KeyRound,
@@ -10,15 +9,17 @@ import {
   UserRoundCheck,
   UserRoundX,
 } from '@/components/icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { EmployeeBadges, isLocked } from '@/components/admin/employee-badges';
+import { EmployeePlan } from '@/components/admin/employee-plan';
 import { TempPasswordDialog } from '@/components/admin/temp-password-dialog';
 import { useAdminAction } from '@/components/admin/use-admin-action';
 import { AppText } from '@/components/ui/app-text';
 import { Avatar } from '@/components/ui/avatar';
+import { BackButton } from '@/components/ui/back-button';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -35,9 +36,8 @@ type Asking = 'deactivate' | 'reactivate' | 'reset';
 
 export default function EmployeeScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const run = useAdminAction();
-  const { colors, space, minTouchTarget } = useTheme();
+  const { colors, space } = useTheme();
   const employeeId = Number(useLocalSearchParams<{ id: string }>().id);
   const path = { employee_id: employeeId };
 
@@ -87,21 +87,7 @@ export default function EmployeeScreen() {
 
   return (
     <Screen scroll edges={['top', 'left', 'right']}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('common.back')}
-        onPress={() => router.back()}
-        style={{
-          width: minTouchTarget,
-          height: minTouchTarget,
-          justifyContent: 'center',
-          // Pulls the arrow to the screen edge of the padded column; the target keeps its full width.
-          marginLeft: -space[2],
-          alignItems: 'center',
-        }}
-      >
-        <ArrowLeft size={24} strokeWidth={1.75} color={colors.text} />
-      </Pressable>
+      <BackButton />
 
       {query.isPending ? (
         <Card>
@@ -147,6 +133,17 @@ export default function EmployeeScreen() {
               label={t('profile.department')}
               value={employee.department?.name ?? t('profile.noDepartment')}
             />
+            <DetailRow
+              label={t('employees.homeBranch')}
+              value={employee.home_branch?.name ?? t('employees.notSet')}
+            />
+            <DetailRow
+              label={t('employees.shift')}
+              value={employee.shift?.name ?? t('employees.notSet')}
+            />
+            {employee.restrict_to_home_branch ? (
+              <DetailRow label={t('employees.onlyHomeBranch')} value={yesNo(true)} />
+            ) : null}
             <DetailRow label={t('employees.joinedOn')} value={formatIstDate(employee.joined_on)} />
             <DetailRow
               label={t('employees.fieldEligible')}
@@ -157,6 +154,7 @@ export default function EmployeeScreen() {
               value={yesNo(employee.must_change_password)}
             />
           </Card>
+          <EmployeePlan employeeId={employeeId} />
 
           <View style={{ flexDirection: 'row', gap: space[2] }}>
             <Info size={16} strokeWidth={1.75} color={colors.muted} style={{ marginTop: 2 }} />

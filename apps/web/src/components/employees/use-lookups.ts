@@ -24,11 +24,22 @@ export function useLookups() {
         )
       ).items,
   });
+  // Names of the active branches and shifts, open to anyone who manages employees.
+  const branches = useQuery({
+    queryKey: ['branches', 'names'],
+    queryFn: () => unwrap(proxyApi().GET('/api/v1/branches')),
+  });
+  const shifts = useQuery({
+    queryKey: ['shifts', 'names'],
+    queryFn: () => unwrap(proxyApi().GET('/api/v1/shifts')),
+  });
   return {
     roles: roles.data,
     designations: designations.data,
     departments: departments.data,
     employees: everyone.data,
+    branches: branches.data,
+    shifts: shifts.data,
   };
 }
 

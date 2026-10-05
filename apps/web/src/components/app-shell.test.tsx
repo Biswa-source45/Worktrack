@@ -1,7 +1,7 @@
 import { cleanup, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { makeMe } from '@/test/fixtures';
+import { ADMIN, makeMe } from '@/test/fixtures';
 import { mockApi, renderWithClient } from '@/test/render';
 import { AppShell } from './app-shell';
 
@@ -54,6 +54,33 @@ describe('AppShell', () => {
     shell(makeMe({ permissions: ['web.access', 'employees.manage'] }));
     expect(await screen.findByRole('link', { name: 'Employees' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Sessions' })).not.toBeInTheDocument();
+  });
+
+  it('shows Branches, Shifts and Settings to those who may use them', async () => {
+    shell(makeMe({ permissions: ADMIN }));
+    await screen.findByRole('link', { name: 'Branches' });
+    const links = within(screen.getByRole('navigation')).getAllByRole('link');
+    expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Employees', '/employees'],
+      ['Branches', '/branches'],
+      ['Shifts', '/shifts'],
+      ['Devices', '/devices'],
+      ['Sessions', '/sessions'],
+      ['Settings', '/settings'],
+    ]);
+    cleanup();
+
+    // Branches and shifts go with branches.manage; Settings needs only settings.view.
+    shell(makeMe({ permissions: ['web.access', 'settings.view'] }));
+    expect(await screen.findByRole('link', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Branches' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Shifts' })).not.toBeInTheDocument();
+    cleanup();
+
+    shell(makeMe({ permissions: ['web.access', 'branches.manage'] }));
+    expect(await screen.findByRole('link', { name: 'Shifts' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Branches' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument();
   });
 
   it('tells a user with neither permission that there is no access', async () => {

@@ -37,6 +37,8 @@ HEADER = [
     "manager_emp_code",
     "joined_on",
     "field_eligible",
+    "branch",
+    "shift",
 ]
 _counter = itertools.count(1)
 
@@ -55,6 +57,8 @@ def row(**overrides: Any) -> list[Any]:
         "manager_emp_code": "",
         "joined_on": "2026-03-01",
         "field_eligible": "yes",
+        "branch": "",
+        "shift": "",
         **overrides,
     }
     return [values[column] for column in HEADER]

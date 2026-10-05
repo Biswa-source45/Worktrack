@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Field } from '@/components/field';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,14 @@ type Props = {
   onTemporaryPassword: (value: TemporaryPassword) => void;
 };
 
-function Options({ items }: { items: { id: number; name: string }[] }) {
+type Ref = { id: number; name: string };
+
+// An inactive branch or shift is not offered any more, but the one already assigned must stay
+// selectable or saving would silently clear it.
+const withCurrent = (items: Ref[] = [], current?: Ref | null) =>
+  current && !items.some((item) => item.id === current.id) ? [...items, current] : items;
+
+function Options({ items }: { items: Ref[] }) {
   return items.map((item) => (
     <option key={item.id} value={item.id}>
       {item.name}
@@ -61,11 +68,13 @@ export function EmployeeDialog({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<EmployeeValues>({
     resolver: zodResolver(employee ? editSchema : createSchema),
     defaultValues: employee ? toValues(employee, todayIst()) : emptyValues(todayIst()),
   });
+  const hasHomeBranch = useWatch({ control, name: 'home_branch_id' }) !== '';
 
   // gcTime 0: the create response holds a one-time password and must not linger in the cache.
   const save = useMutation({
@@ -189,6 +198,22 @@ export function EmployeeDialog({
             >
               <Input id="joined_on" type="date" {...field('joined_on')} />
             </Field>
+            <Field
+              id="home_branch_id"
+              label={t('employees.form.homeBranch')}
+              error={errors.home_branch_id?.message}
+            >
+              <Select id="home_branch_id" {...field('home_branch_id')}>
+                <option value="">{t('common.none')}</option>
+                <Options items={withCurrent(lookups.branches, employee?.home_branch)} />
+              </Select>
+            </Field>
+            <Field id="shift_id" label={t('employees.form.shift')} error={errors.shift_id?.message}>
+              <Select id="shift_id" {...field('shift_id')}>
+                <option value="">{t('common.none')}</option>
+                <Options items={withCurrent(lookups.shifts, employee?.shift)} />
+              </Select>
+            </Field>
             {!employee && (
               <Field
                 id="password"
@@ -210,6 +235,23 @@ export function EmployeeDialog({
             />
             {t('employees.form.fieldEligible')}
           </label>
+          <div className="grid gap-1">
+            <label className="flex items-center gap-2 text-small font-medium">
+              <input
+                type="checkbox"
+                className="size-4 accent-primary"
+                disabled={!hasHomeBranch}
+                aria-describedby={hasHomeBranch ? undefined : 'restrict-hint'}
+                {...register('restrict_to_home_branch')}
+              />
+              {t('employees.form.restrict')}
+            </label>
+            {!hasHomeBranch && (
+              <p id="restrict-hint" className="text-caption text-muted-foreground">
+                {t('employees.form.restrictHint')}
+              </p>
+            )}
+          </div>
           {serverError && (
             <p role="alert" className="text-small text-danger">
               {serverError}

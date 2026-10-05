@@ -1,7 +1,15 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { DEPARTMENTS, DESIGNATIONS, ROLES, makeEmployee, makeMe } from '@/test/fixtures';
+import {
+  BRANCHES,
+  DEPARTMENTS,
+  DESIGNATIONS,
+  ROLES,
+  SHIFTS,
+  makeEmployee,
+  makeMe,
+} from '@/test/fixtures';
 import { apiError, jsonBody, mockApi, renderWithClient, type Call } from '@/test/render';
 import type { Schemas } from '@/lib/api-client';
 import { EmployeesPage } from './employees-page';
@@ -38,6 +46,9 @@ function setup({ me = makeMe(), list, routes = {} }: Options = {}) {
     'GET /admin/roles': ROLES,
     'GET /admin/masters/designations': DESIGNATIONS,
     'GET /admin/masters/departments': DEPARTMENTS,
+    'GET /branches': BRANCHES,
+    'GET /shifts': SHIFTS,
+    'GET /admin/home-location-requests': { items: [], next_cursor: null },
     'GET /admin/employees': (call: Call) =>
       call.search.get('limit') === '200'
         ? { items: EVERYONE, next_cursor: null }
@@ -149,15 +160,30 @@ describe('EmployeesPage table', () => {
       await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
       return names;
     };
-    expect(await items(/EMP-001/, 'Asha Rao')).toEqual(['Edit', 'Deactivate', 'Reset password']);
-    expect(await items(/EMP-002/, 'Ravi Kumar')).toEqual(['Edit', 'Reactivate', 'Reset password']);
+    expect(await items(/EMP-001/, 'Asha Rao')).toEqual([
+      'Edit',
+      'Schedule and home location',
+      'Deactivate',
+      'Reset password',
+    ]);
+    expect(await items(/EMP-002/, 'Ravi Kumar')).toEqual([
+      'Edit',
+      'Schedule and home location',
+      'Reactivate',
+      'Reset password',
+    ]);
     expect(await items(/EMP-003/, 'Locked Larry')).toEqual([
       'Edit',
+      'Schedule and home location',
       'Deactivate',
       'Reset password',
       'Unlock',
     ]);
-    expect(await items(/ADMIN-1/, 'Demo Admin')).toEqual(['Edit', 'Reset password']);
+    expect(await items(/ADMIN-1/, 'Demo Admin')).toEqual([
+      'Edit',
+      'Schedule and home location',
+      'Reset password',
+    ]);
     expect(within(row(/EMP-003/)).getByText('Locked')).toBeInTheDocument();
   });
 
@@ -176,6 +202,15 @@ describe('EmployeesPage table', () => {
     ]);
     expect(within(ashaRow).getAllByRole('cell').filter(hidden)).toHaveLength(4);
     expect(within(ashaRow).getByTestId('status-active')).toHaveTextContent('Active');
+  });
+
+  it('links each row to its schedule and home location page', async () => {
+    const { user } = setup();
+    await screen.findByText('Asha Rao');
+    const menu = await openMenu(user, /EMP-001/, 'Asha Rao');
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Schedule and home location' }),
+    ).toHaveAttribute('href', '/employees/2');
   });
 
   it('shows a no-access message without the employees.manage permission', async () => {
@@ -383,6 +418,86 @@ describe('Employee create and edit dialogs', () => {
     await user.selectOptions(within(dialog).getByLabelText('Role'), 'Field Employee');
     await user.click(within(dialog).getByRole('button', { name: 'Save' }));
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('already in use');
+  });
+
+  it('sets the home branch, shift and the home-branch-only rule on create', async () => {
+    const { calls, user, dialog } = await openCreate();
+    const restrict = within(dialog).getByLabelText('Can punch only at the home branch');
+    // Meaningless without a home branch: disabled, with the reason next to it.
+    expect(restrict).toBeDisabled();
+    expect(restrict).toHaveAccessibleDescription('Choose a home branch first.');
+    expect(
+      within(within(dialog).getByLabelText('Home branch (optional)'))
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['None', 'Head Office', 'Warehouse']);
+
+    await user.type(within(dialog).getByLabelText('Employee code'), 'EMP-011');
+    await user.type(within(dialog).getByLabelText('Full name'), 'Branch Person');
+    await user.type(within(dialog).getByLabelText('Mobile number'), '9876543213');
+    await user.selectOptions(within(dialog).getByLabelText('Designation'), 'Engineer');
+    await user.selectOptions(within(dialog).getByLabelText('Role'), 'Field Employee');
+    await user.selectOptions(within(dialog).getByLabelText('Home branch (optional)'), 'Warehouse');
+    await user.selectOptions(within(dialog).getByLabelText('Shift (optional)'), 'General');
+    expect(restrict).toBeEnabled();
+    expect(within(dialog).queryByText('Choose a home branch first.')).not.toBeInTheDocument();
+    await user.click(restrict);
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    await screen.findByRole('dialog', { name: 'Temporary password' });
+    expect(jsonBody(calls.find((c) => c.method === 'POST') as Call)).toMatchObject({
+      home_branch_id: 2,
+      shift_id: 1,
+      restrict_to_home_branch: true,
+    });
+  });
+
+  it('sends no branch, shift or restriction when none is chosen', async () => {
+    const { calls, user, dialog } = await openCreate();
+    await user.type(within(dialog).getByLabelText('Employee code'), 'EMP-012');
+    await user.type(within(dialog).getByLabelText('Full name'), 'Plain Person');
+    await user.type(within(dialog).getByLabelText('Mobile number'), '9876543214');
+    await user.selectOptions(within(dialog).getByLabelText('Designation'), 'Engineer');
+    await user.selectOptions(within(dialog).getByLabelText('Role'), 'Field Employee');
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await screen.findByRole('dialog', { name: 'Temporary password' });
+    expect(jsonBody(calls.find((c) => c.method === 'POST') as Call)).toMatchObject({
+      home_branch_id: null,
+      shift_id: null,
+      restrict_to_home_branch: false,
+    });
+  });
+
+  it('edits the branch and shift, keeping an inactive current branch selectable', async () => {
+    const closed = makeEmployee({
+      id: 5,
+      emp_code: 'EMP-005',
+      name: 'Old Branch',
+      home_branch: { id: 9, name: 'Closed Branch' },
+      shift: { id: 1, name: 'General' },
+      restrict_to_home_branch: true,
+    });
+    const { calls, user } = setup({
+      list: () => ({ items: [closed], next_cursor: null }),
+      routes: { 'PATCH /admin/employees/5': closed },
+    });
+    await screen.findByText('Old Branch');
+    await choose(user, /EMP-005/, 'Old Branch', 'Edit');
+    const dialog = await screen.findByRole('dialog', { name: 'Edit employee' });
+    const branch = within(dialog).getByLabelText('Home branch (optional)');
+    expect(branch).toHaveValue('9');
+    expect(within(dialog).getByLabelText('Can punch only at the home branch')).toBeChecked();
+
+    // Clearing the branch also drops the restriction, which cannot stand on its own.
+    await user.selectOptions(branch, 'None');
+    await user.selectOptions(within(dialog).getByLabelText('Shift (optional)'), 'None');
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(jsonBody(calls.find((c) => c.method === 'PATCH') as Call)).toEqual({
+      home_branch_id: null,
+      shift_id: null,
+      restrict_to_home_branch: false,
+    });
   });
 
   it('edits an employee and sends only the changed fields', async () => {
