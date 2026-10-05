@@ -66,6 +66,9 @@ class User(Base):
     must_change_password: Mapped[bool] = mapped_column(default=True, server_default="true")
     failed_attempts: Mapped[int] = mapped_column(default=0, server_default="0")
     locked_until: Mapped[datetime | None]
+    # When the account was last switched to inactive; cleared on reactivation. Starts the clock
+    # for deleting the face photos and template (SRS 13).
+    deactivated_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
