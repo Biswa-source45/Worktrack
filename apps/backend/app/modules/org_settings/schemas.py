@@ -31,3 +31,13 @@ class OrgSettings(BaseModel):
     face_max_brightness: int = Field(200, ge=1, le=255)
     # Photos and templates are deleted this many days after an employee is deactivated.
     face_retention_days_after_exit: int = Field(30, ge=0, le=365)
+
+    # Attendance (SRS 4.5, 4.6, 6, 7). The cut-off is an IST wall-clock time; after it the day
+    # is closed.
+    attendance_cutoff_time: str = Field("23:59", pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    punch_reminder_after_shift_end_min: int = Field(30, ge=0, le=240)
+    punch_out_request_expiry_hours: int = Field(48, ge=1, le=240)
+    # A punch further than 200 m from the last one, reached faster than this, is flagged.
+    punch_max_speed_kmh: int = Field(150, ge=20, le=1000)
+    # An offline punch older than this when it reaches the server is refused.
+    offline_punch_max_age_hours: int = Field(12, ge=1, le=24)

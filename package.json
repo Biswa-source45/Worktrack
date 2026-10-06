@@ -10,7 +10,8 @@
     "dev:all": "node scripts/dev-all.mjs",
     "dev:api": "node scripts/dev-api.mjs",
     "ngrok": "node scripts/ngrok.mjs",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "check:fast": "node scripts/check.mjs --fast"
   },
   "devDependencies": {
     "concurrently": "^10.0.5",

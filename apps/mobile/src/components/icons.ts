@@ -1,14 +1,23 @@
 // Icons are imported one file each: the package's index pulls every lucide icon (about 1,900)
 // into the bundle, because Metro does not drop unused exports. Add new icons here.
 export { default as ArrowLeft } from 'lucide-react-native/icons/arrow-left';
+export { default as Briefcase } from 'lucide-react-native/icons/briefcase';
 export { default as Building } from 'lucide-react-native/icons/building';
+export { default as CalendarCheck } from 'lucide-react-native/icons/calendar-check';
+export { default as CalendarOff } from 'lucide-react-native/icons/calendar-off';
+export { default as Camera } from 'lucide-react-native/icons/camera';
+export { default as ChevronLeft } from 'lucide-react-native/icons/chevron-left';
 export { default as ChevronRight } from 'lucide-react-native/icons/chevron-right';
 export { default as CircleCheck } from 'lucide-react-native/icons/circle-check';
 export { default as CircleMinus } from 'lucide-react-native/icons/circle-minus';
 export { default as CircleX } from 'lucide-react-native/icons/circle-x';
 export { default as Clock } from 'lucide-react-native/icons/clock';
+export { default as ClockAlert } from 'lucide-react-native/icons/clock-alert';
+export { default as Contrast } from 'lucide-react-native/icons/contrast';
 export { default as Eye } from 'lucide-react-native/icons/eye';
 export { default as EyeOff } from 'lucide-react-native/icons/eye-off';
+export { default as Flag } from 'lucide-react-native/icons/flag';
+export { default as Hourglass } from 'lucide-react-native/icons/hourglass';
 export { default as House } from 'lucide-react-native/icons/house';
 export { default as Info } from 'lucide-react-native/icons/info';
 export { default as KeyRound } from 'lucide-react-native/icons/key-round';

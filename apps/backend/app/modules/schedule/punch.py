@@ -34,14 +34,17 @@ async def check_punch_location(
     lat: float,
     lng: float,
     accuracy_m: float,
+    punching_out: bool = False,
 ) -> PunchPlace:
     """Accept or refuse a punch position for `day`, and say which fence accepted it.
 
     Office day: inside a branch fence. Home day: inside the approved home fence or a branch
     fence. An employee restricted to their home branch has only that branch as a candidate.
+    A punch-out is never refused for the day type: the person punched in earlier, and a holiday
+    added since must not trap them (an off day then has branch fences only).
     """
     plan = await resolve_day(session, user, day)
-    if plan.kind == "off":
+    if plan.kind == "off" and not punching_out:
         message = "Today is a holiday." if plan.reason == "holiday" else "Today is your day off."
         raise AppError(
             "OFF_DAY", f"{message} Attendance is not marked.", 409, {"reason": plan.reason}
@@ -69,6 +72,14 @@ async def check_punch_location(
             branch_id=hit.id if at_branch else None,
             distance_m=hit.distance_m,
             day_kind=plan.kind,
+        )
+    if user.restrict_to_home_branch and (
+        user.home_branch is None or not user.home_branch.is_active
+    ):
+        raise AppError(
+            "HOME_BRANCH_INACTIVE",
+            "Your home branch is not active, and you may punch only there. Ask your admin.",
+            409,
         )
     # Only the nearest branch is named: nothing about the home location leaves the server.
     nearest = branches[0] if branches else None

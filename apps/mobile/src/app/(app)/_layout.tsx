@@ -1,16 +1,18 @@
 import { Tabs } from 'expo-router/js-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import { House, ShieldCheck, UserRound } from '@/components/icons';
+import { CalendarCheck, House, ShieldCheck, UserRound } from '@/components/icons';
 import type { LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/ui/app-text';
 import { can, useAuth } from '@/lib/auth';
+import { useQueueAutoSync } from '@/lib/punch-sync';
 import { useTheme } from '@/lib/theme';
 
 const ICONS: Record<string, LucideIcon> = {
   index: House,
+  attendance: CalendarCheck,
   profile: UserRound,
   admin: ShieldCheck,
 };
@@ -88,6 +90,7 @@ export default function AppLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { me } = useAuth();
+  useQueueAutoSync(me?.id);
   const admin =
     can(me, 'devices.manage') || can(me, 'employees.manage') || can(me, 'branches.manage');
 
@@ -99,6 +102,10 @@ export default function AppLayout() {
       <Tabs.Screen
         name="index"
         options={{ title: t('tabs.home'), tabBarAccessibilityLabel: t('tabs.home') }}
+      />
+      <Tabs.Screen
+        name="attendance"
+        options={{ title: t('tabs.attendance'), tabBarAccessibilityLabel: t('tabs.attendance') }}
       />
       <Tabs.Screen
         name="profile"

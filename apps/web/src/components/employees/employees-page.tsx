@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { Ellipsis, Plus, Search, TriangleAlert, Upload } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +23,7 @@ import { Input, Select } from '@/components/ui/input';
 import { TableSkeleton } from '@/components/ui/skeleton';
 import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
+import { useDebounced } from '@/lib/use-debounced';
 import { EmployeeDialog, type TemporaryPassword } from './employee-dialog';
 import type { Employee } from './employee-form';
 import { FaceEnrollmentsTab, useFaceEnrollments } from './face-enrollments';
@@ -49,15 +50,6 @@ const truncated = (text: string) => (
     {text}
   </span>
 );
-
-function useDebounced(value: string, ms: number) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), ms);
-    return () => clearTimeout(timer);
-  }, [value, ms]);
-  return debounced;
-}
 
 function EmployeesView() {
   const { t } = useTranslation();

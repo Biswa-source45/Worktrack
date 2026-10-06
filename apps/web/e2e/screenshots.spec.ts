@@ -2,14 +2,24 @@ import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import {
   adminToken,
+  api,
   apiLogin,
+  atBranch,
+  awayFrom,
   createEmployee,
+  createPlace,
+  createWaitingRequest,
+  createWorker,
   employeeOnPhone,
   enrollFace,
+  expectImagesLoaded,
+  punchOk,
+  sendPunch,
   stubMapTiles,
   uiLoginAsReadyAdmin,
   uniqueMobile,
   uniqueSuffix,
+  type Asker,
   type Created,
 } from './helpers';
 
@@ -22,6 +32,10 @@ const WIDTHS = [1280, 768];
 let fresh: Created; // an Admin/HR account still on its temporary password
 let planned: Created; // an employee whose schedule and home location page is captured
 let enrolled: Created; // an employee whose face enrollment waits for review
+// Attendance: the names share a prefix, so one search shows the whole register of the shots.
+const WORKERS = `Shots ${uniqueSuffix()}`;
+let asking: Asker; // punched in, then asked to punch out from far away
+let reviewing: { name: string; eventId: number }; // a selfie of a stranger, waiting for review
 
 test.beforeAll(async () => {
   const token = await adminToken();
@@ -40,12 +54,40 @@ test.beforeAll(async () => {
 
   enrolled = await createEmployee(token, `Face Review ${uniqueSuffix()}`);
   await enrollFace(await employeeOnPhone(enrolled));
+
+  const place = await createPlace(token);
+  const worked = await createWorker(token, place, `${WORKERS} Worked`);
+  await punchOk(worked.phone, 'punch-in', atBranch(place));
+  asking = await createWaitingRequest(token, place, `${WORKERS} Asking`);
+  const stranger = await createWorker(token, place, `${WORKERS} Stranger`);
+  const mismatch = await punchOk(stranger.phone, 'punch-in', atBranch(place), { face: 'b' });
+  reviewing = { name: stranger.employee.name, eventId: mismatch.punch.id };
+  // A refused attempt for the exceptions feed.
+  await sendPunch(
+    (await createWorker(token, place, `${WORKERS} Lost`)).phone,
+    'punch-in',
+    awayFrom(place),
+  );
+});
+
+// The queues are oldest first and the e2e database keeps its rows: leave nothing waiting behind.
+test.afterAll(async () => {
+  const token = await adminToken();
+  const remarks = 'Screenshots done';
+  await api('PATCH', `/admin/punch-out-requests/${asking.requestId}/decision`, token, {
+    decision: 'reject',
+    remarks,
+  });
+  await api('POST', `/admin/punch-reviews/${reviewing.eventId}/decision`, token, {
+    decision: 'reject',
+    remarks,
+  });
 });
 
 for (const theme of THEMES) {
   for (const width of WIDTHS) {
     test(`screenshots: ${theme} at ${width}px`, async ({ page, context }) => {
-      test.setTimeout(120_000);
+      test.setTimeout(180_000);
       // Dialogs are captured at viewport size: their overlay covers the viewport, not the page.
       const shot = async (name: string, fullPage = true) => {
         // Let fonts and entrance animations settle so the capture shows the resting state.
@@ -179,6 +221,61 @@ for (const theme of THEMES) {
         .toBe(true);
       await shot('face-review-dialog', false);
       await page.keyboard.press('Escape');
+
+      await page.getByRole('link', { name: 'Attendance' }).click();
+      await page.getByRole('textbox', { name: 'Search by name or code' }).fill(WORKERS);
+      await expect(page.getByRole('table').getByRole('row')).toHaveCount(5);
+      await shot('attendance');
+      await page.getByRole('button', { name: `Actions for ${WORKERS} Worked` }).click();
+      await page.getByRole('menuitem', { name: 'Details' }).click();
+      const day = page.getByRole('dialog', { name: 'Attendance day' });
+      await expectImagesLoaded(day.getByRole('img'));
+      await shot('attendance-day-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(day).toBeHidden();
+      await page.getByRole('button', { name: `Actions for ${WORKERS} Asking` }).click();
+      await page.getByRole('menuitem', { name: 'Override' }).click();
+      const override = page.getByRole('dialog', { name: 'Override this day' });
+      await expect(override.getByLabel('Reason (required)')).toBeVisible();
+      await shot('attendance-override-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(override).toBeHidden();
+
+      // These dialogs hold a selfie, a map and a list of facts: give them room to show it all.
+      await page.setViewportSize({ width, height: 1100 });
+      await page.getByRole('tab', { name: /^Punch-out requests/ }).click();
+      await expect(page.getByRole('table').getByText(asking.worker.employee.name)).toBeVisible();
+      await shot('attendance-requests');
+      await page
+        .getByRole('button', {
+          name: `Open the punch-out request of ${asking.worker.employee.name}`,
+        })
+        .click();
+      const request = page.getByRole('dialog', { name: 'Punch-out request' });
+      await expect(request.locator('.leaflet-marker-icon')).toBeVisible();
+      await expectImagesLoaded(request.getByRole('img'));
+      await shot('attendance-request-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(request).toBeHidden();
+
+      await page.getByRole('tab', { name: /^Review/ }).click();
+      await expect(page.getByRole('table').getByText(reviewing.name)).toBeVisible();
+      await shot('attendance-reviews');
+      await page.getByRole('button', { name: `Review the punch of ${reviewing.name}` }).click();
+      const punchReview = page.getByRole('dialog', { name: 'Punch review' });
+      await expectImagesLoaded(punchReview.getByRole('img'));
+      await shot('attendance-review-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(punchReview).toBeHidden();
+
+      await page.getByRole('tab', { name: 'Exceptions' }).click();
+      await expect(
+        page
+          .getByRole('table')
+          .getByRole('row')
+          .filter({ hasText: `${WORKERS} Lost` }),
+      ).toBeVisible();
+      await shot('attendance-exceptions');
     });
   }
 }

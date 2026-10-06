@@ -14,10 +14,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
 from app.modules.auth.permissions import (
+    ATTENDANCE_OVERRIDE,
+    ATTENDANCE_VIEW_ALL,
     BRANCHES_MANAGE,
     DEVICES_MANAGE,
     EMPLOYEES_MANAGE,
     FACE_REVIEW,
+    PUNCHOUT_APPROVE,
     ROLES_MANAGE,
     SETTINGS_MANAGE,
     SETTINGS_VIEW,
@@ -39,7 +42,7 @@ from tests.factories import (
 P = "/api/v1"
 MISSING = 999_999_999
 
-# What migrations 0002, 0006 and 0009 seed. Asserting it here catches an accidental role change.
+# What migrations 0002, 0006, 0009 and 0010 seed; this catches an accidental role change.
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     SUPER_ADMIN: {
         WEB_ACCESS,
@@ -51,6 +54,9 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         SETTINGS_VIEW,
         SETTINGS_MANAGE,
         FACE_REVIEW,
+        ATTENDANCE_VIEW_ALL,
+        ATTENDANCE_OVERRIDE,
+        PUNCHOUT_APPROVE,
     },
     ADMIN: {
         WEB_ACCESS,
@@ -60,8 +66,11 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         BRANCHES_MANAGE,
         SETTINGS_VIEW,
         FACE_REVIEW,
+        ATTENDANCE_VIEW_ALL,
+        ATTENDANCE_OVERRIDE,
+        PUNCHOUT_APPROVE,
     },
-    ASSIGNER: {WEB_ACCESS, TEAM_VIEW},
+    ASSIGNER: {WEB_ACCESS, TEAM_VIEW, PUNCHOUT_APPROVE},
     FIELD: set(),
     OFFICE: set(),
 }
@@ -204,6 +213,28 @@ MATRIX += [
     ]
 ]
 
+MATRIX += [
+    (
+        method,
+        f"{P}/admin/{pattern}",
+        f"{P}/admin/{pattern.format(day_id=MISSING, request_id=MISSING, event_id=MISSING)}",
+        needed,
+    )
+    for method, pattern, needed in [
+        # The register is for managers (their team) and admins (everyone).
+        ("GET", "attendance", TEAM_VIEW),
+        ("GET", "attendance/{day_id}", TEAM_VIEW),
+        ("POST", "attendance/overrides", ATTENDANCE_OVERRIDE),
+        ("GET", "attendance-exceptions", ATTENDANCE_VIEW_ALL),
+        ("GET", "punch-out-requests", PUNCHOUT_APPROVE),
+        ("GET", "punch-out-requests/{request_id}", PUNCHOUT_APPROVE),
+        ("PATCH", "punch-out-requests/{request_id}/decision", PUNCHOUT_APPROVE),
+        ("GET", "punch-reviews", FACE_REVIEW),
+        ("GET", "punch-reviews/{event_id}", FACE_REVIEW),
+        ("POST", "punch-reviews/{event_id}/decision", FACE_REVIEW),
+    ]
+]
+
 # Signed-in users of any role, scoped to themselves.
 SELF_ONLY = [
     ("GET", f"{P}/me"),
@@ -217,12 +248,19 @@ ANY_ROLE = [
     ("GET", f"{P}/shifts"),
     ("GET", f"{P}/me/home-location"),
     ("GET", f"{P}/me/face-enrollment"),
+    ("GET", f"{P}/attendance/today"),
+    ("GET", f"{P}/attendance/me"),
+    ("GET", f"{P}/notifications"),
 ]
 # Any role, but only from the employee's own approved phone.
 OWN_PHONE = [
     ("POST", f"{P}/me/home-location-requests"),
     ("POST", f"{P}/me/face-enrollment/consent"),
     ("POST", f"{P}/me/face-enrollment"),
+    ("POST", f"{P}/attendance/precheck"),
+    ("POST", f"{P}/attendance/punch-in"),
+    ("POST", f"{P}/attendance/punch-out"),
+    ("POST", f"{P}/attendance/punch-out-requests"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [

@@ -11,10 +11,12 @@ jest.mock('expo-device', () => ({
   deviceName: 'Test device',
   osName: 'iOS',
   osVersion: '27.0.1',
+  isDevice: true,
+  isRootedExperimentalAsync: jest.fn(() => Promise.resolve(false)),
 }));
-jest.mock('expo-crypto', () => ({
-  randomUUID: jest.fn(() => '11111111-2222-3333-4444-555555555555'),
-}));
+jest.mock('expo-crypto', () => jest.requireActual('./src/test/crypto-mock'));
+// The offline queue's SQLite file lives on a phone; tests use an in-memory store with the same API.
+jest.mock('@/lib/punch-sqlite', () => jest.requireActual('./src/test/memory-queue-store'));
 jest.mock('expo-system-ui', () => ({ setBackgroundColorAsync: jest.fn(() => Promise.resolve()) }));
 // No GPS in Jest: each test scripts the permission, the services switch and the position.
 jest.mock('expo-location', () => ({

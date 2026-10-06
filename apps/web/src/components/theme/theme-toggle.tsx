@@ -11,7 +11,7 @@ const OPTIONS = [
   { theme: 'system', Icon: Monitor },
 ] as const;
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle({ className, compact }: { className?: string; compact?: boolean }) {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   return (
@@ -36,8 +36,11 @@ export function ThemeToggle({ className }: { className?: string }) {
           )}
         >
           <Icon aria-hidden="true" className="size-4" />
-          {/* Narrow screens show the icon alone; the accessible name stays. */}
-          <span className="sr-only xl:not-sr-only">{t(`theme.${option}`)}</span>
+          {/* Narrow screens (and a `compact` toggle, as in the full header) show the icon alone;
+              the accessible name stays. */}
+          <span className={compact ? 'sr-only' : 'sr-only xl:not-sr-only'}>
+            {t(`theme.${option}`)}
+          </span>
         </button>
       ))}
     </div>

@@ -26,8 +26,11 @@ import type { Hint, SeenFace, Step, Turn } from '@/lib/face-guidance';
 import { useTheme } from '@/lib/theme';
 
 type Props = {
-  step: Step;
-  firstTurn: Turn;
+  /** Which of the enrollment poses is asked for; a punch selfie is always step 0. */
+  step?: Step;
+  firstTurn?: Turn;
+  /** One straight selfie for a punch: no pose steps, no "Photo n of 3". */
+  single?: boolean;
   /** The photo is a file on this phone; `turn` is the head turn it was taken with. */
   onPhoto: (uri: string, turn: Turn) => void;
 };
@@ -54,7 +57,7 @@ const toSeen = (face: Face): SeenFace => ({
   rightEyeOpen: face.rightEyeOpenProbability,
 });
 
-export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
+export default function FaceCamera({ step = 0, firstTurn = 0, single = false, onPhoto }: Props) {
   const { t } = useTranslation();
   const { colors, space, radius } = useTheme();
   const insets = useSafeAreaInsets();
@@ -277,7 +280,9 @@ export default function FaceCamera({ step, firstTurn, onPhoto }: Props) {
         }}
       >
         <AppText variant="small" color="muted">
-          {t('face.capture.step', { current: step + 1, total: 3 })}
+          {single
+            ? t('punch.capture.title')
+            : t('face.capture.step', { current: step + 1, total: 3 })}
         </AppText>
         <AppText variant="large" weight={600} accessibilityLiveRegion="polite">
           {failed ? t('face.camera.captureFailed') : t(`face.hint.${hint}`)}

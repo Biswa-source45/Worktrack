@@ -100,6 +100,8 @@ class FaceCheck:
     issue: Issue | None  # why a RETAKE was needed
     model_version: str
     thresholds: Thresholds
+    # The resized, EXIF-free selfie that gets stored; None for RETAKE (nothing is kept).
+    jpeg: bytes | None = None
 
 
 class PhotoRejected(Exception):
@@ -283,4 +285,6 @@ class OpenCVSFaceProvider:
         except PhotoRejected as rejected:
             return FaceCheck(Decision.RETAKE, None, rejected.issue, MODEL_VERSION, thresholds)
         score = float((enrolled @ analysis.embedding).max())
-        return FaceCheck(decide(score, thresholds), score, None, MODEL_VERSION, thresholds)
+        return FaceCheck(
+            decide(score, thresholds), score, None, MODEL_VERSION, thresholds, analysis.jpeg
+        )

@@ -10,6 +10,7 @@ export const calls: Request[] = [];
 
 // Profile & Settings asks for this on every visit, and most tests only pass through there.
 const DEFAULT_ROUTES: Record<string, Handler> = {
+  'GET /api/v1/attendance/today': () => Response.json(todayBody()),
   'GET /api/v1/me/home-location': () =>
     Response.json({ approved: null, pending: null, last_rejected: null }),
   'GET /api/v1/me/face-enrollment': () =>
@@ -146,3 +147,85 @@ export const branchBody = (over: Partial<Schemas['BranchOut']> = {}): Schemas['B
   is_active: true,
   ...over,
 });
+
+/** Today as the server reports it before the first punch of a working day. */
+export const todayBody = (over: Partial<Schemas['TodayOut']> = {}): Schemas['TodayOut'] => ({
+  server_time: '2026-10-05T04:30:00Z',
+  date: '2026-10-05',
+  kind: 'office',
+  reason: 'shift',
+  shift: 'General',
+  shift_start: '09:00:00',
+  shift_end: '18:00:00',
+  day: null,
+  punches: [],
+  action: 'punch_in',
+  blocked: null,
+  minutes_so_far: null,
+  ...over,
+});
+
+export const dayBody = (over: Partial<Schemas['DayOut']> = {}): Schemas['DayOut'] => ({
+  id: 5,
+  date: '2026-10-05',
+  status: 'present',
+  first_in_at: '2026-10-05T03:35:00Z',
+  last_out_at: null,
+  worked_minutes: 0,
+  late_minutes: 0,
+  overtime_minutes: 0,
+  flags: [],
+  ...over,
+});
+
+export const punchBody = (over: Partial<Schemas['PunchBrief']> = {}): Schemas['PunchBrief'] => ({
+  id: 31,
+  type: 'in',
+  time: '2026-10-05T03:35:00Z',
+  review_status: 'verified',
+  in_review: false,
+  out_of_office: false,
+  offline: false,
+  place: { type: 'branch', branch: 'Head Office', distance_m: 20 },
+  ...over,
+});
+
+export const punchResultBody = (
+  over: Partial<Schemas['PunchResult']> = {},
+): Schemas['PunchResult'] => ({
+  punch: punchBody(),
+  day: dayBody(),
+  result: 'verified',
+  replayed: false,
+  ...over,
+});
+
+export const precheckBody = (
+  over: Partial<Schemas['PrecheckOut']> = {},
+): Schemas['PrecheckOut'] => ({
+  allowed: true,
+  action: 'punch_in',
+  place: { type: 'branch', branch: 'Head Office', distance_m: 20 },
+  nearest_branch: 'Head Office',
+  distance_m: 20,
+  ...over,
+});
+
+/**
+ * Records what is appended to FormData instead of building a real form: the FormData of Node (in
+ * Jest) is stricter than the phone's, which takes expo-file-system Files. Call `restore` when done.
+ */
+export function recordForms() {
+  const parts: [string, unknown][] = [];
+  const spy = jest
+    .spyOn(FormData.prototype, 'append')
+    .mockImplementation((name: string, value: unknown) => {
+      parts.push([name, value]);
+    });
+  return {
+    parts,
+    /** The text fields of the form, by name. */
+    fields: () => Object.fromEntries(parts.filter(([, value]) => typeof value === 'string')),
+    restore: () => spy.mockRestore(),
+  };
+}

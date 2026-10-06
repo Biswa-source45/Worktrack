@@ -27,6 +27,7 @@
   "nav": {
     "label": "Main",
     "employees": "Employees",
+    "attendance": "Attendance",
     "branches": "Branches",
     "shifts": "Shifts",
     "devices": "Devices",
@@ -85,7 +86,10 @@
     "reasonRequired": "Give a reason for rejecting.",
     "decimalRange": "Enter a number within the allowed range.",
     "reviewBelowVerify": "The review threshold must be below the verify threshold.",
-    "brightnessOrder": "The minimum brightness must be below the maximum."
+    "brightnessOrder": "The minimum brightness must be below the maximum.",
+    "overrideReason": "Give a reason of at least 5 characters.",
+    "timeSameDay": "Choose a time on the same day as the punch.",
+    "cutoffTime": "Enter a time as HH:MM, for example 23:59."
   },
   "errors": {
     "GENERIC": "Something went wrong. Please try again.",
@@ -448,7 +452,8 @@
       "geofence": "Geofence",
       "face": "Face matching",
       "approvals": "Approvals",
-      "app": "App"
+      "app": "App",
+      "attendance": "Attendance"
     },
     "levels": {
       "1": "1 level",
@@ -469,7 +474,12 @@
       "face_min_sharpness": "Minimum sharpness",
       "face_min_brightness": "Minimum brightness",
       "face_max_brightness": "Maximum brightness",
-      "face_retention_days_after_exit": "Keep face data after exit (days)"
+      "face_retention_days_after_exit": "Keep face data after exit (days)",
+      "attendance_cutoff_time": "Attendance cut-off time (IST)",
+      "punch_reminder_after_shift_end_min": "Punch-out reminder after shift end (min)",
+      "punch_out_request_expiry_hours": "Punch-out request expiry (hours)",
+      "punch_max_speed_kmh": "Maximum travel speed (km/h)",
+      "offline_punch_max_age_hours": "Offline punch maximum age (hours)"
     },
     "help": {
       "geofence_default_radius_m": "Used for a new branch when no radius is given. 30 to 500 m.",
@@ -486,7 +496,12 @@
       "face_min_sharpness": "Blurrier photos are retaken. Higher is stricter. 1 to 2000.",
       "face_min_brightness": "Darker photos are retaken (average grey of the face). 0 to 254, below the maximum.",
       "face_max_brightness": "Brighter photos are retaken. 1 to 255.",
-      "face_retention_days_after_exit": "Photos and templates are deleted this many days after an employee is deactivated. 0 to 365."
+      "face_retention_days_after_exit": "Photos and templates are deleted this many days after an employee is deactivated. 0 to 365.",
+      "attendance_cutoff_time": "After this time a day is closed: no more punches, and a missing punch-out is marked. HH:MM, IST.",
+      "punch_reminder_after_shift_end_min": "An employee still punched in is reminded this long after the shift ends. 0 to 240.",
+      "punch_out_request_expiry_hours": "An out-of-office punch-out request nobody decided expires after this long. 1 to 240.",
+      "punch_max_speed_kmh": "A punch that implies a faster trip from the last one goes to review. 20 to 1000.",
+      "offline_punch_max_age_hours": "A punch made offline is refused if the phone says it is older than this. 1 to 24."
     }
   },
   "schedule": {
@@ -608,5 +623,209 @@
       "ENROLLMENT_CHANGED": "The employee sent new photos after you opened this. Review them again."
     },
     "photoFailed": "This photo could not be loaded. Close and open the review again."
+  },
+  "attendance": {
+    "title": "Attendance",
+    "tab": {
+      "register": "Register",
+      "requests": "Punch-out requests",
+      "reviews": "Review",
+      "exceptions": "Exceptions"
+    },
+    "col": {
+      "employee": "Employee",
+      "status": "Status",
+      "branch": "Branch",
+      "in": "In (IST)",
+      "out": "Out (IST)",
+      "hours": "Hours",
+      "late": "Late (min)",
+      "flags": "Flags",
+      "actions": "Actions",
+      "requested": "Requested time (IST)",
+      "reason": "Reason",
+      "time": "Time (IST)",
+      "kind": "Kind",
+      "distance": "Distance"
+    },
+    "date": "Date",
+    "from": "From",
+    "to": "To",
+    "filter": "Show",
+    "search": "Search by name or code",
+    "allBranches": "All branches",
+    "allStatuses": "All statuses",
+    "allReasons": "All reasons",
+    "allKinds": "All kinds",
+    "home": "Home",
+    "hours": "{{h}}h {{m}}m",
+    "minutes": "{{m}} min",
+    "metres": "{{m}} m",
+    "score": "score {{score}}",
+    "details": "Details",
+    "override": "Override",
+    "open": "Open",
+    "approve": "Approve",
+    "reject": "Reject",
+    "emptyRegister": "No employees match.",
+    "emptyExceptions": "No attempts were refused or flagged in this period.",
+    "emptyRequests": {
+      "waiting": "No punch-out requests are waiting.",
+      "approved": "No approved punch-out requests.",
+      "rejected": "No rejected punch-out requests.",
+      "expired": "No expired punch-out requests."
+    },
+    "emptyReviews": {
+      "pending": "No punches are waiting for review.",
+      "approved": "No approved punches.",
+      "rejected": "No rejected punches."
+    },
+    "dayStatus": {
+      "working": "On the job",
+      "present": "Present",
+      "half_day": "Half day",
+      "short_hours": "Short hours",
+      "absent": "Absent",
+      "holiday": "Holiday",
+      "weekly_off": "Weekly off",
+      "pending": "Pending",
+      "missed_punch_out": "Missed punch-out",
+      "leave": "Leave",
+      "work_from_home": "Work from home",
+      "on_duty": "On duty",
+      "no_record": "No record"
+    },
+    "flag": {
+      "offline": "Punched offline",
+      "mock": "Mock location or untrusted device",
+      "face_review": "Face check needs review",
+      "jump": "Impossible jump"
+    },
+    "face": {
+      "VERIFIED": "Face verified",
+      "PENDING_REVIEW": "Face borderline",
+      "MISMATCH": "Face mismatch",
+      "RETAKE": "Photo unusable"
+    },
+    "reviewStatus": {
+      "verified": "Verified",
+      "pending": "Waiting for review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "requestStatus": {
+      "pending": "Waiting",
+      "pending_admin": "Waiting for an admin",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "requestFilter": {
+      "waiting": "Waiting",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "reviewFilter": {
+      "pending": "Waiting for review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "reason": {
+      "face_borderline": "Face borderline",
+      "face_mismatch": "Face mismatch",
+      "offline": "Punched offline",
+      "impossible_jump": "Impossible jump",
+      "out_of_office": "Out of office"
+    },
+    "integrity": {
+      "mock": "Mock location app on",
+      "emulator": "Emulator",
+      "rooted": "Rooted phone"
+    },
+    "kind": {
+      "MOCK_LOCATION": "Mock location",
+      "ROOTED_DEVICE": "Rooted device",
+      "EMULATOR": "Emulator",
+      "OUTSIDE_GEOFENCE": "Outside the geofence",
+      "GPS_ACCURACY_POOR": "GPS too weak",
+      "IMPOSSIBLE_JUMP": "Impossible jump",
+      "FACE_MISMATCH": "Face mismatch"
+    },
+    "punchType": {
+      "in": "Punch-in",
+      "out": "Punch-out"
+    },
+    "place": {
+      "label": "Place",
+      "branch": "{{name}}, {{m}} m from the centre",
+      "home": "Home work location",
+      "outside": "Outside, {{m}} m from {{name}}"
+    },
+    "overrideKind": {
+      "leave": "Leave",
+      "work_from_home": "Work from home",
+      "on_duty": "On duty"
+    },
+    "dayTitle": "Attendance day",
+    "dayFor": "{{name}} ({{code}}), {{date}}. Opening this day is recorded in the audit log.",
+    "dayHint": "Loading the day...",
+    "punch": "Punch",
+    "punches": "Punches",
+    "noPunches": "No punches on this day.",
+    "overrides": "Overrides",
+    "overtime": "Overtime",
+    "serverTime": "Server time",
+    "deviceTime": "Phone time (not trusted)",
+    "accuracy": "GPS accuracy",
+    "faceCheck": "Face check",
+    "reviewLabel": "Review",
+    "integrityLabel": "Device checks",
+    "remarks": "Remarks",
+    "selfieAlt": "Selfie of the {{type}}",
+    "selfieFailed": "This selfie could not be loaded. Close and open it again.",
+    "overrideTitle": "Override this day",
+    "overrideFor": "{{name}} ({{code}}), {{date}}. The punches stay as they are; the override and its reason are kept.",
+    "overrideKindLabel": "Mark the day as",
+    "overrideReason": "Reason (required)",
+    "overrideNote": "A later override replaces this one for the day's status; the earlier one stays in the list.",
+    "overrideSave": "Save override",
+    "requestTitle": "Punch-out request",
+    "requestFor": "{{name}} ({{code}}), {{date}}. Opening this request is recorded in the audit log.",
+    "requestHint": "Loading the request...",
+    "openRequestOf": "Open the punch-out request of {{name}}",
+    "coordinates": "Where the request was made: {{lat}}, {{lng}} (GPS accuracy {{m}} m)",
+    "punchedIn": "Punched in",
+    "note": "Note",
+    "nearestBranch": "Nearest branch",
+    "branchDistance": "{{name}}, {{m}} m away",
+    "firstApprover": "First approved by",
+    "decidedBy": "Decided by",
+    "approvedTime": "Approved time",
+    "approvedTimeField": "Approved time (IST)",
+    "approveOtherTime": "Approve with a different time",
+    "keepRequestedTime": "Use the requested time",
+    "remarksField": "Remarks (required to reject)",
+    "finalByAdmin": "An admin makes the final decision.",
+    "cannotDecide": "You cannot decide this request now.",
+    "reviewTitle": "Punch review",
+    "reviewFor": "{{name}} ({{code}}), {{date}}. Opening this punch is recorded in the audit log.",
+    "reviewHint": "Loading the punch...",
+    "openReviewOf": "Review the punch of {{name}}",
+    "thresholds": "Thresholds used",
+    "thresholdsValue": "accepted from {{verify}}, review from {{review}}",
+    "timeToCount": "Time to count (IST), a punch made offline",
+    "cannotReviewOwn": "You cannot review your own punch.",
+    "errors": {
+      "ADMIN_ONLY": "This request now needs an admin's decision.",
+      "CANNOT_DECIDE_OWN": "You cannot decide your own request or punch.",
+      "ALREADY_DECIDED": "Someone has already decided this. The lists were refreshed.",
+      "INVALID_TIME": "That time is not allowed. It must be on the same day, not in the future and not before the punch-in, and only the final approver may change it.",
+      "REMARKS_REQUIRED": "Give a reason for rejecting.",
+      "NOT_FOUND": "This record no longer exists, or is outside your team.",
+      "INVALID_DATE": "Choose a date from the employee's joining date up to today.",
+      "FORBIDDEN": "You do not have permission to do this."
+    },
+    "whyChecked": "Why it is checked"
   }
 }

@@ -18,6 +18,7 @@
   },
   "tabs": {
     "home": "Home",
+    "attendance": "Attendance",
     "profile": "Profile & Settings",
     "admin": "Admin"
   },
@@ -395,6 +396,196 @@
       "inconsistent": "The three photos do not look like the same person. Retake all three.",
       "sent": "Photos sent. An admin will review them, and the Home screen shows when you are approved.",
       "done": "Done"
+    }
+  },
+  "punch": {
+    "title": "Today's attendance",
+    "serverTime": "Server time (IST)",
+    "loadFailed": "Could not load today's attendance.",
+    "shift": "{{name}}, {{start}} to {{end}}",
+    "noShift": "No shift today",
+    "notPunched": "Not punched in yet",
+    "workedSoFar": "Worked so far",
+    "duration": "{{hours}} h {{minutes}} min",
+    "awayFrom": "You are {{distance}} m away from {{branch}}.",
+    "checking": "Checking your location...",
+    "action": {
+      "punch_in": "Punch in",
+      "punch_out": "Punch out",
+      "request_punch_out": "Request punch out"
+    },
+    "blocked": {
+      "off_day": "Today is not a working day for you.",
+      "no_shift": "No shift is assigned to you. Ask your admin.",
+      "face_not_approved": "Your face is not approved yet, so you cannot punch.",
+      "day_closed": "Today's attendance is closed.",
+      "request_pending": "Your punch-out request is waiting for approval.",
+      "done": "You are done for today."
+    },
+    "faceSetup": "Go to face setup",
+    "errors": {
+      "OUTSIDE_GEOFENCE": "You are outside the allowed area for punching.",
+      "GPS_ACCURACY_POOR": "Your location is not accurate enough. Move to an open area and try again.",
+      "OFF_DAY": "Today is not a working day for you.",
+      "ALREADY_PUNCHED_IN": "You have already punched in today.",
+      "NOT_PUNCHED_IN": "You have not punched in today.",
+      "ALREADY_PUNCHED_OUT": "You have already punched out today.",
+      "FACE_NOT_APPROVED": "Your face is not approved yet, so you cannot punch.",
+      "FACE_RETAKE": "The selfie could not be used. Take it again.",
+      "MOCK_LOCATION": "A fake location was detected on this phone, so the punch was not accepted.",
+      "DEVICE_NOT_TRUSTED": "This phone is not trusted for punching.",
+      "DEVICE_NOT_APPROVED": "This phone is not approved yet. Ask your admin.",
+      "NO_SHIFT": "No shift is assigned to you. Ask your admin.",
+      "DAY_CLOSED": "Today's attendance is closed.",
+      "USE_PUNCH_OUT": "You are at a work location. Punch out normally.",
+      "HOME_BRANCH_INACTIVE": "Your home branch is not active. Ask your admin.",
+      "OFFLINE_PUNCH_TOO_OLD": "This punch was taken offline too long ago to be accepted.",
+      "OFFLINE_TIME_MISSING": "The time this punch was taken is missing.",
+      "IDEMPOTENCY_KEY_REUSED": "This punch was already sent with different details.",
+      "PHOTO_TOO_LARGE": "The photo is too large. Take it again.",
+      "VALIDATION_ERROR": "Some details of the punch were not valid. Try again."
+    },
+    "request": {
+      "title": "Request punch out",
+      "intro": "You are away from your work location. Tell your approver why you are punching out here.",
+      "reason": "Reason",
+      "note": "Note (optional)",
+      "reasonMin": "Give a reason of at least 3 characters.",
+      "reasonMax": "Use at most 200 characters.",
+      "noteMax": "Use at most 500 characters.",
+      "continue": "Continue to selfie"
+    },
+    "capture": {
+      "title": "Selfie for your punch",
+      "sending": "Sending your punch...",
+      "tryAgain": "Try again",
+      "retake": "Take a new selfie",
+      "needsSession": "Start from the Home screen to punch."
+    },
+    "result": {
+      "verified_in": "Punched in",
+      "verified_out": "Punched out",
+      "countedAt": "Counted at {{time}} (IST)",
+      "late": "You are late by {{minutes}} min.",
+      "reviewTitle": "Sent for review",
+      "review": "An admin will review this punch.",
+      "requestTitle": "Request sent",
+      "request": "Your punch-out request is waiting for approval.",
+      "queuedTitle": "Saved on this phone",
+      "queued": "Saved on this phone. It will be sent when you are online.",
+      "rejectedTitle": "Punch not recorded",
+      "takeAgain": "Take it again",
+      "done": "Done",
+      "seeSaved": "See saved punches",
+      "nothing": "There is no punch to show."
+    },
+    "stale": "Cannot reach the server. Showing what was last loaded.",
+    "recheck": "Check my location again",
+    "devBuild": {
+      "body": "The camera is not available in Expo Go. Open the WorkTrack development build on an Android phone to punch."
+    },
+    "worked": "Worked today"
+  },
+  "queue": {
+    "title": "Saved punches",
+    "cardBody_one": "{{count}} punch is waiting to be sent.",
+    "cardBody_other": "{{count}} punches are waiting to be sent.",
+    "cardFailed_one": "{{count}} punch could not be sent.",
+    "cardFailed_other": "{{count}} punches could not be sent.",
+    "open": "View saved punches",
+    "empty": "No saved punches.",
+    "loadFailed": "Could not read the saved punches on this phone.",
+    "syncNow": "Sync now",
+    "retry": "Retry",
+    "retryA11y": "Retry the {{kind}} from {{time}}",
+    "discard": "Discard",
+    "discardA11y": "Discard the {{kind}} from {{time}}",
+    "discardTitle": "Discard this punch",
+    "discardConfirm": "Discard the saved {{kind}} from {{time}}? It will never be sent and cannot be recovered.",
+    "kind": {
+      "in": "Punch in",
+      "out": "Punch out",
+      "request": "Punch-out request"
+    },
+    "status": {
+      "queued": "Waiting to send",
+      "syncing": "Sending",
+      "synced": "Sent",
+      "failed": "Not sent"
+    },
+    "failedBecause": "Not sent: {{reason}}",
+    "errors": {
+      "UNREADABLE": "This saved punch could not be read."
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "loadFailed": "Could not load your attendance.",
+    "previous": "Previous month",
+    "next": "Next month",
+    "empty": "No attendance recorded this month.",
+    "legend": "Legend",
+    "summaryTitle": "This month",
+    "summary": {
+      "present": "Present",
+      "half_day": "Half day",
+      "short_hours": "Short hours",
+      "absent": "Absent",
+      "late": "Late",
+      "worked": "Worked"
+    },
+    "status": {
+      "working": "Working",
+      "present": "Present",
+      "half_day": "Half day",
+      "short_hours": "Short hours",
+      "absent": "Absent",
+      "holiday": "Holiday",
+      "weekly_off": "Weekly off",
+      "pending": "Pending",
+      "missed_punch_out": "Missed punch out",
+      "leave": "Leave",
+      "work_from_home": "Work from home",
+      "on_duty": "On duty",
+      "none": "No record"
+    },
+    "short": {
+      "working": "Work",
+      "present": "Pres",
+      "half_day": "Half",
+      "short_hours": "Short",
+      "absent": "Abs",
+      "holiday": "Hol",
+      "weekly_off": "Off",
+      "pending": "Pend",
+      "missed_punch_out": "Miss",
+      "leave": "Leave",
+      "work_from_home": "WFH",
+      "on_duty": "Duty",
+      "none": "N/A"
+    },
+    "cellA11y": "{{date}}, {{status}}",
+    "detail": {
+      "in": "In",
+      "out": "Out",
+      "hours": "Hours worked",
+      "late": "Late by {{minutes}} min",
+      "none": "No punches"
+    },
+    "flag": {
+      "offline": "Sent offline",
+      "face_review": "Under review",
+      "jump": "Under review",
+      "mock": "Under review"
+    },
+    "weekday": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
     }
   }
 }

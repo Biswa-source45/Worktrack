@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 
-export type Fix = { lat: number; lng: number; accuracyM: number };
+/** `mocked` is Android's "mock location" flag; the server decides what it means. */
+export type Fix = { lat: number; lng: number; accuracyM: number; mocked: boolean };
 
 export type LocationErrorCode = 'permission_denied' | 'services_off' | 'timeout' | 'unavailable';
 
@@ -27,13 +28,18 @@ export async function getCurrentFix(): Promise<Fix> {
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => reject(new LocationError('timeout')), TIMEOUT_MS);
     });
-    const { coords } = await Promise.race([
+    const { coords, mocked } = await Promise.race([
       Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest }),
       timeout,
     ]);
     // Without an accuracy the server cannot judge the fix.
     if (coords.accuracy === null) throw new LocationError('unavailable');
-    return { lat: coords.latitude, lng: coords.longitude, accuracyM: coords.accuracy };
+    return {
+      lat: coords.latitude,
+      lng: coords.longitude,
+      accuracyM: coords.accuracy,
+      mocked: mocked === true,
+    };
   } catch (failure) {
     // The native error is dropped unlogged: it can carry the position.
     throw failure instanceof LocationError ? failure : new LocationError('unavailable');

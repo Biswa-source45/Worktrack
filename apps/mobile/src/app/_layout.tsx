@@ -1,14 +1,18 @@
 import { useFonts } from '@expo-google-fonts/plus-jakarta-sans/useFonts';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { I18nextProvider } from 'react-i18next';
 import { AuthProvider, sessionGuards, useAuth } from '@/lib/auth';
 import { fonts } from '@/lib/fonts';
 import i18n from '@/lib/i18n';
+import { requestSync } from '@/lib/punch-sync';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import LoadingScreen from './loading';
 
-const queryClient = new QueryClient();
+// A successful call proves the server is reachable: the moment to send punches saved offline.
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onSuccess: () => void requestSync() }),
+});
 
 // Protected screens are unmounted when their guard turns false, and expo-router then redirects to
 // the first screen that is still available, so no screen navigates by hand after login or logout.
@@ -37,6 +41,10 @@ function Gate({ fontsSettled }: { fontsSettled: boolean }) {
         <Stack.Screen name="(app)" />
         <Stack.Screen name="face/consent" />
         <Stack.Screen name="face/capture" />
+        <Stack.Screen name="punch/request" />
+        <Stack.Screen name="punch/capture" />
+        <Stack.Screen name="punch/result" />
+        <Stack.Screen name="punch/queue" />
       </Stack.Protected>
       <Stack.Screen name="health" />
     </Stack>

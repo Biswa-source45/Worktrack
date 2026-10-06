@@ -30,7 +30,7 @@ type Settings = Schemas['OrgSettings'];
 type Name = keyof Settings;
 
 // Bounds mirror the server's OrgSettings; the server remains the authority. Whole numbers,
-// except the face scores, sharpness and confidence, which are decimals.
+// except the face scores, sharpness and confidence, which are decimals. The cut-off is a time.
 const NUMBERS = {
   geofence_default_radius_m: [RADIUS_MIN_M, RADIUS_MAX_M],
   home_default_radius_m: [RADIUS_MIN_M, RADIUS_MAX_M],
@@ -46,6 +46,10 @@ const NUMBERS = {
   face_min_brightness: [0, 254],
   face_max_brightness: [1, 255],
   face_retention_days_after_exit: [0, 365],
+  punch_reminder_after_shift_end_min: [0, 240],
+  punch_out_request_expiry_hours: [1, 240],
+  punch_max_speed_kmh: [20, 1000],
+  offline_punch_max_age_hours: [1, 24],
 } as const satisfies Partial<Record<Name, readonly [number, number, 'decimal'?]>>;
 type NumberName = keyof typeof NUMBERS;
 const NUMBER_NAMES = Object.keys(NUMBERS) as NumberName[];
@@ -75,7 +79,22 @@ const GROUPS: { id: string; fields: Name[] }[] = [
       'face_retention_days_after_exit',
     ],
   },
+  {
+    id: 'attendance',
+    fields: [
+      'attendance_cutoff_time',
+      'punch_reminder_after_shift_end_min',
+      'punch_out_request_expiry_hours',
+      'punch_max_speed_kmh',
+      'offline_punch_max_age_hours',
+    ],
+  },
 ];
+// Cards that hold many fields run the full width, in a grid of their own.
+const WIDE: Record<string, string> = {
+  face: 'sm:grid-cols-2 lg:grid-cols-4',
+  attendance: 'sm:grid-cols-2 lg:grid-cols-5',
+};
 const LEVELS: Name[] = ['punch_out_approval_levels', 'regularization_approval_levels'];
 
 const isDecimal = (name: NumberName) => (NUMBERS[name] as readonly unknown[])[2] === 'decimal';
@@ -101,6 +120,11 @@ const schema = z
     face_min_brightness: numberField('face_min_brightness'),
     face_max_brightness: numberField('face_max_brightness'),
     face_retention_days_after_exit: numberField('face_retention_days_after_exit'),
+    attendance_cutoff_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'validation.cutoffTime'),
+    punch_reminder_after_shift_end_min: numberField('punch_reminder_after_shift_end_min'),
+    punch_out_request_expiry_hours: numberField('punch_out_request_expiry_hours'),
+    punch_max_speed_kmh: numberField('punch_max_speed_kmh'),
+    offline_punch_max_age_hours: numberField('offline_punch_max_age_hours'),
     min_app_version: z
       .string()
       .trim()
@@ -130,6 +154,7 @@ const toValues = (settings: Settings): Values => ({
     NumberName,
     string
   >),
+  attendance_cutoff_time: settings.attendance_cutoff_time,
   min_app_version: settings.min_app_version,
 });
 
@@ -138,6 +163,7 @@ const toBody = (values: Values): Settings => ({
     NumberName,
     number
   >),
+  attendance_cutoff_time: values.attendance_cutoff_time,
   min_app_version: values.min_app_version.trim(),
 });
 
@@ -189,14 +215,10 @@ function SettingsForm({ settings, canManage }: { settings: Settings; canManage: 
             key={group.id}
             role="group"
             aria-label={t(`settings.group.${group.id}`)}
-            className={group.id === 'face' ? 'lg:col-span-3' : undefined}
+            className={group.id in WIDE ? 'lg:col-span-3' : undefined}
           >
             <h2 className="mb-4 text-h3">{t(`settings.group.${group.id}`)}</h2>
-            <div
-              className={
-                group.id === 'face' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4'
-              }
-            >
+            <div className={group.id in WIDE ? `grid gap-4 ${WIDE[group.id]}` : 'grid gap-4'}>
               {group.fields.map((name) => (
                 <Field
                   key={name}
@@ -217,8 +239,9 @@ function SettingsForm({ settings, canManage }: { settings: Settings; canManage: 
                   ) : (
                     <Input
                       id={name}
+                      type={name === 'attendance_cutoff_time' ? 'time' : undefined}
                       inputMode={
-                        name === 'min_app_version'
+                        name === 'min_app_version' || name === 'attendance_cutoff_time'
                           ? 'text'
                           : isDecimal(name as NumberName)
                             ? 'decimal'
@@ -278,7 +301,7 @@ function SettingsView() {
           {GROUPS.map((group) => (
             <Skeleton
               key={group.id}
-              className={group.id === 'face' ? 'h-48 rounded-lg lg:col-span-3' : 'h-64 rounded-lg'}
+              className={group.id in WIDE ? 'h-48 rounded-lg lg:col-span-3' : 'h-64 rounded-lg'}
             />
           ))}
         </div>

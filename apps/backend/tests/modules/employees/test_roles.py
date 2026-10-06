@@ -1,7 +1,7 @@
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.auth.permissions import ROLES_MANAGE, TEAM_VIEW, WEB_ACCESS
+from app.modules.auth.permissions import PUNCHOUT_APPROVE, ROLES_MANAGE, TEAM_VIEW, WEB_ACCESS
 from app.modules.employees.models import Role
 from tests.factories import (
     ADMIN,
@@ -35,7 +35,7 @@ async def test_list_roles_includes_the_system_roles(
     by_name = {r["name"]: r for r in response.json()}
     assert set(ALL_ROLES) <= set(by_name)
     assert all(by_name[name]["is_system"] for name in ALL_ROLES)
-    assert set(by_name[ASSIGNER]["permissions"]) == {WEB_ACCESS, TEAM_VIEW}
+    assert set(by_name[ASSIGNER]["permissions"]) == {WEB_ACCESS, TEAM_VIEW, PUNCHOUT_APPROVE}
     assert by_name[FIELD]["permissions"] == []
 
 

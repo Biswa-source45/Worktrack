@@ -79,15 +79,17 @@ async def make_shift(
     session: AsyncSession, name: str | None = None, *, is_active: bool = True, **fields: Any
 ) -> Shift:
     shift = Shift(
-        name=name or f"Shift {next(_counter)}",
-        start_time=time(9, 30),
-        end_time=time(18, 30),
-        grace_min=10,
-        half_day_hours=4,
-        full_day_hours=8,
-        weekly_offs=fields.pop("weekly_offs", [{"weekday": 6, "weeks": None}]),
-        is_active=is_active,
-        **fields,
+        **{
+            "name": name or f"Shift {next(_counter)}",
+            "start_time": time(9, 30),
+            "end_time": time(18, 30),
+            "grace_min": 10,
+            "half_day_hours": 4,
+            "full_day_hours": 8,
+            "weekly_offs": [{"weekday": 6, "weeks": None}],
+            "is_active": is_active,
+            **fields,
+        }
     )
     session.add(shift)
     await session.flush()

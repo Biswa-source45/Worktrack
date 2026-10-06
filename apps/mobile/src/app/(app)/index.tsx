@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { DeviceCard } from '@/components/device-card';
 import { FaceEnrollmentCard } from '@/components/face-enrollment-card';
+import { PunchCard } from '@/components/punch-card';
+import { PunchQueueCard } from '@/components/punch-queue-card';
 import { AppText } from '@/components/ui/app-text';
 import { Avatar } from '@/components/ui/avatar';
 import { Banner } from '@/components/ui/banner';
@@ -90,6 +92,8 @@ export default function HomeScreen() {
         </Banner>
       ) : null}
       <DeviceCard status={me.device?.status} />
+      <PunchCard />
+      <PunchQueueCard />
       <FaceEnrollmentCard />
     </Screen>
   );

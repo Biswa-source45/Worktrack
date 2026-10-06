@@ -3,7 +3,15 @@ import { describe, expect, it } from 'vitest';
 import i18n from '@/lib/i18n';
 import { ApiError, errorMessage, rejectedFields, toApiError, unwrap } from './api-client';
 import { changed, isIntBetween, latitude, longitude, optionalRadius, radius } from './form';
-import { formatDate, formatIst, todayIst, weekdayOf } from './ist';
+import {
+  formatClock,
+  formatDate,
+  formatIst,
+  fromIstLocal,
+  toIstLocal,
+  todayIst,
+  weekdayOf,
+} from './ist';
 
 const t = i18n.t.bind(i18n) as TFunction;
 
@@ -57,6 +65,20 @@ describe('IST formatting', () => {
 
   it('gives today as an ISO date', () => {
     expect(todayIst()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('shows the time of day only', () => {
+    expect(formatClock('2026-01-15T04:30:00Z')).toMatch(/10:00/);
+    expect(formatClock('2026-01-15T20:00:00Z')).toMatch(/01:30/);
+  });
+
+  it('converts between an instant and an IST datetime-local value, across midnight too', () => {
+    expect(toIstLocal('2026-01-15T04:30:00Z')).toBe('2026-01-15T10:00');
+    expect(toIstLocal('2026-01-15T20:00:00Z')).toBe('2026-01-16T01:30');
+    expect(fromIstLocal('2026-01-16T01:30')).toBe('2026-01-16T01:30:00+05:30');
+    expect(new Date(fromIstLocal('2026-01-16T01:30')).toISOString()).toBe(
+      '2026-01-15T20:00:00.000Z',
+    );
   });
 });
 

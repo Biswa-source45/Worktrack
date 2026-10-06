@@ -5,6 +5,10 @@ import { calls, errorBody, meBody, mockApi } from '@/test/fake-api';
 import { renderWithAuth } from '@/test/render';
 import { resetSecureStore } from '@/test/secure-store-mock';
 
+// Home is rendered without a navigator here, which useFocusEffect needs; the focus refetch is
+// tested in punch-card.test.tsx.
+jest.mock('@/lib/use-refetch-on-focus', () => ({ useRefetchOnFocus: jest.fn() }));
+
 const ME = 'GET /api/v1/me';
 // Status icons are decorative for screen readers (the badge carries the label), so the default
 // queries skip them.

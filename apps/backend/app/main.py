@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.core import storage
 from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
+from app.modules.attendance.admin_router import router as attendance_admin_router
+from app.modules.attendance.router import router as attendance_router
 from app.modules.auth.router import router as auth_router
 from app.modules.branches.router import router as branches_router
 from app.modules.devices.router import router as devices_router
@@ -19,6 +21,7 @@ from app.modules.employees.router import router as employees_router
 from app.modules.face.router import router as face_router
 from app.modules.files.router import router as files_router
 from app.modules.health.router import router as health_router
+from app.modules.notifications.router import router as notifications_router
 from app.modules.org_settings.router import router as settings_router
 from app.modules.schedule.router import router as schedule_router
 from app.modules.sessions.router import router as sessions_router
@@ -60,12 +63,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_error_handlers(app)
     app.include_router(health_router)
     for router in (
+        attendance_admin_router,
+        attendance_router,
         auth_router,
         branches_router,
         devices_router,
         employees_router,
         face_router,
         files_router,
+        notifications_router,
         schedule_router,
         sessions_router,
         settings_router,

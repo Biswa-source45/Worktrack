@@ -29,6 +29,11 @@ DEFAULTS: dict[str, Any] = {
     "face_min_brightness": 50,
     "face_max_brightness": 200,
     "face_retention_days_after_exit": 30,
+    "attendance_cutoff_time": "23:59",
+    "punch_reminder_after_shift_end_min": 30,
+    "punch_out_request_expiry_hours": 48,
+    "punch_max_speed_kmh": 150,
+    "offline_punch_max_age_hours": 12,
 }
 
 
@@ -117,6 +122,13 @@ async def test_an_update_that_changes_nothing_writes_nothing(
         ("face_min_detection_confidence", 0.2),
         ("face_min_face_px", 10),
         ("face_max_brightness", 300),
+        ("attendance_cutoff_time", "24:00"),
+        ("attendance_cutoff_time", "9:30"),
+        ("attendance_cutoff_time", "23:60"),
+        ("punch_reminder_after_shift_end_min", -1),
+        ("punch_out_request_expiry_hours", 0),
+        ("punch_max_speed_kmh", 10),
+        ("offline_punch_max_age_hours", 25),
     ],
 )
 async def test_out_of_range_values_are_rejected(

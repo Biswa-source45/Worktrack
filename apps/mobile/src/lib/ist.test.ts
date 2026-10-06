@@ -1,4 +1,12 @@
-import { formatIst, formatIstDate, formatIstDay, istDay } from './ist';
+import {
+  clockOffset,
+  formatIst,
+  formatIstClock,
+  formatIstDate,
+  formatIstDay,
+  formatIstTime,
+  istDay,
+} from './ist';
 
 describe('IST formatting', () => {
   it('shows a UTC time in IST, day first, with a 12-hour clock', () => {
@@ -26,5 +34,23 @@ describe('IST formatting', () => {
     expect(istDay()).toBe('2026-10-05');
     expect(istDay(6)).toBe('2026-10-11');
     jest.useRealTimers();
+  });
+});
+
+describe('IST clock', () => {
+  it('shows a time without the date, and a ticking clock with seconds', () => {
+    expect(formatIstTime('2026-10-04T09:12:00Z')).toBe('2:42 pm');
+    expect(formatIstClock(Date.parse('2026-10-04T09:12:07Z'))).toBe('2:42:07 pm');
+  });
+
+  it('finds how far the server is ahead of the phone, and back again', () => {
+    // The phone is 90 seconds slow: the server answered 12:00:00 while the phone read 11:58:30.
+    const offset = clockOffset('2026-10-04T12:00:00Z', Date.parse('2026-10-04T11:58:30Z'));
+    expect(offset).toBe(90_000);
+    expect(formatIstClock(Date.parse('2026-10-04T11:58:40Z') + offset)).toBe('5:30:10 pm');
+  });
+
+  it('is negative when the phone is ahead of the server', () => {
+    expect(clockOffset('2026-10-04T12:00:00Z', Date.parse('2026-10-04T12:05:00Z'))).toBe(-300_000);
   });
 });
