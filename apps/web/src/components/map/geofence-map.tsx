@@ -10,6 +10,8 @@ export type LatLng = { lat: number; lng: number };
 type Props = {
   center: LatLng | null;
   radiusM: number;
+  /** Other places to mark, e.g. where people reached a task site. */
+  points?: LatLng[];
   /** Present: the pin can be dragged and a click on the map moves it. Absent: a preview. */
   onChange?: (lat: number, lng: number) => void;
 };
@@ -28,7 +30,7 @@ const PIN = L.divIcon({
   iconSize: [20, 20],
 });
 
-export default function GeofenceMap({ center, radiusM, onChange }: Props) {
+export default function GeofenceMap({ center, radiusM, points = [], onChange }: Props) {
   const { t } = useTranslation();
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -65,6 +67,8 @@ export default function GeofenceMap({ center, radiusM, onChange }: Props) {
     };
   }, []);
 
+  // A new array each render must not redraw the map: only the places themselves matter.
+  const pointsKey = JSON.stringify(points);
   const lat = center?.lat;
   const lng = center?.lng;
   const editable = onChange !== undefined;
@@ -86,6 +90,14 @@ export default function GeofenceMap({ center, radiusM, onChange }: Props) {
       const position = marker.getLatLng();
       change.current?.(position.lat, position.lng);
     });
+    const others = (JSON.parse(pointsKey) as LatLng[]).map((point) =>
+      L.circleMarker([point.lat, point.lng], {
+        radius: 6,
+        className: 'fill-info stroke-info',
+        fillOpacity: 0.9,
+        interactive: false,
+      }).addTo(group),
+    );
     if (radiusM > 0) {
       const circle = L.circle([lat, lng], {
         radius: radiusM,
@@ -95,11 +107,13 @@ export default function GeofenceMap({ center, radiusM, onChange }: Props) {
         interactive: false,
       }).addTo(group);
       marker.on('drag', () => circle.setLatLng(marker.getLatLng()));
-      map.current.fitBounds(circle.getBounds(), { padding: [16, 16] });
+      const bounds = circle.getBounds();
+      others.forEach((other) => bounds.extend(other.getLatLng()));
+      map.current.fitBounds(bounds, { padding: [16, 16] });
     } else {
       map.current.setView([lat, lng], PIN_ZOOM);
     }
-  }, [lat, lng, radiusM, editable, pinLabel]);
+  }, [lat, lng, radiusM, pointsKey, editable, pinLabel]);
 
   return (
     <div

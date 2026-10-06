@@ -2,7 +2,7 @@
 
 import { useState, type KeyboardEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link2, Search } from 'lucide-react';
+import { Link2, LocateFixed, Search } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useTranslation } from 'react-i18next';
 import { Field } from '@/components/field';
@@ -54,6 +54,9 @@ export function PinPicker({ lat, lng, radiusM, errors = {}, onChange }: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [link, setLink] = useState('');
+  const [locating, setLocating] = useState(false);
+  // An i18n key, or null while there is nothing to say.
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // Mutations, not queries: they run on demand and their results (places) are not kept.
   const search = useMutation({
@@ -77,6 +80,31 @@ export function PinPicker({ lat, lng, radiusM, errors = {}, onChange }: Props) {
   const runResolve = () => {
     if (link.trim()) resolve.mutate(link.trim());
   };
+
+  // The browser asks the person first; a refusal or a missing GPS is told plainly, never ignored.
+  function locate() {
+    if (!('geolocation' in navigator)) {
+      setLocationError('map.locationUnavailable');
+      return;
+    }
+    setLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocating(false);
+        onChange(rounded(coords.latitude), rounded(coords.longitude));
+      },
+      (failure) => {
+        setLocating(false);
+        setLocationError(
+          failure.code === failure.PERMISSION_DENIED
+            ? 'map.locationDenied'
+            : 'map.locationUnavailable',
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15_000 },
+    );
+  }
 
   return (
     <div className="grid gap-3">
@@ -142,6 +170,24 @@ export function PinPicker({ lat, lng, radiusM, errors = {}, onChange }: Props) {
         {resolve.error && (
           <p role="alert" className="text-caption text-danger">
             {errorMessage(t, resolve.error, 'map')}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-fit"
+          onClick={locate}
+          disabled={locating}
+        >
+          <LocateFixed aria-hidden="true" />
+          {t(locating ? 'map.locating' : 'map.useMyLocation')}
+        </Button>
+        {locationError && (
+          <p role="alert" className="text-caption text-danger">
+            {t(locationError)}
           </p>
         )}
       </div>

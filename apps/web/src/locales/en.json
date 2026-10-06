@@ -354,7 +354,11 @@
       "SEARCH_BUSY": "Search is busy. Try again in a moment.",
       "SEARCH_UNAVAILABLE": "Address search is not available right now.",
       "VALIDATION_ERROR": "That text cannot be used here. Check it and try again."
-    }
+    },
+    "useMyLocation": "Use my current location",
+    "locating": "Finding your location...",
+    "locationDenied": "Location is blocked for this site. Allow it in the browser's site settings, or set the pin another way.",
+    "locationUnavailable": "Your location could not be read. Set the pin another way."
   },
   "branches": {
     "title": "Branches",
@@ -466,7 +470,8 @@
       "face": "Face matching",
       "approvals": "Approvals",
       "app": "App",
-      "attendance": "Attendance"
+      "attendance": "Attendance",
+      "tasks": "Field tasks"
     },
     "levels": {
       "1": "1 level",
@@ -492,7 +497,9 @@
       "punch_reminder_after_shift_end_min": "Punch-out reminder after shift end (min)",
       "punch_out_request_expiry_hours": "Punch-out request expiry (hours)",
       "punch_max_speed_kmh": "Maximum travel speed (km/h)",
-      "offline_punch_max_age_hours": "Offline punch maximum age (hours)"
+      "offline_punch_max_age_hours": "Offline punch maximum age (hours)",
+      "task_default_site_radius_m": "Default site radius (m)",
+      "task_accept_escalation_minutes": "Not-accepted alert after (min)"
     },
     "help": {
       "geofence_default_radius_m": "Used for a new branch when no radius is given. 30 to 500 m.",
@@ -514,7 +521,29 @@
       "punch_reminder_after_shift_end_min": "An employee still punched in is reminded this long after the shift ends. 0 to 240.",
       "punch_out_request_expiry_hours": "An out-of-office punch-out request nobody decided expires after this long. 1 to 240.",
       "punch_max_speed_kmh": "A punch that implies a faster trip from the last one goes to review. 20 to 1000.",
-      "offline_punch_max_age_hours": "A punch made offline is refused if the phone says it is older than this. 1 to 24."
+      "offline_punch_max_age_hours": "A punch made offline is refused if the phone says it is older than this. 1 to 24.",
+      "task_default_site_radius_m": "Used for a new task when no radius is given. 30 to 500 m.",
+      "task_accept_escalation_minutes": "The assigner is told when someone has not accepted a task after this long. 5 to 1440."
+    },
+    "taskTypes": {
+      "title": "Task types",
+      "hint": "What a field task is for, and what the person must show when completing it.",
+      "add": "Add type",
+      "name": "Name",
+      "edit": "Edit {{name}}",
+      "proofKind": "Proof is a",
+      "proofRequired": "A proof photo is required to complete the task",
+      "noProof": "No proof needed",
+      "active": "Active (can be chosen for new tasks)",
+      "kind": {
+        "photo": "Photo",
+        "receipt": "Receipt photo"
+      },
+      "errors": {
+        "CONFLICT": "A task type with this name already exists.",
+        "DUPLICATE": "A task type with this name already exists.",
+        "VALIDATION_ERROR": "That name cannot be used. Check it and try again."
+      }
     }
   },
   "schedule": {
@@ -840,5 +869,259 @@
       "FORBIDDEN": "You do not have permission to do this."
     },
     "whyChecked": "Why it is checked"
+  },
+  "tasks": {
+    "title": "Tasks",
+    "create": "New task",
+    "board": "Board",
+    "list": "List",
+    "search": "Search by title, client or code",
+    "allStatuses": "All statuses",
+    "showClosed": "Show closed and cancelled",
+    "columnEmpty": "No tasks",
+    "empty": "No tasks match these filters.",
+    "view": {
+      "label": "Show",
+      "all": "All tasks",
+      "assigned_by_me": "Assigned by me",
+      "team": "My team's tasks"
+    },
+    "filter": {
+      "employee": "Employee",
+      "anyone": "Anyone",
+      "anyType": "Any type",
+      "from": "From",
+      "to": "To"
+    },
+    "col": {
+      "code": "Code",
+      "title": "Task",
+      "client": "Client",
+      "type": "Type",
+      "status": "Status",
+      "priority": "Priority",
+      "scheduled": "Scheduled",
+      "assignees": "Assigned to"
+    },
+    "status": {
+      "assigned": "Assigned",
+      "accepted": "Accepted",
+      "reached": "Reached",
+      "in_progress": "In progress",
+      "on_hold": "On hold",
+      "completed": "Completed",
+      "declined": "Declined",
+      "cancelled": "Cancelled",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "flag": {
+      "notAccepted": "Not accepted",
+      "reviewPending": "Reached: review"
+    },
+    "candidate": {
+      "in_office": "In office",
+      "on_task": "On a task",
+      "punched_out": "Punched out",
+      "not_punched_in": "Not punched in",
+      "off_day": "Day off"
+    },
+    "form": {
+      "createTitle": "New task",
+      "editTitle": "Edit task",
+      "hint": "Times are in IST. The people you pick are told about the task once it is saved.",
+      "createAction": "Create task",
+      "title": "Title",
+      "type": "Task type",
+      "client": "Client",
+      "priority": "Priority",
+      "scheduled": "Scheduled for (IST)",
+      "duration": "Expected duration (minutes)",
+      "durationInvalid": "Enter a whole number of minutes from 1 to 1440.",
+      "contactName": "Contact person (optional)",
+      "contactPhone": "Contact phone (optional)",
+      "description": "Description (optional)",
+      "site": "Site",
+      "siteLocked": "Someone has already reached this site, so it can no longer be changed.",
+      "address": "Address",
+      "radius": "Arrival radius (m)",
+      "radiusHint": "Leave empty to use the organisation default.",
+      "assignees": "Assign to",
+      "assigneeSearch": "Search people by name or code",
+      "assigneesChosen_one": "{{count}} person chosen",
+      "assigneesChosen_other": "{{count}} people chosen",
+      "assigneesRequired": "Choose at least one person.",
+      "tooManyAssignees": "A task can have at most 20 people.",
+      "noCandidates": "Nobody to choose from.",
+      "briefs": "Briefs (optional)",
+      "briefsHint": "PDF or images, up to 10 MB each and 10 files. They are sent when you save.",
+      "briefsChosen": "Chosen briefs",
+      "briefTooBig": "{{name}} is larger than 10 MB.",
+      "briefTooMany": "A task can have at most 10 briefs.",
+      "removeBrief": "Remove {{name}}",
+      "uploadFailed": "The task was saved, but these files could not be uploaded: {{names}}. Save again to retry them."
+    },
+    "errors": {
+      "TASK_NOT_FOUND": "This task does not exist, or it is outside your scope.",
+      "NOT_FIELD_ELIGIBLE": "One of the people chosen cannot be given field tasks.",
+      "ALREADY_ASSIGNED": "That person is already on this task.",
+      "NOT_ASSIGNED": "That person is not on this task.",
+      "TASK_SITE_LOCKED": "Someone has already reached the site, so it can no longer be changed.",
+      "INVALID_TRANSITION": "This is not possible in the task's current state. The task was refreshed.",
+      "REACH_REVIEW_PENDING": "A Reached is waiting for review. Review it first.",
+      "CLOSE_COMMENT_REQUIRED": "Give a comment: a Reached was rejected on this task.",
+      "CANNOT_DECIDE_OWN": "You cannot review your own Reached.",
+      "ALREADY_DECIDED": "This was already decided. The task was refreshed.",
+      "REMARKS_REQUIRED": "Give a reason for rejecting.",
+      "EMPTY_COMMENT": "Write a comment or add a photo.",
+      "EMPTY_NOTE": "Write a note or add a photo.",
+      "PHOTO_UNREADABLE": "That photo could not be read. Use a JPEG or PNG image.",
+      "PHOTO_TOO_LARGE": "That photo is too large.",
+      "TOO_MANY_PHOTOS": "Too many photos were added.",
+      "TOO_MANY_ATTACHMENTS": "A task can have at most 10 briefs.",
+      "INVALID_FILE": "That file cannot be used. Upload a PDF or an image up to 10 MB.",
+      "FORBIDDEN": "You do not have permission to do this.",
+      "VALIDATION_ERROR": "Some values were not accepted. Check the form and try again."
+    },
+    "detail": {
+      "back": "Tasks",
+      "info": "Details",
+      "map": "Site",
+      "mapPoints": "Blue dots show where people reached the site.",
+      "createdBy": "Created by",
+      "closedBy": "Closed by",
+      "closeRemarks": "Closing comment",
+      "cancelledBy": "Cancelled by",
+      "cancelReason": "Reason for cancelling",
+      "edit": "Edit",
+      "addPeople": "Add people",
+      "close": "Close task",
+      "reopen": "Reopen",
+      "cancel": "Cancel task"
+    },
+    "assignee": {
+      "title": "People on this task",
+      "remove": "Remove {{name}}",
+      "removeTitle": "Remove this person?",
+      "removeHint": "{{name}} will be taken off the task and told about it. They can be added again later.",
+      "removeAction": "Remove"
+    },
+    "when": {
+      "assigned": "Assigned",
+      "accepted": "Accepted",
+      "started": "Started",
+      "completed": "Completed",
+      "declinedBecause": "Declined because",
+      "remarks": "Completion remarks"
+    },
+    "reach": {
+      "title": "Reached",
+      "at": "Reached at",
+      "distance": "Distance from the site",
+      "distanceValue": "{{m}} m (radius {{radius}} m)",
+      "accuracy": "GPS accuracy",
+      "accuracyValue": "{{m}} m",
+      "reason": "Reason given",
+      "face": "Face check",
+      "score": "Face score",
+      "selfieAlt": "Selfie of {{name}} at the site",
+      "noSelfie": "No selfie is shown to you.",
+      "review": "Review Reached",
+      "reviewTitle": "Review Reached",
+      "reviewHint": "{{name}} on {{code}}. Opening the selfie is recorded in the audit log.",
+      "remarks": "Remarks (required to reject)",
+      "approve": "Approve",
+      "reject": "Reject",
+      "reviewedNote": "Reviewer's note"
+    },
+    "review": {
+      "none": "No review needed",
+      "pending": "Waiting for review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "reachFlag": {
+      "location_mismatch": "Outside the site radius",
+      "face_review": "Face needs a check",
+      "impossible_jump": "Impossible jump"
+    },
+    "metric": {
+      "minutes": "{{m}} min",
+      "metres": "{{m}} m",
+      "toAccept": "Time to accept",
+      "acceptToReached": "Accept to Reached (includes any wait before leaving)",
+      "onSite": "Time on site",
+      "straightLine": "Straight-line distance to the site (not the road travelled)"
+    },
+    "kind": {
+      "brief": "Briefs",
+      "work_photo": "Work photos",
+      "proof": "Proof",
+      "receipt": "Receipts",
+      "comment": "Comment photos"
+    },
+    "attachments": {
+      "title": "Files",
+      "none": "No files yet.",
+      "add": "Add a brief (PDF or image, up to 10 MB)"
+    },
+    "comments": {
+      "title": "Comments",
+      "none": "No comments yet.",
+      "write": "Write a comment",
+      "photo": "Add a photo (optional)",
+      "send": "Send comment",
+      "photoAlt": "Photo from {{name}}"
+    },
+    "timeline": {
+      "title": "Timeline",
+      "offline": "Sent offline",
+      "system": "System"
+    },
+    "event": {
+      "created": "Task created",
+      "updated": "Task edited",
+      "assigned": "Assigned",
+      "unassigned": "Removed from the task",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "escalated": "Not accepted in time",
+      "reached": "Reached the site",
+      "reach_reviewed": "Reached reviewed",
+      "started": "Started work",
+      "held": "Put on hold",
+      "resumed": "Resumed",
+      "note": "Note added",
+      "completed": "Completed",
+      "reopened": "Reopened",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "dialog": {
+      "tooShort": "Write at least {{min}} characters.",
+      "reason": "Reason",
+      "cancelTitle": "Cancel this task?",
+      "cancelHint": "{{code}} is cancelled for everyone on it, and they are told. This cannot be undone.",
+      "cancelAction": "Cancel task",
+      "closeTitle": "Close this task?",
+      "closeHint": "{{code}} is finished. A closed task can no longer be changed.",
+      "closeAction": "Close task",
+      "closeComment": "Closing comment (optional)",
+      "closeCommentRequired": "Closing comment (required: a Reached was rejected)",
+      "reopenTitle": "Reopen this task?",
+      "reopenHint": "The people you choose go back to In progress on {{code}}, and are told why.",
+      "reopenAction": "Reopen",
+      "reopenComment": "Why it is reopened",
+      "reopenWho": "Reopen for",
+      "reopenNobody": "Choose at least one person.",
+      "assignTitle": "Add people",
+      "assignHint": "They are added to {{code}} and told about it.",
+      "assignAction": "Add"
+    }
   }
 }

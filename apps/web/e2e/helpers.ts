@@ -352,3 +352,103 @@ export async function goTo(page: Page, name: string) {
   }
   await page.getByRole('navigation').getByRole('link', { name, exact: true }).click();
 }
+
+// --- Field tasks -----------------------------------------------------------------------------
+
+export type FieldWorker = Worker;
+
+/** A field-eligible employee on an approved phone with an approved face: ready to take a task. */
+export async function createFieldWorker(token: string, name?: string): Promise<FieldWorker> {
+  const employee = await createEmployee(token, name, 'Field Employee', { field_eligible: true });
+  const phone = await employeeOnPhone(employee);
+  await enrollFace(phone);
+  await approveFace(token, employee.id);
+  return { employee, phone };
+}
+
+export type Site = { lat: number; lng: number };
+
+/** A site that no other run uses (the e2e database keeps tasks across runs). */
+export const randomSite = (): Site => ({
+  lat: 8 + randomInt(0, 25_000) / 1000,
+  lng: 70 + randomInt(0, 25_000) / 1000,
+});
+
+type TaskType = { id: number; name: string };
+export const taskTypes = (token: string) => api<TaskType[]>('GET', '/task-types', token);
+
+/** A task as an assigner makes it through the API (the UI path is covered by the spec itself). */
+export async function createTaskApi(
+  token: string,
+  assigneeIds: number[],
+  overrides: { title?: string; site?: Site; radius_m?: number } = {},
+): Promise<{ id: number; code: string; title: string }> {
+  const [type] = await taskTypes(token);
+  const site = overrides.site ?? randomSite();
+  const title = overrides.title ?? `E2E Task ${uniqueSuffix()}`;
+  const result = await fetch(`${API}/tasks`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': randomUUID(),
+    },
+    body: JSON.stringify({
+      title,
+      type_id: type.id,
+      client_name: 'E2E Client',
+      site: {
+        address: 'E2E Road',
+        lat: site.lat,
+        lng: site.lng,
+        radius_m: overrides.radius_m ?? 200,
+      },
+      priority: 'normal',
+      scheduled_at: new Date(Date.now() + 3_600_000).toISOString(),
+      assignee_ids: assigneeIds,
+    }),
+  });
+  if (!result.ok) throw new Error(`POST /tasks -> ${result.status} ${await result.text()}`);
+  const { task } = (await result.json()) as { task: { id: number; code: string } };
+  return { ...task, title };
+}
+
+/**
+ * What the assignee's phone sends for one step of a task: accept, start, hold, resume, reached or
+ * complete. `reached` carries the selfie of the enrolled face; `complete` a photo of the proof.
+ */
+export async function taskStep(
+  phone: string,
+  taskId: number,
+  action: 'accept' | 'start' | 'hold' | 'resume' | 'reached' | 'complete',
+  options: { site?: Site; remarks?: string } = {},
+) {
+  const form = new FormData();
+  const photo = () => new Blob([readFileSync(FACE_PHOTO)], { type: 'image/jpeg' });
+  if (action === 'reached') {
+    form.append('selfie', photo(), 'selfie.jpg');
+    form.append('lat', String(options.site?.lat));
+    form.append('lng', String(options.site?.lng));
+    form.append('accuracy_m', '10');
+  }
+  if (action === 'hold') form.append('reason', 'Waiting for the client');
+  if (action === 'complete') {
+    form.append('remarks', options.remarks ?? 'All done');
+    form.append('photos', photo(), 'proof.jpg');
+  }
+  const response = await fetch(`${API}/tasks/${taskId}/${action}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${phone}`, 'Idempotency-Key': randomUUID() },
+    body: form,
+  });
+  if (!response.ok) throw new Error(`${action} -> ${response.status} ${await response.text()}`);
+}
+
+/** An account with the Task Assigner role, signed in once so its temporary password is replaced. */
+export async function createAssigner(token: string) {
+  const created = await createEmployee(token, `E2E Assigner ${uniqueSuffix()}`, 'Task Assigner');
+  const password = 'E2e-Assigner-Pass-9';
+  const first = await apiLogin(created.code, created.password);
+  await changePassword(first.access_token, created.password, password);
+  return { ...created, password, token: (await apiLogin(created.code, password)).access_token };
+}
