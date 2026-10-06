@@ -6,8 +6,12 @@ const services = jest.mocked(Location.hasServicesEnabledAsync);
 const position = jest.mocked(Location.getCurrentPositionAsync);
 
 type Position = Awaited<ReturnType<typeof Location.getCurrentPositionAsync>>;
-const at = (accuracy: number | null) =>
-  ({ coords: { latitude: 20.2961, longitude: 85.8245, accuracy }, timestamp: 0 }) as Position;
+const at = (accuracy: number | null, mocked?: boolean) =>
+  ({
+    coords: { latitude: 20.2961, longitude: 85.8245, accuracy },
+    timestamp: 0,
+    mocked,
+  }) as Position;
 
 const codeOf = (attempt: Promise<unknown>) =>
   attempt.then(
@@ -27,9 +31,23 @@ afterEach(() => jest.useRealTimers());
 describe('getCurrentFix', () => {
   it('returns one highest-accuracy position with its accuracy, whatever that is', async () => {
     position.mockResolvedValue(at(180));
-    await expect(getCurrentFix()).resolves.toEqual({ lat: 20.2961, lng: 85.8245, accuracyM: 180 });
+    await expect(getCurrentFix()).resolves.toEqual({
+      lat: 20.2961,
+      lng: 85.8245,
+      accuracyM: 180,
+      mocked: false,
+    });
     expect(position).toHaveBeenCalledTimes(1);
     expect(position).toHaveBeenCalledWith({ accuracy: Location.Accuracy.Highest });
+  });
+
+  it('reports the mock-location flag as it is, and false when the phone says nothing', async () => {
+    position.mockResolvedValue(at(12, true));
+    expect((await getCurrentFix()).mocked).toBe(true);
+    position.mockResolvedValue(at(12, false));
+    expect((await getCurrentFix()).mocked).toBe(false);
+    position.mockResolvedValue(at(12)); // iOS, or an Android that does not report it
+    expect((await getCurrentFix()).mocked).toBe(false);
   });
 
   it('asks only for the while-in-use permission', async () => {

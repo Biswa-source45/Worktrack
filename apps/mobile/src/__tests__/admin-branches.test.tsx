@@ -23,7 +23,7 @@ const ONE = 'GET /api/v1/admin/branches/7';
 const MOVE = 'PATCH /api/v1/admin/branches/7';
 const CREATE = 'POST /api/v1/admin/branches';
 const USE = 'Use my current location';
-const HERE = { lat: 20.3001, lng: 85.8302, accuracyM: 12.4 };
+const HERE = { lat: 20.3001, lng: 85.8302, accuracyM: 12.4, mocked: false };
 
 const button = (name: string | RegExp) => screen.getByRole('button', { name });
 const dialog = () => within(screen.getByTestId('dialog'));

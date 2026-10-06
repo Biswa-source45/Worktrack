@@ -28,3 +28,25 @@ export const formatIstDay = (iso: string) => weekday.format(new Date(iso));
 
 /** The IST calendar day `offset` days from today, as "2026-10-04". */
 export const istDay = (offset = 0) => isoDay.format(new Date(Date.now() + offset * DAY_MS));
+
+const clock = {
+  timeZone: 'Asia/Kolkata',
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true,
+} as const;
+const time = new Intl.DateTimeFormat('en-IN', clock);
+const timeWithSeconds = new Intl.DateTimeFormat('en-IN', { ...clock, second: '2-digit' });
+
+/** "2:42 pm" */
+export const formatIstTime = (iso: string) => time.format(new Date(iso));
+
+/** "2:42:07 pm", for a clock that ticks. */
+export const formatIstClock = (ms: number) => timeWithSeconds.format(new Date(ms));
+
+/**
+ * How far the server's clock is ahead of this phone's, from one answer. Add it to the phone's
+ * time to show the server's time (server time is the only truth; the phone's clock may be wrong).
+ */
+export const clockOffset = (serverIso: string, receivedAt: number) =>
+  Date.parse(serverIso) - receivedAt;
