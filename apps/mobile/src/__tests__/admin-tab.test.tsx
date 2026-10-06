@@ -55,7 +55,7 @@ describe('Admin tab', () => {
     signInWith([]);
     await openApp();
     const names = screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel);
-    expect(names).toEqual(['Home', 'Attendance', 'Profile & Settings']);
+    expect(names).toEqual(['Home', 'Tasks', 'Attendance', 'Profile & Settings']);
     expect(screen.queryByText('Admin')).toBeNull();
   });
 
@@ -87,6 +87,7 @@ describe('Admin tab', () => {
     await openApp();
     expect(screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel)).toEqual([
       'Home',
+      'Tasks',
       'Attendance',
       'Profile & Settings',
       'Admin',
@@ -141,6 +142,7 @@ describe('Admin tab', () => {
     await openApp();
     expect(screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel)).toEqual([
       'Home',
+      'Tasks',
       'Attendance',
       'Profile & Settings',
       'Admin',

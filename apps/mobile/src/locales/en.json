@@ -20,7 +20,8 @@
     "home": "Home",
     "attendance": "Attendance",
     "profile": "Profile & Settings",
-    "admin": "Admin"
+    "admin": "Admin",
+    "tasks": "Tasks"
   },
   "theme": {
     "title": "Appearance",
@@ -484,11 +485,161 @@
     "devBuild": {
       "body": "The camera is not available in Expo Go. Open the WorkTrack development build on an Android phone to punch."
     },
-    "worked": "Worked today"
+    "worked": "Worked today",
+    "fieldPunch": "Field punch-in at {{code}}"
   },
   "tasks": {
+    "title": "Tasks",
+    "list": {
+      "active": "Active",
+      "done": "Done",
+      "assigned": "Assigned by me"
+    },
+    "empty": {
+      "active": "No active tasks.",
+      "done": "No finished tasks yet.",
+      "assigned": "You have not assigned any tasks."
+    },
+    "status": {
+      "assigned": "Assigned",
+      "accepted": "Accepted",
+      "reached": "Reached",
+      "in_progress": "In progress",
+      "on_hold": "On hold",
+      "completed": "Completed",
+      "declined": "Declined",
+      "cancelled": "Cancelled",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low priority",
+      "normal": "Normal priority",
+      "high": "High priority",
+      "urgent": "Urgent"
+    },
+    "saved": {
+      "waiting_one": "{{count}} task update is saved on this phone and waiting to be sent.",
+      "waiting_other": "{{count}} task updates are saved on this phone and waiting to be sent.",
+      "failed_one": "{{count}} saved task update could not be sent.",
+      "failed_other": "{{count}} saved task updates could not be sent.",
+      "open": "View saved items"
+    },
+    "savedHere": "Saved on this phone. It will be sent when you are back online.",
+    "next": "What next",
+    "actions": {
+      "accept": "Accept task",
+      "decline": "Decline task",
+      "reach": "I have reached",
+      "start": "Start work",
+      "hold": "Put on hold",
+      "resume": "Resume work",
+      "note": "Add a note",
+      "complete": "Complete task"
+    },
+    "declineTitle": "Decline this task",
+    "holdTitle": "Put the task on hold",
+    "reason": {
+      "label": "Reason",
+      "min": "Give a reason of at least 3 characters.",
+      "max": "Keep the reason under 200 characters."
+    },
+    "working": "Sending. This can take a moment on a slow connection.",
+    "checkingLocation": "Checking your location...",
+    "client": "Client",
+    "scheduled": "Scheduled for",
+    "expected": "Expected time",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "description": "Details",
+    "taskStatus": "Task status: {{status}}",
+    "youDeclined": "You declined this task: {{reason}}",
     "site": {
+      "title": "Site",
+      "radius_one": "Mark that you have reached only within {{count}} metre of the site.",
+      "radius_other": "Mark that you have reached only within {{count}} metres of the site.",
       "mapA11y": "Map of the task site: {{address}}"
+    },
+    "navigate": "Navigate to the site",
+    "call": "Call {{name}}",
+    "noApp": "No app on this phone could open that.",
+    "brief": "Brief",
+    "openFile": "Open file",
+    "openPhoto": "Open photo",
+    "assignees": "Assigned to",
+    "updates": "Updates",
+    "system": "System",
+    "sentLater": "sent later from the phone",
+    "event": {
+      "created": "Task created",
+      "updated": "Task edited",
+      "assigned": "Assigned",
+      "unassigned": "Removed from the task",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "escalated": "Not accepted in time",
+      "reached": "Reached the site",
+      "reach_reviewed": "Arrival reviewed",
+      "started": "Started work",
+      "held": "Put on hold",
+      "resumed": "Resumed",
+      "note": "Note",
+      "completed": "Completed",
+      "reopened": "Reopened",
+      "closed": "Closed",
+      "cancelled": "Cancelled"
+    },
+    "comments": "Comments",
+    "noComments": "No comments yet.",
+    "addComment": "Add a comment",
+    "reached": {
+      "title": "You reached the site",
+      "at": "at {{time}}",
+      "review": "sent for review"
+    },
+    "reach": {
+      "devBuild": "The camera is not available in Expo Go. Open the WorkTrack development build on an Android phone to mark that you have reached the site.",
+      "sending": "Sending your selfie and position...",
+      "done": "Your arrival is recorded.",
+      "review": "Your arrival is recorded and sent for review. You can carry on with the task.",
+      "saved": "Saved on this phone. It will be sent when you are back online.",
+      "outside": "You are {{distance}} m from the site. It must be within {{radius}} m.",
+      "outsideNoNumbers": "You are too far from the site.",
+      "outsideHelp": "If you are at the site and the position is wrong, give the reason. Your arrival is recorded and sent for review, and you can carry on with the task.",
+      "reasonLabel": "Why is the position different?",
+      "submitOutside": "Submit with this reason",
+      "backToTask": "Back to the task"
+    },
+    "compose": {
+      "note": {
+        "title": "Add a note",
+        "label": "Note",
+        "send": "Save note"
+      },
+      "comment": {
+        "title": "Add a comment",
+        "label": "Comment",
+        "send": "Post comment"
+      },
+      "complete": {
+        "title": "Complete the task",
+        "label": "Remarks",
+        "send": "Complete task"
+      },
+      "photos": "Photos",
+      "receipts": "Receipt photos",
+      "required": "required",
+      "addPhoto": "Take a photo",
+      "remove": "Remove",
+      "removeN": "Remove photo {{n}}",
+      "photoN": "Photo {{n}}"
+    },
+    "errors": {
+      "proofRequired": "Add at least one proof photo to complete this task.",
+      "receiptRequired": "Add at least one photo of the receipt to complete this task.",
+      "INVALID_TRANSITION": "The task cannot do that right now. Pull down to refresh it.",
+      "OFFLINE_PUNCH_TOO_OLD": "This was saved on the phone too long ago to be accepted.",
+      "MOCK_LOCATION": "A mock location is switched on. Turn it off and try again.",
+      "DEVICE_NOT_TRUSTED": "This phone is not trusted for this action."
     }
   },
   "photo": {

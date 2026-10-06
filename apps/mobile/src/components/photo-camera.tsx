@@ -19,16 +19,18 @@ const PhotoCameraView = lazy(
 type Props = {
   /** A file in this phone's cache. Whoever receives it deletes it (deletePhotos) once it is sent. */
   onPhoto: (uri: string) => void;
+  /** The back arrow, when closing the camera must not leave the screen (a form being filled in). */
+  onCancel?: () => void;
 };
 
 /** Full-screen back camera with a shutter button, for task photos. */
-export function PhotoCamera({ onPhoto }: Props) {
+export function PhotoCamera({ onPhoto, onCancel }: Props) {
   const { t } = useTranslation();
   const { space } = useTheme();
   if (!cameraAvailable) {
     return (
       <Screen>
-        <BackButton />
+        <BackButton onPress={onCancel} />
         <Banner status="info" icon={Info} message={t('photo.devBuild')} />
         <AppText variant="h3" accessibilityRole="header">
           {t('face.devBuild.title')}
@@ -38,7 +40,7 @@ export function PhotoCamera({ onPhoto }: Props) {
   }
   return (
     <Suspense fallback={<Skeleton height={space[16]} accessibilityLabel={t('common.loading')} />}>
-      <PhotoCameraView onPhoto={onPhoto} />
+      <PhotoCameraView onPhoto={onPhoto} onCancel={onCancel} />
     </Suspense>
   );
 }

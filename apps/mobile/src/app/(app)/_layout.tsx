@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
-import { CalendarCheck, House, ShieldCheck, UserRound } from '@/components/icons';
+import { CalendarCheck, ClipboardList, House, ShieldCheck, UserRound } from '@/components/icons';
 import type { LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
@@ -12,6 +12,7 @@ import { useTheme } from '@/lib/theme';
 
 const ICONS: Record<string, LucideIcon> = {
   index: House,
+  tasks: ClipboardList,
   attendance: CalendarCheck,
   profile: UserRound,
   admin: ShieldCheck,
@@ -93,6 +94,8 @@ export default function AppLayout() {
   useQueueAutoSync(me?.id);
   const admin =
     can(me, 'devices.manage') || can(me, 'employees.manage') || can(me, 'branches.manage');
+  // Field staff do tasks; assigners follow the ones they assigned. The server checks every call.
+  const tasks = me?.field_eligible === true || can(me, 'tasks.create') || can(me, 'tasks.view_all');
 
   return (
     <Tabs
@@ -103,6 +106,12 @@ export default function AppLayout() {
         name="index"
         options={{ title: t('tabs.home'), tabBarAccessibilityLabel: t('tabs.home') }}
       />
+      <Tabs.Protected guard={tasks}>
+        <Tabs.Screen
+          name="tasks"
+          options={{ title: t('tabs.tasks'), tabBarAccessibilityLabel: t('tabs.tasks') }}
+        />
+      </Tabs.Protected>
       <Tabs.Screen
         name="attendance"
         options={{ title: t('tabs.attendance'), tabBarAccessibilityLabel: t('tabs.attendance') }}

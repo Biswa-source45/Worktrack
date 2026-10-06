@@ -127,6 +127,15 @@ describe('PhotoCamera', () => {
     expect(mockVision.requestPermission).toHaveBeenCalled();
   });
 
+  it('lets a form close the camera with the back arrow instead of leaving the screen', async () => {
+    const onCancel = jest.fn();
+    await renderWithTheme(<PhotoCamera onPhoto={jest.fn()} onCancel={onCancel} />);
+    await shutter();
+    await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(mockRouter.back).not.toHaveBeenCalled();
+  });
+
   it('says the development build is needed in Expo Go instead of crashing', async () => {
     mockApp.available = false;
     await renderWithTheme(<PhotoCamera onPhoto={jest.fn()} />);

@@ -24,6 +24,7 @@ import { useTheme } from '@/lib/theme';
 type Props = {
   /** The photo is a file in this phone's cache; the caller deletes it after use. */
   onPhoto: (uri: string) => void;
+  onCancel?: () => void;
 };
 
 // The camera list is empty for a moment while it loads: only then say there is no back camera.
@@ -31,7 +32,7 @@ const DEVICE_WAIT_MS = 1500;
 // Never "started" by now: the camera is not delivering pictures.
 const START_WAIT_MS = 10_000;
 
-export default function PhotoCameraView({ onPhoto }: Props) {
+export default function PhotoCameraView({ onPhoto, onCancel }: Props) {
   const { t } = useTranslation();
   const { colors, space, radius } = useTheme();
   const insets = useSafeAreaInsets();
@@ -95,6 +96,7 @@ export default function PhotoCameraView({ onPhoto }: Props) {
     return (
       <CameraProblem
         detail={problem}
+        onBack={onCancel}
         onRetry={() => {
           setStarted(false);
           setProblem(null);
@@ -107,7 +109,7 @@ export default function PhotoCameraView({ onPhoto }: Props) {
   if (!hasPermission) {
     return (
       <Screen>
-        <BackButton />
+        <BackButton onPress={onCancel} />
         <AppText variant="h3" accessibilityRole="header">
           {t('face.camera.permissionTitle')}
         </AppText>
@@ -126,7 +128,7 @@ export default function PhotoCameraView({ onPhoto }: Props) {
   if (!device) {
     return (
       <Screen>
-        <BackButton />
+        <BackButton onPress={onCancel} />
         {waited ? (
           <Banner status="danger" icon={TriangleAlert} message={t('photo.noBackCamera')} />
         ) : null}
@@ -156,7 +158,7 @@ export default function PhotoCameraView({ onPhoto }: Props) {
           backgroundColor: colors.surface,
         }}
       >
-        <BackButton />
+        <BackButton onPress={onCancel} />
       </View>
       <View
         style={{

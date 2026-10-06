@@ -6,6 +6,7 @@ import { meBody, mockApi } from '@/test/fake-api';
 import { resetSecureStore, secureStoreContents } from '@/test/secure-store-mock';
 
 const tab = (name: string) => screen.getByRole('tab', { name });
+const tabNames = () => screen.queryAllByRole('tab').map((item) => item.props.accessibilityLabel);
 const selected = (name: string) => tab(name).props.accessibilityState.selected;
 const segment = (name: string) => screen.getByRole('button', { name });
 
@@ -35,14 +36,30 @@ describe('tab shell', () => {
     });
   });
 
-  it('has exactly three tabs, Home, Attendance and Profile & Settings, and opens on Home', async () => {
+  it('has exactly four tabs for a field employee, Home, Tasks, Attendance and Profile & Settings, and opens on Home', async () => {
     await renderRouter('./src/app');
     expect(await screen.findByText('Welcome back')).toBeOnTheScreen();
     await screen.findByText('Test Phone');
     const names = screen.getAllByRole('tab').map((item) => item.props.accessibilityLabel);
-    expect(names).toEqual(['Home', 'Attendance', 'Profile & Settings']);
+    expect(names).toEqual(['Home', 'Tasks', 'Attendance', 'Profile & Settings']);
     expect(selected('Home')).toBe(true);
     expect(selected('Profile & Settings')).toBe(false);
+  });
+
+  it('has no Tasks tab for an employee who is not field-eligible and has no task permissions', async () => {
+    mockApi({ 'GET /api/v1/me': () => Response.json(meBody({ field_eligible: false })) });
+    await renderRouter('./src/app');
+    // The app keeps the last answer for /me while it asks again: wait for the new one.
+    await waitFor(() => expect(tabNames()).toEqual(['Home', 'Attendance', 'Profile & Settings']));
+  });
+
+  it('gives an assigner who is not field-eligible a Tasks tab', async () => {
+    mockApi({
+      'GET /api/v1/me': () =>
+        Response.json(meBody({ field_eligible: false, permissions: ['tasks.create'] })),
+    });
+    await renderRouter('./src/app');
+    await waitFor(() => expect(tabNames()).toContain('Tasks'));
   });
 
   it('opens the Attendance tab with the month calendar', async () => {
