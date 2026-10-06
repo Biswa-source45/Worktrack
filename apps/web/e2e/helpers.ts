@@ -338,3 +338,17 @@ export async function createWaitingRequest(
   if (!mine) throw new Error('The punch-out request is not waiting');
   return { worker, punchedInAt: punchedIn.punch.time, requestId: mine.id };
 }
+
+/** Opens a page from the navigation: the sidebar at 1024 px and wider, the menu drawer below it. */
+export async function goTo(page: Page, name: string) {
+  const menu = page.getByRole('button', { name: 'Open menu' });
+  if (await menu.isVisible()) {
+    await menu.click();
+    await page
+      .getByRole('dialog', { name: 'Menu' })
+      .getByRole('link', { name, exact: true })
+      .click();
+    return;
+  }
+  await page.getByRole('navigation').getByRole('link', { name, exact: true }).click();
+}

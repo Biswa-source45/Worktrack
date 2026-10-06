@@ -184,6 +184,10 @@ describe('proxy route', () => {
     'api/v1/files',
     'api/v1/files/a/b',
     'api/v1/files/a%20b',
+    'api/v1/tasksx',
+    'api/v1/task-types/1',
+    'api/v1/me/tasks',
+    'api/v1/admin-tasks',
     'api/v1/admin/../auth/refresh',
     'api/v1/admin/%2e%2e/auth/refresh',
     'me',
@@ -217,6 +221,10 @@ describe('proxy route', () => {
     'api/v1/employees/team',
     'api/v1/branches',
     'api/v1/shifts',
+    'api/v1/tasks',
+    'api/v1/tasks/candidates',
+    'api/v1/tasks/7/assignees/3/reach-review',
+    'api/v1/task-types',
     'api/v1/files/eyJhbGciOi.eyJzdWIi-_x.sig-nature_1',
   ])('allows %s', async (path) => {
     backend(() => Response.json({}));

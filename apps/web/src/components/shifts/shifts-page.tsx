@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ellipsis, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Page, PageHeader } from '@/components/page';
@@ -118,7 +119,7 @@ function ShiftsTab() {
 
   const close = () => setOpen(null);
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="flex justify-end">
         <Button onClick={() => setOpen({ kind: 'form' })}>
           <Plus aria-hidden="true" />
@@ -150,7 +151,7 @@ function ShiftsTab() {
           onClose={close}
         />
       )}
-    </div>
+    </TabPanel>
   );
 }
 

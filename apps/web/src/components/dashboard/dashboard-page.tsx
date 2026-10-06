@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, Smartphone, UserCheck, Users, UserX, type LucideIcon } from 'lucide-react';
+import { m } from 'motion/react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { DotPattern, HalfCircles } from '@/components/decor/decor';
@@ -11,14 +12,17 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
+import { itemEnter } from '@/lib/motion';
 import { useMe } from '@/lib/me';
 import { cn } from '@/lib/utils';
 
+const MotionCard = m.create(Card);
 const GRID = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4';
 
 function Stat({
   label,
   testId,
+  index,
   value,
   icon: Icon,
   warning = false,
@@ -26,13 +30,20 @@ function Stat({
 }: {
   label: string;
   testId: string;
+  /** Position in the row of cards, for the staggered arrival. */
+  index: number;
   value: number;
   icon: LucideIcon;
   warning?: boolean;
   children?: ReactNode;
 }) {
   return (
-    <Card role="group" aria-label={label} className="flex items-start gap-3">
+    <MotionCard
+      role="group"
+      aria-label={label}
+      className="flex items-start gap-3"
+      {...itemEnter(index)}
+    >
       <span
         className={cn(
           'flex size-10 shrink-0 items-center justify-center rounded-full',
@@ -48,7 +59,7 @@ function Stat({
         </p>
       </div>
       {children}
-    </Card>
+    </MotionCard>
   );
 }
 
@@ -95,24 +106,28 @@ function Stats({ canReview }: { canReview: boolean }) {
       <Stat
         label={t('dashboard.total')}
         testId="stat-total"
+        index={0}
         value={data.employees_total}
         icon={Users}
       />
       <Stat
         label={t('dashboard.active')}
         testId="stat-active"
+        index={1}
         value={data.employees_active}
         icon={UserCheck}
       />
       <Stat
         label={t('dashboard.inactive')}
         testId="stat-inactive"
+        index={2}
         value={data.employees_inactive}
         icon={UserX}
       />
       <Stat
         label={t('dashboard.pendingDevices')}
         testId="stat-pending-devices"
+        index={3}
         value={data.pending_devices}
         // Warning (pending) treatment only while something is actually waiting.
         icon={pending ? Clock : Smartphone}

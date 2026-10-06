@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Page, PageHeader } from '@/components/page';
@@ -200,14 +201,14 @@ function DevicesView() {
       {list.isPending || list.isPlaceholderData ? (
         <TableSkeleton />
       ) : (
-        <div role="tabpanel">
+        <TabPanel>
           <DataTable
             columns={columns}
             data={rows}
             empty={t(`devices.empty.${status || 'all'}`)}
             columnClass={COLUMN_CLASS}
           />
-        </div>
+        </TabPanel>
       )}
       {list.hasNextPage && (
         <Button

@@ -13,6 +13,7 @@ import {
   employeeOnPhone,
   enrollFace,
   expectImagesLoaded,
+  goTo,
   punchOk,
   sendPunch,
   stubMapTiles,
@@ -119,6 +120,19 @@ for (const theme of THEMES) {
       await expect(page.getByText('Pending devices')).toBeVisible();
       await shot('dashboard');
 
+      // The sidebar's other two states: the icon rail on a wide screen, the drawer on a narrow one.
+      if (width >= 1024) {
+        await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+        await shot('sidebar-collapsed');
+        await page.getByRole('button', { name: 'Expand sidebar' }).click();
+      } else {
+        await page.getByRole('button', { name: 'Open menu' }).click();
+        await expect(page.getByRole('dialog', { name: 'Menu' })).toBeVisible();
+        await shot('menu-drawer', false);
+        await page.keyboard.press('Escape');
+        await expect(page.getByRole('dialog', { name: 'Menu' })).toBeHidden();
+      }
+
       await openEmployees(page);
       await shot('employees');
 
@@ -152,18 +166,18 @@ for (const theme of THEMES) {
       await expect(page.getByRole('row')).toHaveCount(2); // the header and the empty-state row
       await shot('employees-empty');
 
-      await page.getByRole('link', { name: 'Devices' }).click();
+      await goTo(page, 'Devices');
       await expect(page.getByRole('tabpanel').getByRole('row').nth(1)).toBeVisible();
       await shot('devices');
       await page.getByRole('tab', { name: /^Pending/ }).click();
       await expect(page.getByText(/already active for/).first()).toBeVisible();
       await shot('devices-pending');
 
-      await page.getByRole('link', { name: 'Sessions' }).click();
+      await goTo(page, 'Sessions');
       await expect(page.getByRole('tabpanel').getByRole('row').nth(1)).toBeVisible();
       await shot('sessions');
 
-      await page.getByRole('link', { name: 'Branches' }).click();
+      await goTo(page, 'Branches');
       await expect(page.getByRole('row').nth(1)).toBeVisible();
       await shot('branches');
       await page.getByRole('button', { name: 'Add branch' }).click();
@@ -175,7 +189,7 @@ for (const theme of THEMES) {
       await page.keyboard.press('Escape');
       await expect(branch).toBeHidden();
 
-      await page.getByRole('link', { name: 'Shifts' }).click();
+      await goTo(page, 'Shifts');
       await expect(page.getByRole('tabpanel').getByRole('row').nth(1)).toBeVisible();
       await shot('shifts');
       await page.getByRole('button', { name: 'Add shift' }).click();
@@ -190,7 +204,7 @@ for (const theme of THEMES) {
       await expect(page.getByRole('button', { name: 'Add holiday' })).toBeVisible();
       await shot('holidays');
 
-      await page.getByRole('link', { name: 'Settings' }).click();
+      await goTo(page, 'Settings');
       await expect(page.getByLabel('GPS maximum accuracy (m)')).toHaveValue(/\d+/);
       await shot('settings');
 
@@ -199,7 +213,7 @@ for (const theme of THEMES) {
       await expect(page.getByRole('region', { name: 'Home work location' })).toBeVisible();
       await shot('employee-schedule-home');
 
-      await page.getByRole('link', { name: 'Employees' }).first().click();
+      await goTo(page, 'Employees');
       await page.getByRole('tab', { name: /^Home requests/ }).click();
       await expect(page.getByRole('tabpanel')).toBeVisible();
       await shot('home-requests');
@@ -222,7 +236,7 @@ for (const theme of THEMES) {
       await shot('face-review-dialog', false);
       await page.keyboard.press('Escape');
 
-      await page.getByRole('link', { name: 'Attendance' }).click();
+      await goTo(page, 'Attendance');
       await page.getByRole('textbox', { name: 'Search by name or code' }).fill(WORKERS);
       await expect(page.getByRole('table').getByRole('row')).toHaveCount(5);
       await shot('attendance');
@@ -281,7 +295,7 @@ for (const theme of THEMES) {
 }
 
 async function openEmployees(page: Page) {
-  await page.getByRole('link', { name: 'Employees' }).click();
+  await goTo(page, 'Employees');
   await expect(page).toHaveURL(/\/employees$/);
   await expect(page.getByRole('row').nth(1)).toBeVisible();
 }

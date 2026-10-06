@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
 import { StatusBadge } from '@/components/status-badge';
@@ -109,7 +110,7 @@ export function ExceptionsTab() {
   );
 
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <Field id="exception-kind" label={t('attendance.col.kind')}>
           <Select
@@ -172,6 +173,6 @@ export function ExceptionsTab() {
           {t('common.loadMore')}
         </Button>
       )}
-    </div>
+    </TabPanel>
   );
 }

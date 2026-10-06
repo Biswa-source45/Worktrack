@@ -5,6 +5,7 @@ import { keepPreviousData, useInfiniteQuery, useQueryClient } from '@tanstack/re
 import type { TFunction } from 'i18next';
 import { Monitor, Smartphone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Page, PageHeader } from '@/components/page';
@@ -234,14 +235,14 @@ function SessionsView() {
       {list.isPending || list.isPlaceholderData ? (
         <TableSkeleton />
       ) : (
-        <div role="tabpanel">
+        <TabPanel>
           <DataTable
             columns={columns}
             data={rows}
             empty={t(`sessions.empty.${status || 'all'}`)}
             columnClass={COLUMN_CLASS}
           />
-        </div>
+        </TabPanel>
       )}
       {list.hasNextPage && (
         <Button

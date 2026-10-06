@@ -7,6 +7,7 @@ import {
   type ColumnDef,
   type RowData,
 } from '@tanstack/react-table';
+import { Reveal } from '@/components/animated';
 import { EmptyState } from '@/components/empty-state';
 import {
   Table,
@@ -16,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { itemEnter } from '@/lib/motion';
 
 // Paging, filtering and sorting happen on the server, so the table needs no optional features.
 const features = tableFeatures({});
@@ -46,37 +48,39 @@ export function DataTable<T extends RowData>({
   const table = useTable({ features, columns, data });
   const rows = table.getRowModel().rows;
   return (
-    <Table>
-      <TableHeader>
-        {table.getHeaderGroups().map((group) => (
-          <TableRow key={group.id}>
-            {group.headers.map((header) => (
-              <TableHead key={header.id} className={classOf(header.column.id)}>
-                {header.isPlaceholder ? null : <table.FlexRender header={header} />}
-              </TableHead>
-            ))}
-          </TableRow>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {rows.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={columns.length}>
-              <EmptyState text={empty} />
-            </TableCell>
-          </TableRow>
-        ) : (
-          rows.map((row) => (
-            <TableRow key={row.id} className="hover:bg-raised/50">
-              {row.getAllCells().map((cell) => (
-                <TableCell key={cell.id} className={classOf(cell.column.id)}>
-                  <table.FlexRender cell={cell} />
-                </TableCell>
+    <Reveal>
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((group) => (
+            <TableRow key={group.id}>
+              {group.headers.map((header) => (
+                <TableHead key={header.id} className={classOf(header.column.id)}>
+                  {header.isPlaceholder ? null : <table.FlexRender header={header} />}
+                </TableHead>
               ))}
             </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={columns.length}>
+                <EmptyState text={empty} />
+              </TableCell>
+            </TableRow>
+          ) : (
+            rows.map((row, index) => (
+              <TableRow key={row.id} className="hover:bg-raised/50" {...itemEnter(index)}>
+                {row.getAllCells().map((cell) => (
+                  <TableCell key={cell.id} className={classOf(cell.column.id)}>
+                    <table.FlexRender cell={cell} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </Reveal>
   );
 }

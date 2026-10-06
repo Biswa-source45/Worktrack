@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+import { TabPanel } from '@/components/animated';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
 import { GeofenceMap } from '@/components/map/pin-picker';
@@ -251,7 +252,7 @@ export function HomeRequestsTab({ requests }: { requests: Requests }) {
   );
 
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       {requests.error && (
         <p role="alert" className="text-small text-danger">
           {errorMessage(t, requests.error)}
@@ -265,6 +266,6 @@ export function HomeRequestsTab({ requests }: { requests: Requests }) {
       {reviewing !== null && (
         <ReviewDialog requestId={reviewing} onClose={() => setReviewing(null)} />
       )}
-    </div>
+    </TabPanel>
   );
 }

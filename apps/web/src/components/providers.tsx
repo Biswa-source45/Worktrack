@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { MotionProvider } from '@/components/motion-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import { ApiError } from '@/lib/api-client';
 import '@/lib/i18n';
@@ -29,7 +30,9 @@ export function Providers({ children }: { children: ReactNode }) {
   });
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <MotionProvider>{children}</MotionProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

@@ -26,6 +26,19 @@
   },
   "nav": {
     "label": "Main",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "group": {
+      "overview": "Overview",
+      "work": "Work",
+      "people": "People",
+      "organisation": "Organisation"
+    },
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
     "employees": "Employees",
     "attendance": "Attendance",
     "branches": "Branches",

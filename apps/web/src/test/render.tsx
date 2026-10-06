@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
+import { MotionProvider } from '@/components/motion-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import '@/lib/i18n';
 
@@ -11,7 +12,9 @@ export function renderWithClient(ui: ReactElement) {
     client,
     ...render(
       <ThemeProvider>
-        <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+        <QueryClientProvider client={client}>
+          <MotionProvider>{ui}</MotionProvider>
+        </QueryClientProvider>
       </ThemeProvider>,
     ),
   };

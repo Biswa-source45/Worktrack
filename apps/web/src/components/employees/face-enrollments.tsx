@@ -7,6 +7,7 @@ import { CircleCheck, CircleX, Clock, RotateCcw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+import { TabPanel } from '@/components/animated';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
 import { Avatar } from '@/components/ui/avatar';
@@ -336,7 +337,7 @@ export function FaceEnrollmentsTab() {
   );
 
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="max-w-56">
         <Field id="face-status" label={t('face.filter')}>
           <Select
@@ -372,6 +373,6 @@ export function FaceEnrollmentsTab() {
       {reviewing !== null && (
         <FaceReviewDialog enrollmentId={reviewing} onClose={() => setReviewing(null)} />
       )}
-    </div>
+    </TabPanel>
   );
 }
