@@ -29,11 +29,19 @@ function setup(
 const posted = (calls: Call[], path: string) =>
   calls.filter((c) => c.method === 'POST' && c.path.endsWith(path));
 
-async function fillValid(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText('Title'), 'Collect the contract');
+type User = ReturnType<typeof userEvent.setup>;
+
+// Pasting is one event where typing is one per key: the long forms stay well inside the time limit.
+async function paste(user: User, field: HTMLElement, text: string) {
+  await user.click(field);
+  await user.paste(text);
+}
+
+async function fillValid(user: User) {
+  await paste(user, screen.getByLabelText('Title'), 'Collect the contract');
   await user.selectOptions(screen.getByLabelText('Task type'), '1');
-  await user.type(screen.getByLabelText('Client'), 'Acme Traders');
-  await user.type(screen.getByLabelText('Address'), 'MG Road');
+  await paste(user, screen.getByLabelText('Client'), 'Acme Traders');
+  await paste(user, screen.getByLabelText('Address'), 'MG Road');
   await user.click(screen.getByRole('button', { name: 'move pin' }));
   await user.click(await screen.findByRole('checkbox', { name: /Asha Rao/ }));
   await user.click(screen.getByRole('checkbox', { name: /Ravi Kumar/ }));
@@ -67,9 +75,9 @@ describe('TaskDialog: new task', () => {
     await fillValid(user);
     await user.selectOptions(screen.getByLabelText('Priority'), 'high');
     await user.clear(screen.getByLabelText('Scheduled for (IST)'));
-    await user.type(screen.getByLabelText('Scheduled for (IST)'), '2026-03-04T10:30');
-    await user.type(screen.getByLabelText('Contact phone (optional)'), '98765 00000');
-    await user.type(screen.getByLabelText('Expected duration (minutes)'), '45');
+    await paste(user, screen.getByLabelText('Scheduled for (IST)'), '2026-03-04T10:30');
+    await paste(user, screen.getByLabelText('Contact phone (optional)'), '98765 00000');
+    await paste(user, screen.getByLabelText('Expected duration (minutes)'), '45');
     await user.click(screen.getByRole('button', { name: 'Create task' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());
@@ -93,7 +101,7 @@ describe('TaskDialog: new task', () => {
   it('sends the radius only when one is typed', async () => {
     const { calls, user } = setup();
     await fillValid(user);
-    await user.type(screen.getByLabelText('Arrival radius (m)'), '150');
+    await paste(user, screen.getByLabelText('Arrival radius (m)'), '150');
     await user.click(screen.getByRole('button', { name: 'Create task' }));
     await waitFor(() => expect(posted(calls, '/tasks')).toHaveLength(1));
     expect(jsonBody(posted(calls, '/tasks')[0]).site).toMatchObject({ radius_m: 150 });
@@ -102,8 +110,8 @@ describe('TaskDialog: new task', () => {
   it('refuses a radius or phone the server would refuse', async () => {
     const { calls, user } = setup();
     await fillValid(user);
-    await user.type(screen.getByLabelText('Arrival radius (m)'), '5');
-    await user.type(screen.getByLabelText('Contact phone (optional)'), '123');
+    await paste(user, screen.getByLabelText('Arrival radius (m)'), '5');
+    await paste(user, screen.getByLabelText('Contact phone (optional)'), '123');
     await user.click(screen.getByRole('button', { name: 'Create task' }));
     expect(await screen.findByText('Enter a whole number from 30 to 500.')).toBeInTheDocument();
     expect(screen.getByText('Enter a valid mobile number (10 to 15 digits).')).toBeInTheDocument();
@@ -189,7 +197,7 @@ describe('TaskDialog: edit', () => {
     expect(screen.queryByText('Assign to')).not.toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Client'));
-    await user.type(screen.getByLabelText('Client'), 'Acme Ltd');
+    await paste(user, screen.getByLabelText('Client'), 'Acme Ltd');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     const patch = calls.find((c) => c.method === 'PATCH');
@@ -233,7 +241,7 @@ describe('TaskDialog: edit', () => {
   it('shows the server refusal when the site was locked meanwhile', async () => {
     const { user } = setup(existing, { 'PATCH /tasks/7': () => apiError(409, 'TASK_SITE_LOCKED') });
     await user.clear(screen.getByLabelText('Address'));
-    await user.type(screen.getByLabelText('Address'), 'Elsewhere');
+    await paste(user, screen.getByLabelText('Address'), 'Elsewhere');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/no longer be changed/);
   });

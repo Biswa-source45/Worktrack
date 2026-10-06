@@ -178,7 +178,9 @@
       "homeBranch": "Home branch (optional)",
       "shift": "Shift (optional)",
       "restrict": "Can punch only at the home branch",
-      "restrictHint": "Choose a home branch first."
+      "restrictHint": "Choose a home branch first.",
+      "fieldPunch": "Field punch-in allowed",
+      "fieldPunchHint": "May punch in at the site of an accepted task for today, instead of at a branch."
     },
     "actionsFor": "Actions for {{name}}",
     "tab": "Employees",
@@ -741,7 +743,8 @@
       "offline": "Punched offline",
       "mock": "Mock location or untrusted device",
       "face_review": "Face check needs review",
-      "jump": "Impossible jump"
+      "jump": "Impossible jump",
+      "field_punch": "Field punch-in at a task site"
     },
     "face": {
       "VERIFIED": "Face verified",
@@ -802,7 +805,8 @@
       "label": "Place",
       "branch": "{{name}}, {{m}} m from the centre",
       "home": "Home work location",
-      "outside": "Outside, {{m}} m from {{name}}"
+      "outside": "Outside, {{m}} m from {{name}}",
+      "task": "At the site of {{task}}, {{m}} m from the pin"
     },
     "overrideKind": {
       "leave": "Leave",
@@ -868,7 +872,10 @@
       "INVALID_DATE": "Choose a date from the employee's joining date up to today.",
       "FORBIDDEN": "You do not have permission to do this."
     },
-    "whyChecked": "Why it is checked"
+    "whyChecked": "Why it is checked",
+    "tasks": "Tasks that day",
+    "taskReached": "Reached {{time}}",
+    "taskCompleted": "Completed {{time}}"
   },
   "tasks": {
     "title": "Tasks",
@@ -1122,6 +1129,18 @@
       "assignTitle": "Add people",
       "assignHint": "They are added to {{code}} and told about it.",
       "assignAction": "Add"
+    },
+    "landing": {
+      "title": "Tasks I assigned",
+      "all": "All tasks",
+      "counts": "Open tasks by status",
+      "attention": "Needs your attention",
+      "nothing": "Nothing needs your attention.",
+      "reason": {
+        "notAccepted": "Not accepted in time",
+        "reviewPending": "Reached waits for review",
+        "awaitingClose": "Done, waiting to be closed"
+      }
     }
   }
 }

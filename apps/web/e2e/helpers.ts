@@ -358,8 +358,15 @@ export async function goTo(page: Page, name: string) {
 export type FieldWorker = Worker;
 
 /** A field-eligible employee on an approved phone with an approved face: ready to take a task. */
-export async function createFieldWorker(token: string, name?: string): Promise<FieldWorker> {
-  const employee = await createEmployee(token, name, 'Field Employee', { field_eligible: true });
+export async function createFieldWorker(
+  token: string,
+  name?: string,
+  extra: Record<string, unknown> = {},
+): Promise<FieldWorker> {
+  const employee = await createEmployee(token, name, 'Field Employee', {
+    field_eligible: true,
+    ...extra,
+  });
   const phone = await employeeOnPhone(employee);
   await enrollFace(phone);
   await approveFace(token, employee.id);
@@ -421,15 +428,18 @@ export async function taskStep(
   phone: string,
   taskId: number,
   action: 'accept' | 'start' | 'hold' | 'resume' | 'reached' | 'complete',
-  options: { site?: Site; remarks?: string } = {},
+  options: { site?: Site; remarks?: string; mismatch?: string } = {},
 ) {
   const form = new FormData();
   const photo = () => new Blob([readFileSync(FACE_PHOTO)], { type: 'image/jpeg' });
   if (action === 'reached') {
     form.append('selfie', photo(), 'selfie.jpg');
-    form.append('lat', String(options.site?.lat));
+    // A mismatch is a Reached from about 5.5 km away, sent with its reason (the manager reviews it).
+    const away = options.mismatch ? 0.05 : 0;
+    form.append('lat', String((options.site?.lat ?? 0) + away));
     form.append('lng', String(options.site?.lng));
     form.append('accuracy_m', '10');
+    if (options.mismatch) form.append('mismatch_reason', options.mismatch);
   }
   if (action === 'hold') form.append('reason', 'Waiting for the client');
   if (action === 'complete') {

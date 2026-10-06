@@ -235,6 +235,23 @@ export function EmployeeDialog({
             />
             {t('employees.form.fieldEligible')}
           </label>
+          {/* Not part of creating an employee: the switch is for someone already in the system. */}
+          {employee && (
+            <div className="grid gap-1">
+              <label className="flex items-center gap-2 text-small font-medium">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-primary"
+                  aria-describedby="field-punch-hint"
+                  {...register('field_punch_in_allowed')}
+                />
+                {t('employees.form.fieldPunch')}
+              </label>
+              <p id="field-punch-hint" className="text-caption text-muted-foreground">
+                {t('employees.form.fieldPunchHint')}
+              </p>
+            </div>
+          )}
           <div className="grid gap-1">
             <label className="flex items-center gap-2 text-small font-medium">
               <input

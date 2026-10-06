@@ -7,6 +7,10 @@ import {
   atBranch,
   awayFrom,
   createEmployee,
+  createFieldWorker,
+  createTaskApi,
+  taskStep,
+  randomSite,
   createPlace,
   createWaitingRequest,
   createWorker,
@@ -37,6 +41,11 @@ let enrolled: Created; // an employee whose face enrollment waits for review
 const WORKERS = `Shots ${uniqueSuffix()}`;
 let asking: Asker; // punched in, then asked to punch out from far away
 let reviewing: { name: string; eventId: number }; // a selfie of a stranger, waiting for review
+// Tasks: one in each state the pages show, with a Reached that waits for review.
+let board: {
+  review: { id: number; title: string; person: string };
+  done: { id: number; title: string };
+};
 
 test.beforeAll(async () => {
   const token = await adminToken();
@@ -69,6 +78,38 @@ test.beforeAll(async () => {
     'punch-in',
     awayFrom(place),
   );
+
+  // Tasks: waiting, accepted, a Reached from far away that needs review, and one done and waiting to be closed.
+  const [one, two] = [await createFieldWorker(token), await createFieldWorker(token)];
+  await createTaskApi(token, [one.employee.id, two.employee.id], {
+    title: `Shots waiting ${WORKERS}`,
+  });
+  const accepted = await createTaskApi(token, [one.employee.id], {
+    title: `Shots accepted ${WORKERS}`,
+  });
+  await taskStep(one.phone, accepted.id, 'accept');
+  const reviewSite = randomSite();
+  const review = await createTaskApi(token, [two.employee.id], {
+    title: `Shots review ${WORKERS}`,
+    site: reviewSite,
+  });
+  await taskStep(two.phone, review.id, 'accept');
+  await taskStep(two.phone, review.id, 'reached', {
+    site: reviewSite,
+    mismatch: 'The gate was on the far road',
+  });
+  const doneSite = randomSite();
+  const done = await createTaskApi(token, [one.employee.id], {
+    title: `Shots done ${WORKERS}`,
+    site: doneSite,
+  });
+  for (const step of ['accept', 'reached', 'start', 'complete'] as const) {
+    await taskStep(one.phone, done.id, step, { site: doneSite });
+  }
+  board = {
+    review: { id: review.id, title: review.title, person: two.employee.name },
+    done: { id: done.id, title: done.title },
+  };
 });
 
 // The queues are oldest first and the e2e database keeps its rows: leave nothing waiting behind.
@@ -290,6 +331,52 @@ for (const theme of THEMES) {
           .filter({ hasText: `${WORKERS} Lost` }),
       ).toBeVisible();
       await shot('attendance-exceptions');
+
+      // Field tasks: the board, the list, the form, the detail page and its dialogs.
+      await goTo(page, 'Tasks');
+      await page.getByRole('textbox', { name: 'Search by title, client or code' }).fill(WORKERS);
+      await expect(page.getByRole('region', { name: 'Assigned', exact: true })).toContainText(
+        `Shots waiting ${WORKERS}`,
+      );
+      await expect(page.getByRole('region', { name: 'Reached', exact: true })).toContainText(
+        board.review.title,
+      );
+      await shot('tasks-board');
+      await page.getByRole('tab', { name: 'List' }).click();
+      await expect(page.getByRole('row', { name: new RegExp(board.done.title) })).toBeVisible();
+      await shot('tasks-list');
+
+      await page.getByRole('button', { name: 'New task' }).click();
+      const taskForm = page.getByRole('dialog', { name: 'New task' });
+      await taskForm.getByRole('spinbutton', { name: 'Latitude' }).fill('28.6129');
+      await taskForm.getByRole('spinbutton', { name: 'Longitude' }).fill('77.2295');
+      await expect(taskForm.locator('.leaflet-marker-icon')).toBeVisible();
+      await expect(taskForm.getByRole('checkbox').first()).toBeVisible();
+      await shot('task-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(taskForm).toBeHidden();
+
+      await page.setViewportSize({ width, height: 1100 });
+      await page.goto(`/tasks/${board.review.id}`);
+      await expect(page.getByRole('heading', { name: board.review.title })).toBeVisible();
+      await expectImagesLoaded(page.getByRole('img', { name: /Selfie of/ }));
+      await expect(page.locator('.leaflet-marker-icon').first()).toBeVisible();
+      await shot('task-detail-review');
+      await page.getByRole('button', { name: 'Review Reached' }).click();
+      const reviewDialog = page.getByRole('dialog', { name: 'Review Reached' });
+      await expectImagesLoaded(reviewDialog.getByRole('img'));
+      await shot('task-review-dialog', false);
+      await page.keyboard.press('Escape');
+      await expect(reviewDialog).toBeHidden();
+
+      await page.goto(`/tasks/${board.done.id}`);
+      await expect(page.getByTestId('task-status-completed').first()).toBeVisible();
+      await shot('task-detail-done');
+      await page.getByRole('button', { name: 'Close task' }).click();
+      await expect(page.getByRole('dialog', { name: 'Close this task?' })).toBeVisible();
+      await shot('task-close-dialog', false);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({ width, height: 800 });
     });
   }
 }

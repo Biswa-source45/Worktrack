@@ -8,6 +8,7 @@ import {
   CalendarDays,
   CalendarOff,
   CircleCheck,
+  ClipboardCheck,
   CircleMinus,
   CircleX,
   Clock,
@@ -102,6 +103,7 @@ const FLAG_LOOK: Record<string, LucideIcon> = {
   mock: MapPinOff,
   face_review: ScanFace,
   jump: Zap,
+  field_punch: ClipboardCheck,
 };
 
 /** Small icon chips for what needs a second look on a day. Each has a name for screen readers. */
@@ -114,7 +116,13 @@ export function FlagChips({ flags }: { flags: string[] }) {
         const Icon = FLAG_LOOK[flag] ?? TriangleAlert;
         const label = t(`attendance.flag.${flag}`, { defaultValue: flag });
         return (
-          <Badge key={flag} tone="warning" role="img" aria-label={label} title={label}>
+          <Badge
+            key={flag}
+            tone={flag === 'field_punch' ? 'info' : 'warning'}
+            role="img"
+            aria-label={label}
+            title={label}
+          >
             <Icon aria-hidden="true" />
           </Badge>
         );
@@ -177,7 +185,14 @@ export const words = (t: TFunction, group: 'reason' | 'integrity', keys: string[
 
 export function PlaceText({ place }: { place: Schemas['PunchDetail']['place'] }) {
   const { t } = useTranslation();
-  const Icon = place.type === 'home' ? House : place.type === 'branch' ? Building2 : MapPinOff;
+  const Icon =
+    place.type === 'home'
+      ? House
+      : place.type === 'branch'
+        ? Building2
+        : place.type === 'task'
+          ? ClipboardCheck
+          : MapPinOff;
   return (
     <span className="inline-flex items-center gap-1.5">
       <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
@@ -188,10 +203,15 @@ export function PlaceText({ place }: { place: Schemas['PunchDetail']['place'] })
           })
         : place.type === 'home'
           ? t('attendance.place.home')
-          : t('attendance.place.outside', {
-              name: place.branch ?? '-',
-              m: Math.round(place.distance_m ?? 0),
-            })}
+          : place.type === 'task'
+            ? t('attendance.place.task', {
+                task: place.task ?? '-',
+                m: Math.round(place.distance_m ?? 0),
+              })
+            : t('attendance.place.outside', {
+                name: place.branch ?? '-',
+                m: Math.round(place.distance_m ?? 0),
+              })}
     </span>
   );
 }

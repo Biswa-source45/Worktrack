@@ -3,9 +3,11 @@ import {
   adminToken,
   createAssigner,
   createFieldWorker,
+  createPlace,
   createTaskApi,
   goTo,
   randomSite,
+  sendPunch,
   stubMapTiles,
   taskStep,
   uiLogin,
@@ -202,4 +204,72 @@ test('a Task Assigner sees only their own tasks, and no other admin screens', as
   // Nothing else of the admin portal opens either.
   await page.goto('/employees');
   await expect(page.getByText(/do not have access/)).toBeVisible();
+});
+
+test('the landing page counts the tasks I assigned and names the ones that need me', async ({
+  page,
+}) => {
+  const token = await adminToken();
+  const worker = await createFieldWorker(token);
+  const assigner = await createAssigner(token);
+  await createTaskApi(assigner.token, [worker.employee.id], { title: 'Waiting job' });
+  const site = randomSite();
+  const finished = await createTaskApi(assigner.token, [worker.employee.id], {
+    title: 'Finished job',
+    site,
+  });
+  for (const step of ['accept', 'reached', 'start', 'complete'] as const) {
+    await taskStep(worker.phone, finished.id, step, { site });
+  }
+
+  await uiLogin(page, assigner.code, assigner.password);
+  const card = page.getByRole('group', { name: 'Tasks I assigned' });
+  await expect(card.getByTestId('count-assigned')).toHaveText('1');
+  await expect(card.getByTestId('count-completed')).toHaveText('1');
+  await expect(card.getByTestId('count-accepted')).toHaveText('0');
+  const attention = card.getByRole('region', { name: 'Needs your attention' });
+  await expect(attention.getByRole('listitem')).toHaveCount(1);
+  await expect(attention).toContainText('Finished job');
+  await expect(attention).toContainText('Done, waiting to be closed');
+  await attention.getByRole('link', { name: 'Finished job' }).click();
+  await expect(page).toHaveURL(new RegExp(`/tasks/${finished.id}$`));
+});
+
+test('with the switch on, a field punch-in at an accepted task site shows in the register and the day', async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const token = await adminToken();
+  // A punch needs a shift; the place makes one that is a working day every day.
+  const place = await createPlace(token);
+  const worker = await createFieldWorker(token, undefined, { shift_id: place.shiftId });
+  const site = randomSite();
+  const task = await createTaskApi(token, [worker.employee.id], { site });
+  await taskStep(worker.phone, task.id, 'accept');
+
+  await stubMapTiles(page);
+  await uiLoginAsReadyAdmin(page);
+  await goTo(page, 'Employees');
+  await page
+    .getByRole('textbox', { name: 'Search by name, code or mobile' })
+    .fill(worker.employee.code);
+  await page.getByRole('button', { name: `Actions for ${worker.employee.name}` }).click();
+  await page.getByRole('menuitem', { name: 'Edit' }).click();
+  const edit = page.getByRole('dialog', { name: 'Edit employee' });
+  await edit.getByRole('checkbox', { name: 'Field punch-in allowed' }).check();
+  await edit.getByRole('button', { name: 'Save' }).click();
+  await expect(edit).toBeHidden();
+
+  const punched = await sendPunch(worker.phone, 'punch-in', site);
+  expect(punched.status, await punched.clone().text()).toBeLessThan(300);
+
+  await goTo(page, 'Attendance');
+  await page.getByRole('textbox', { name: 'Search by name or code' }).fill(worker.employee.code);
+  const row = page.getByRole('row', { name: new RegExp(worker.employee.name) });
+  await expect(row.getByRole('img', { name: 'Field punch-in at a task site' })).toBeVisible();
+  await page.getByRole('button', { name: `Actions for ${worker.employee.name}` }).click();
+  await page.getByRole('menuitem', { name: 'Details' }).click();
+  const day = page.getByRole('dialog', { name: 'Attendance day' });
+  await expect(day.getByRole('region', { name: 'Tasks that day' })).toContainText(task.code);
+  await expect(day).toContainText(`At the site of ${task.code}`);
 });

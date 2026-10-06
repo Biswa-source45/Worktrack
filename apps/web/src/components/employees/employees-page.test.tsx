@@ -516,4 +516,28 @@ describe('Employee create and edit dialogs', () => {
       name: 'Asha R. Rao',
     });
   });
+
+  it('has a field punch-in switch when editing, and sends it when changed', async () => {
+    const { calls, user } = setup({ routes: { 'PATCH /admin/employees/2': asha } });
+    await screen.findByText('Asha Rao');
+    await choose(user, /EMP-001/, 'Asha Rao', 'Edit');
+    const dialog = await screen.findByRole('dialog', { name: 'Edit employee' });
+    const switchBox = within(dialog).getByRole('checkbox', { name: 'Field punch-in allowed' });
+    expect(switchBox).not.toBeChecked();
+    await user.click(switchBox);
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(jsonBody(calls.find((c) => c.method === 'PATCH') as Call)).toEqual({
+      field_punch_in_allowed: true,
+    });
+  });
+
+  it('does not offer the switch on a new employee', async () => {
+    const { user } = setup();
+    await user.click(await screen.findByRole('button', { name: 'New employee' }));
+    const dialog = await screen.findByRole('dialog', { name: 'New employee' });
+    expect(
+      within(dialog).queryByRole('checkbox', { name: 'Field punch-in allowed' }),
+    ).not.toBeInTheDocument();
+  });
 });

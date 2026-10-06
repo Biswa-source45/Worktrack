@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { errorMessage, proxyApi, unwrap } from '@/lib/api-client';
 import { itemEnter } from '@/lib/motion';
 import { useMe } from '@/lib/me';
+import { AssignerCard } from '@/components/tasks/assigner-card';
 import { cn } from '@/lib/utils';
 
 const MotionCard = m.create(Card);
@@ -159,6 +160,7 @@ export function DashboardPage() {
           <p className="relative max-w-xl text-muted-foreground">{t('dashboard.noStats')}</p>
         )}
       </header>
+      {me.permissions.includes('tasks.create') && <AssignerCard />}
       {canSeeStats && <Stats canReview={me.permissions.includes('devices.manage')} />}
     </Page>
   );
