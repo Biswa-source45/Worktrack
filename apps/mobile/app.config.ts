@@ -38,6 +38,14 @@ export default ({ config }: ConfigContext): ExpoConfig =>
     },
     android: {
       package: 'com.biswabhusan.worktrack',
+      // Set only in .env / EAS (never committed). Without a key the map shows its address-only
+      // fallback; without the Firebase file push stays off until M8 supplies it.
+      ...(process.env.GOOGLE_SERVICES_JSON
+        ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON }
+        : {}),
+      ...(process.env.GOOGLE_MAPS_ANDROID_API_KEY
+        ? { config: { googleMaps: { apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY } } }
+        : {}),
       permissions: [
         'CAMERA',
         'ACCESS_FINE_LOCATION',
@@ -55,6 +63,8 @@ export default ({ config }: ConfigContext): ExpoConfig =>
       // strings it finds and only adds the fine and coarse location permissions already listed.
       // The two keys it would add on its own (the old "always" string, motion) are switched off.
       ['expo-location', { locationAlwaysPermission: false, motionUsagePermission: false }],
+      // M8 push; M6 also asks for the Android 13+ notification permission for its tracking notice.
+      'expo-notifications',
     ],
     experiments: { typedRoutes: true },
   });
