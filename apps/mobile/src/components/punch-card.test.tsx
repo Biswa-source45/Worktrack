@@ -1,7 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import * as Device from 'expo-device';
-import { FACE_KEY } from '@/components/face-enrollment-card';
+import { FACE_KEY, FaceEnrollmentCard } from '@/components/face-enrollment-card';
 import { PunchCard } from '@/components/punch-card';
 import { LocationError, getCurrentFix } from '@/lib/location';
 import { currentFlow, endFlow } from '@/lib/punch-flow';
@@ -116,19 +115,21 @@ describe('PunchCard states', () => {
   });
 
   it('offers face setup when the face is not approved, and goes to the right step', async () => {
-    mockApi({ [TODAY]: today({ action: 'none', blocked: 'face_not_approved' }) });
-    const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
-    client.setQueryData(FACE_KEY, { status: 'consented' });
-    await renderWithTheme(<PunchCard />, client);
+    mockApi({
+      [TODAY]: today({ action: 'none', blocked: 'face_not_approved' }),
+      'GET /api/v1/me/face-enrollment': () => Response.json({ status: 'consented' }),
+    });
+    await renderWithTheme(<PunchCard />);
     await fireEvent.press(await screen.findByRole('button', { name: 'Go to face setup' }));
     expect(mockRouter.push).toHaveBeenCalledWith('/face/capture');
   });
 
   it('offers no face setup while the enrollment waits for approval', async () => {
-    mockApi({ [TODAY]: today({ action: 'none', blocked: 'face_not_approved' }) });
-    const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
-    client.setQueryData(FACE_KEY, { status: 'pending' });
-    await renderWithTheme(<PunchCard />, client);
+    mockApi({
+      [TODAY]: today({ action: 'none', blocked: 'face_not_approved' }),
+      'GET /api/v1/me/face-enrollment': () => Response.json({ status: 'pending' }),
+    });
+    await renderWithTheme(<PunchCard />);
     await screen.findByText('Your face is not approved yet, so you cannot punch.');
     expect(screen.queryByRole('button', { name: 'Go to face setup' })).toBeNull();
   });
@@ -284,5 +285,31 @@ describe('PunchCard tap flow', () => {
       await screen.findByText('This phone is not approved yet. Ask your admin.'),
     ).toBeOnTheScreen();
     expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+});
+
+describe('PunchCard and the Face card share one enrollment query', () => {
+  it('invalidating it after the consent step still fetches it (no skipToken error)', async () => {
+    mockApi({
+      [TODAY]: today(),
+      [PRECHECK]: () => Response.json(precheckBody()),
+      'GET /api/v1/me/face-enrollment': () => Response.json({ status: 'consented' }),
+    });
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const client = await renderWithTheme(
+      <>
+        <PunchCard />
+        <FaceEnrollmentCard />
+      </>,
+    );
+    await screen.findByRole('button', { name: 'Punch in' });
+    // Pressing the button re-renders only the Punch card (busy state). It renders after the
+    // Face card, so whatever options it registered on the shared query are the ones that stay.
+    await tap('Punch in');
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalled());
+    await client.invalidateQueries({ queryKey: FACE_KEY });
+    expect(spy.mock.calls.flat().join(' ')).not.toMatch(/skipToken|Missing queryFn/);
+    expect(client.getQueryState(FACE_KEY)?.status).toBe('success');
+    spy.mockRestore();
   });
 });

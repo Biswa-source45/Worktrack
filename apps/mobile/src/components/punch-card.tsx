@@ -1,10 +1,10 @@
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { AttendanceBadge } from '@/components/attendance-status';
-import { FACE_KEY } from '@/components/face-enrollment-card';
+import { FACE_KEY, fetchFaceEnrollment } from '@/components/face-enrollment-card';
 import {
   Camera,
   CircleMinus,
@@ -69,8 +69,8 @@ export function PunchCard() {
   const router = useRouter();
   const today = useQuery({ queryKey: TODAY_KEY, queryFn: fetchToday, retry: false });
   useRefetchOnFocus(today.refetch);
-  // Read only (nothing is fetched here): the Face card below owns the enrollment query.
-  const face = useQuery<{ status: string }>({ queryKey: FACE_KEY, queryFn: skipToken });
+  // Same query as the Face card below (one request, shared); it must use the real fetcher.
+  const face = useQuery({ queryKey: FACE_KEY, queryFn: fetchFaceEnrollment, retry: false });
 
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);

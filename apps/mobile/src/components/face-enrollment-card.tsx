@@ -23,6 +23,13 @@ import { useTheme } from '@/lib/theme';
 export const FACE_KEY = ['my-face-enrollment'];
 const WAITING_REFRESH_MS = 15_000;
 
+/**
+ * The one fetcher for FACE_KEY. Every observer of the key must pass this (never `skipToken`):
+ * observers share one query and the last one to render writes its options onto it, so a
+ * `skipToken` observer made `invalidateQueries` run a query with no function.
+ */
+export const fetchFaceEnrollment = () => unwrap(api.GET('/api/v1/me/face-enrollment'));
+
 /** How long to wait before asking again: only while an admin still has to decide. */
 export const waitingRefresh = (status: string | undefined) =>
   status === 'pending' ? WAITING_REFRESH_MS : false;
@@ -43,7 +50,7 @@ export function FaceEnrollmentCard() {
   const router = useRouter();
   const enrollment = useQuery({
     queryKey: FACE_KEY,
-    queryFn: () => unwrap(api.GET('/api/v1/me/face-enrollment')),
+    queryFn: fetchFaceEnrollment,
     // No silent retries: the card shows its own Retry.
     retry: false,
     // While an admin has to decide, look again now and then: the phone is usually in hand while
