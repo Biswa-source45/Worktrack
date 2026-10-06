@@ -52,6 +52,9 @@ function describe(t: ReturnType<typeof useTranslation>['t'], outcome: Outcome): 
     };
   }
   const lines = [t('punch.result.countedAt', { time: formatIstTime(result.punch.time) })];
+  if (result.punch.place.type === 'task' && result.punch.place.task) {
+    lines.push(t('punch.fieldPunch', { code: result.punch.place.task }));
+  }
   if (kind === 'in' && result.day.late_minutes > 0) {
     lines.push(t('punch.result.late', { minutes: result.day.late_minutes }));
   }

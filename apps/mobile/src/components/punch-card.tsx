@@ -116,6 +116,8 @@ export function PunchCard() {
     check?.nearest_branch && check.distance_m != null
       ? t('punch.awayFrom', { distance: check.distance_m, branch: check.nearest_branch })
       : null;
+  // A punch at a task site (FR-ATT-10) says which task, so it is never mistaken for a branch punch.
+  const fieldTask = check?.allowed && check.place?.type === 'task' ? check.place.task : null;
   const requesting = check?.allowed === true && check.action === 'request_punch_out';
   const refused = check && !check.allowed ? (check.message ?? t('errors.generic')) : null;
   const hasIn = data?.punches.some((punch) => punch.type === 'in') ?? false;
@@ -177,6 +179,9 @@ export function PunchCard() {
           {data.punches.map((punch) => (
             <AppText key={punch.id} variant="small" color="muted">
               {t(`queue.kind.${punch.type}`)} {formatIstTime(punch.time)}
+              {punch.place.type === 'task' && punch.place.task
+                ? ` (${t('punch.fieldPunch', { code: punch.place.task })})`
+                : ''}
               {punch.in_review ? ` (${t('attendance.flag.face_review').toLowerCase()})` : ''}
             </AppText>
           ))}
@@ -212,6 +217,11 @@ export function PunchCard() {
           {away ? (
             <AppText variant="small" testID="punch-away">
               {away}
+            </AppText>
+          ) : null}
+          {fieldTask ? (
+            <AppText variant="small" weight={600} testID="punch-field">
+              {t('punch.fieldPunch', { code: fieldTask })}
             </AppText>
           ) : null}
           {refused ? <Banner status="danger" icon={TriangleAlert} message={refused} /> : null}
