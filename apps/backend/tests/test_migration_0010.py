@@ -53,7 +53,7 @@ async def test_upgrade_creates_the_tables_and_grants_and_downgrade_removes_them(
         before = await _permissions()
         assert not KEYS & set().union(*before.values())
 
-        run_alembic("upgrade", "head")
+        run_alembic("upgrade", "0010")
         assert await _tables() == TABLES
         after = await _permissions()
         assert after["Super Admin"] == before["Super Admin"] | KEYS
