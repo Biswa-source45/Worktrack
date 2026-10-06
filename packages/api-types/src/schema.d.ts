@@ -1185,10 +1185,429 @@ export interface paths {
         patch: operations["update_holiday_api_v1_admin_holidays__holiday_id__patch"];
         trace?: never;
     };
+    "/api/v1/task-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Task Types
+         * @description The types a new task can have.
+         */
+        get: operations["task_types_api_v1_task_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/task-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All Task Types */
+        get: operations["all_task_types_api_v1_admin_task_types_get"];
+        put?: never;
+        /** Create Task Type */
+        post: operations["create_task_type_api_v1_admin_task_types_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/task-types/{type_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Task Type */
+        patch: operations["update_task_type_api_v1_admin_task_types__type_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tasks
+         * @description Tasks in the caller's scope. `view` picks which: the ones they created, their team's, or
+         *     everyone's (admins). Dates are IST dates of the scheduled time.
+         */
+        get: operations["list_tasks_api_v1_tasks_get"];
+        put?: never;
+        /** Create Task */
+        post: operations["create_task_api_v1_tasks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Candidates */
+        get: operations["candidates_api_v1_tasks_candidates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Tasks */
+        get: operations["my_tasks_api_v1_me_tasks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Task Detail */
+        get: operations["task_detail_api_v1_tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Task */
+        patch: operations["edit_task_api_v1_tasks__task_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign */
+        post: operations["assign_api_v1_tasks__task_id__assignees_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/assignees/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unassign */
+        delete: operations["unassign_api_v1_tasks__task_id__assignees__user_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Task */
+        post: operations["cancel_task_api_v1_tasks__task_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close Task */
+        post: operations["close_task_api_v1_tasks__task_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen Task */
+        post: operations["reopen_task_api_v1_tasks__task_id__reopen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/assignees/{user_id}/reach-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Reached */
+        post: operations["review_reached_api_v1_tasks__task_id__assignees__user_id__reach_review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Attachment
+         * @description A brief for the assignees: a PDF or a photo, 10 MB at most.
+         */
+        post: operations["add_attachment_api_v1_tasks__task_id__attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Comment */
+        post: operations["add_comment_api_v1_tasks__task_id__comments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept */
+        post: operations["accept_api_v1_tasks__task_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline */
+        post: operations["decline_api_v1_tasks__task_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_api_v1_tasks__task_id__start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hold */
+        post: operations["hold_api_v1_tasks__task_id__hold_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume */
+        post: operations["resume_api_v1_tasks__task_id__resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Note */
+        post: operations["add_note_api_v1_tasks__task_id__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete */
+        post: operations["complete_api_v1_tasks__task_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{task_id}/reached": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reached
+         * @description "I have reached": the position and a selfie. The server measures the distance to the site
+         *     and matches the face; outside the radius it answers 422 OUTSIDE_SITE with the distance, unless
+         *     `mismatch_reason` is sent.
+         */
+        post: operations["reached_api_v1_tasks__task_id__reached_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ActionOut
+         * @description What every state-changing call answers: the task as the caller sees it now. `replayed` is
+         *     true when the same Idempotency-Key was already used and nothing was changed.
+         */
+        ActionOut: {
+            task: components["schemas"]["TaskDetail"];
+            /** Replayed */
+            replayed: boolean;
+        };
         /** AdminHomeOut */
         AdminHomeOut: {
             approved: components["schemas"]["ApprovedHome"] | null;
@@ -1216,6 +1635,180 @@ export interface components {
             source: string;
             /** Decided At */
             decided_at: string | null;
+        };
+        /** AssignIn */
+        AssignIn: {
+            /** User Ids */
+            user_ids: number[];
+        };
+        /** AssigneeBrief */
+        AssigneeBrief: {
+            user: components["schemas"]["UserBrief"];
+            /** Status */
+            status: string;
+            /** Escalated */
+            escalated: boolean;
+            /**
+             * Reach Review
+             * @enum {string}
+             */
+            reach_review: "none" | "pending" | "approved" | "rejected";
+        };
+        /** AssigneeOut */
+        AssigneeOut: {
+            user: components["schemas"]["UserBrief"];
+            /** Status */
+            status: string;
+            /**
+             * Assigned At
+             * Format: date-time
+             */
+            assigned_at: string;
+            /** Accepted At */
+            accepted_at: string | null;
+            /** Escalated At */
+            escalated_at: string | null;
+            /** Started At */
+            started_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
+            /** Declined Reason */
+            declined_reason: string | null;
+            /** Completion Remarks */
+            completion_remarks: string | null;
+            reach: components["schemas"]["ReachOut"] | null;
+            metrics: components["schemas"]["Metrics"];
+        };
+        /** AttachmentOut */
+        AttachmentOut: {
+            /** Id */
+            id: number;
+            /** Kind */
+            kind: string;
+            /** Filename */
+            filename: string | null;
+            /** Content Type */
+            content_type: string;
+            /** Size */
+            size: number;
+            uploaded_by: components["schemas"]["UserBrief"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Url */
+            url: string;
+        };
+        /** Body_accept_api_v1_tasks__task_id__accept_post */
+        Body_accept_api_v1_tasks__task_id__accept_post: {
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_add_attachment_api_v1_tasks__task_id__attachments_post */
+        Body_add_attachment_api_v1_tasks__task_id__attachments_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_add_comment_api_v1_tasks__task_id__comments_post */
+        Body_add_comment_api_v1_tasks__task_id__comments_post: {
+            /**
+             * Body
+             * @default
+             */
+            body: string;
+            /** Photo */
+            photo?: string | null;
+        };
+        /** Body_add_note_api_v1_tasks__task_id__notes_post */
+        Body_add_note_api_v1_tasks__task_id__notes_post: {
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            /** Photo */
+            photo?: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_complete_api_v1_tasks__task_id__complete_post */
+        Body_complete_api_v1_tasks__task_id__complete_post: {
+            /** Remarks */
+            remarks: string;
+            /** Photos */
+            photos?: string[] | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_decline_api_v1_tasks__task_id__decline_post */
+        Body_decline_api_v1_tasks__task_id__decline_post: {
+            /** Reason */
+            reason: string;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_hold_api_v1_tasks__task_id__hold_post */
+        Body_hold_api_v1_tasks__task_id__hold_post: {
+            /** Reason */
+            reason: string;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
         };
         /** Body_import_employees_api_v1_admin_employees_import_post */
         Body_import_employees_api_v1_admin_employees_import_post: {
@@ -1288,6 +1881,41 @@ export interface components {
              */
             offline: boolean;
         };
+        /** Body_reached_api_v1_tasks__task_id__reached_post */
+        Body_reached_api_v1_tasks__task_id__reached_post: {
+            /** Selfie */
+            selfie: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Accuracy M */
+            accuracy_m: number;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Mocked
+             * @default false
+             */
+            mocked: boolean;
+            /**
+             * Emulator
+             * @default false
+             */
+            emulator: boolean;
+            /**
+             * Rooted
+             * @default false
+             */
+            rooted: boolean;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+            /** Mismatch Reason */
+            mismatch_reason?: string | null;
+        };
         /** Body_request_punch_out_api_v1_attendance_punch_out_requests_post */
         Body_request_punch_out_api_v1_attendance_punch_out_requests_post: {
             /** Selfie */
@@ -1319,6 +1947,38 @@ export interface components {
              * @default false
              */
             rooted: boolean;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_resume_api_v1_tasks__task_id__resume_post */
+        Body_resume_api_v1_tasks__task_id__resume_post: {
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
+            /**
+             * Offline
+             * @default false
+             */
+            offline: boolean;
+        };
+        /** Body_start_api_v1_tasks__task_id__start_post */
+        Body_start_api_v1_tasks__task_id__start_post: {
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Device Time */
+            device_time?: string | null;
             /**
              * Offline
              * @default false
@@ -1385,12 +2045,58 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** CancelIn */
+        CancelIn: {
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * Candidate
+         * @description A person who may be assigned. Name, code and today's status only: no coordinates.
+         */
+        Candidate: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Emp Code */
+            emp_code: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_office" | "on_task" | "punched_out" | "not_punched_in" | "off_day";
+        };
+        /** CandidatePage */
+        CandidatePage: {
+            /** Items */
+            items: components["schemas"]["Candidate"][];
+        };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
             /** Current Password */
             current_password: string;
             /** New Password */
             new_password: string;
+        };
+        /** CloseIn */
+        CloseIn: {
+            /** Remarks */
+            remarks?: string | null;
+        };
+        /** CommentOut */
+        CommentOut: {
+            /** Id */
+            id: number;
+            author: components["schemas"]["UserBrief"];
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            attachment: components["schemas"]["AttachmentOut"] | null;
         };
         /** DashboardOut */
         DashboardOut: {
@@ -1411,6 +2117,8 @@ export interface components {
             punches: components["schemas"]["PunchDetail"][];
             /** Overrides */
             overrides: components["schemas"]["OverrideOut"][];
+            /** Tasks */
+            tasks: components["schemas"]["DayTask"][];
         };
         /** DayOut */
         DayOut: {
@@ -1435,6 +2143,24 @@ export interface components {
             overtime_minutes: number;
             /** Flags */
             flags: string[];
+        };
+        /**
+         * DayTask
+         * @description A task the person had for this day (scheduled on it), with their own status on it.
+         */
+        DayTask: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Title */
+            title: string;
+            /** Status */
+            status: string;
+            /** Reached At */
+            reached_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
         };
         /**
          * DeviceConflict
@@ -1600,6 +2326,8 @@ export interface components {
             manager_id: number | null;
             /** Field Eligible */
             field_eligible: boolean;
+            /** Field Punch In Allowed */
+            field_punch_in_allowed: boolean;
             home_branch: components["schemas"]["Ref"] | null;
             shift: components["schemas"]["Ref"] | null;
             /** Restrict To Home Branch */
@@ -1653,6 +2381,8 @@ export interface components {
             joined_on?: string | null;
             /** Field Eligible */
             field_eligible?: boolean | null;
+            /** Field Punch In Allowed */
+            field_punch_in_allowed?: boolean | null;
             /** Home Branch Id */
             home_branch_id?: number | null;
             /** Shift Id */
@@ -1717,6 +2447,28 @@ export interface components {
             items: components["schemas"]["EnrollmentItem"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** EventOut */
+        EventOut: {
+            /** Id */
+            id: number;
+            /** Event */
+            event: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            actor: components["schemas"]["UserBrief"] | null;
+            subject: components["schemas"]["UserBrief"] | null;
+            /** Note */
+            note: string | null;
+            /** Offline */
+            offline: boolean;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
         };
         /** ExceptionItem */
         ExceptionItem: {
@@ -2021,6 +2773,20 @@ export interface components {
             client: "web" | "mobile";
             device: components["schemas"]["MeDevice"] | null;
         };
+        /**
+         * Metrics
+         * @description Straight-line figures only; real travel time and distance need tracking (M6).
+         */
+        Metrics: {
+            /** Time To Accept Min */
+            time_to_accept_min: number | null;
+            /** Accept To Reached Min */
+            accept_to_reached_min: number | null;
+            /** Time On Site Min */
+            time_on_site_min: number | null;
+            /** Straight Line M */
+            straight_line_m: number | null;
+        };
         /** MonthDay */
         MonthDay: {
             /**
@@ -2085,6 +2851,33 @@ export interface components {
             /** Decided At */
             decided_at: string | null;
         };
+        /** MyAssignment */
+        MyAssignment: {
+            /** Status */
+            status: string;
+            /**
+             * Assigned At
+             * Format: date-time
+             */
+            assigned_at: string;
+            /** Accepted At */
+            accepted_at: string | null;
+            /** Started At */
+            started_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
+            /** Reached At */
+            reached_at: string | null;
+            /** Declined Reason */
+            declined_reason: string | null;
+            /** Reach Flags */
+            reach_flags: ("location_mismatch" | "face_review" | "impossible_jump")[];
+            /**
+             * Reach Review
+             * @enum {string}
+             */
+            reach_review: "none" | "pending" | "approved" | "rejected";
+        };
         /** MyEnrollment */
         MyEnrollment: {
             /**
@@ -2121,6 +2914,48 @@ export interface components {
             reason: string | null;
             /** Decided At */
             decided_at: string | null;
+        };
+        /** MyTask */
+        MyTask: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Title */
+            title: string;
+            type: components["schemas"]["TaskTypeOut"];
+            /** Client Name */
+            client_name: string;
+            site: components["schemas"]["SiteOut"];
+            /** Contact Name */
+            contact_name: string | null;
+            /** Contact Phone */
+            contact_phone: string | null;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "low" | "normal" | "high" | "urgent";
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /** Expected Minutes */
+            expected_minutes: number | null;
+            /** Description */
+            description: string | null;
+            /** Status */
+            status: string;
+            created_by: components["schemas"]["UserBrief"];
+            my: components["schemas"]["MyAssignment"];
+        };
+        /** MyTaskPage */
+        MyTaskPage: {
+            /** Items */
+            items: components["schemas"]["MyTask"][];
+            /** Next Cursor */
+            next_cursor: string | null;
         };
         /** NotificationOut */
         NotificationOut: {
@@ -2257,6 +3092,16 @@ export interface components {
              * @default 12
              */
             offline_punch_max_age_hours: number;
+            /**
+             * Task Default Site Radius M
+             * @default 200
+             */
+            task_default_site_radius_m: number;
+            /**
+             * Task Accept Escalation Minutes
+             * @default 30
+             */
+            task_accept_escalation_minutes: number;
         };
         /** OverrideIn */
         OverrideIn: {
@@ -2429,6 +3274,52 @@ export interface components {
              */
             replayed: boolean;
         };
+        /** ReachOut */
+        ReachOut: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Distance M */
+            distance_m: number | null;
+            /** Flags */
+            flags: ("location_mismatch" | "face_review" | "impossible_jump")[];
+            /** Reason */
+            reason: string | null;
+            /**
+             * Review
+             * @enum {string}
+             */
+            review: "none" | "pending" | "approved" | "rejected";
+            /** Review Remarks */
+            review_remarks: string | null;
+            reviewed_by: components["schemas"]["UserBrief"] | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Accuracy M */
+            accuracy_m?: number | null;
+            /** Face Decision */
+            face_decision?: string | null;
+            /** Selfie Url */
+            selfie_url?: string | null;
+            /** Face Score */
+            face_score?: number | null;
+        };
+        /** ReachReviewIn */
+        ReachReviewIn: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "approve" | "reject";
+            /** Remarks */
+            remarks?: string | null;
+        };
         /** Reason */
         Reason: {
             /** Reason */
@@ -2472,6 +3363,13 @@ export interface components {
             late_minutes: number;
             /** Flags */
             flags: string[];
+        };
+        /** ReopenIn */
+        ReopenIn: {
+            /** Comment */
+            comment: string;
+            /** User Ids */
+            user_ids?: number[] | null;
         };
         /** RequestDecision */
         RequestDecision: {
@@ -2928,6 +3826,221 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** SiteIn */
+        SiteIn: {
+            /** Address */
+            address: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m?: number | null;
+        };
+        /** SiteOut */
+        SiteOut: {
+            /** Address */
+            address: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Radius M */
+            radius_m: number;
+        };
+        /** TaskBrief */
+        TaskBrief: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Title */
+            title: string;
+            type: components["schemas"]["TaskTypeOut"];
+            /** Client Name */
+            client_name: string;
+            site: components["schemas"]["SiteOut"];
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "low" | "normal" | "high" | "urgent";
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /** Status */
+            status: string;
+            created_by: components["schemas"]["UserBrief"];
+            /** Assignees */
+            assignees: components["schemas"]["AssigneeBrief"][];
+        };
+        /** TaskCreate */
+        TaskCreate: {
+            /** Title */
+            title: string;
+            /** Type Id */
+            type_id: number;
+            /** Client Name */
+            client_name: string;
+            site: components["schemas"]["SiteIn"];
+            /** Contact Name */
+            contact_name?: string | null;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /**
+             * Priority
+             * @default normal
+             * @enum {string}
+             */
+            priority: "low" | "normal" | "high" | "urgent";
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /** Expected Minutes */
+            expected_minutes?: number | null;
+            /** Description */
+            description?: string | null;
+            /** Assignee Ids */
+            assignee_ids: number[];
+        };
+        /** TaskDetail */
+        TaskDetail: {
+            /** Id */
+            id: number;
+            /** Code */
+            code: string;
+            /** Title */
+            title: string;
+            type: components["schemas"]["TaskTypeOut"];
+            /** Client Name */
+            client_name: string;
+            site: components["schemas"]["SiteOut"];
+            /** Contact Name */
+            contact_name: string | null;
+            /** Contact Phone */
+            contact_phone: string | null;
+            /**
+             * Priority
+             * @enum {string}
+             */
+            priority: "low" | "normal" | "high" | "urgent";
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /** Expected Minutes */
+            expected_minutes: number | null;
+            /** Description */
+            description: string | null;
+            /** Status */
+            status: string;
+            created_by: components["schemas"]["UserBrief"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            closed_by: components["schemas"]["UserBrief"] | null;
+            /** Closed At */
+            closed_at: string | null;
+            /** Close Remarks */
+            close_remarks: string | null;
+            cancelled_by: components["schemas"]["UserBrief"] | null;
+            /** Cancelled At */
+            cancelled_at: string | null;
+            /** Cancel Reason */
+            cancel_reason: string | null;
+            /** Can Manage */
+            can_manage: boolean;
+            /** Assignees */
+            assignees: components["schemas"]["AssigneeOut"][];
+            /** Events */
+            events: components["schemas"]["EventOut"][];
+            /** Attachments */
+            attachments: components["schemas"]["AttachmentOut"][];
+            /** Comments */
+            comments: components["schemas"]["CommentOut"][];
+        };
+        /** TaskPage */
+        TaskPage: {
+            /** Items */
+            items: components["schemas"]["TaskBrief"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * TaskPatch
+         * @description Partial update: only the fields sent are changed (null clears an optional one).
+         */
+        TaskPatch: {
+            /** Title */
+            title?: string | null;
+            /** Type Id */
+            type_id?: number | null;
+            /** Client Name */
+            client_name?: string | null;
+            site?: components["schemas"]["SiteIn"] | null;
+            /** Contact Name */
+            contact_name?: string | null;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /** Priority */
+            priority?: ("low" | "normal" | "high" | "urgent") | null;
+            /** Scheduled At */
+            scheduled_at?: string | null;
+            /** Expected Minutes */
+            expected_minutes?: number | null;
+            /** Description */
+            description?: string | null;
+        };
+        /** TaskTypeIn */
+        TaskTypeIn: {
+            /** Name */
+            name: string;
+            /**
+             * Proof Photo Required
+             * @default true
+             */
+            proof_photo_required: boolean;
+            /**
+             * Proof Kind
+             * @default photo
+             * @enum {string}
+             */
+            proof_kind: "photo" | "receipt";
+        };
+        /** TaskTypeOut */
+        TaskTypeOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Proof Photo Required */
+            proof_photo_required: boolean;
+            /**
+             * Proof Kind
+             * @enum {string}
+             */
+            proof_kind: "photo" | "receipt";
+        };
+        /** TaskTypePatch */
+        TaskTypePatch: {
+            /** Name */
+            name?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Proof Photo Required */
+            proof_photo_required?: boolean | null;
+            /** Proof Kind */
+            proof_kind?: ("photo" | "receipt") | null;
+        };
         /** TeamMemberOut */
         TeamMemberOut: {
             /** Id */
@@ -3014,6 +4127,15 @@ export interface components {
             /** Device Status */
             device_status: ("active" | "pending" | "revoked") | null;
         };
+        /** UserBrief */
+        UserBrief: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Emp Code */
+            emp_code: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -3043,9 +4165,11 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "branch" | "home" | "outside";
+            type: "branch" | "home" | "outside" | "task";
             /** Branch */
             branch?: string | null;
+            /** Task */
+            task?: string | null;
             /** Distance M */
             distance_m?: number | null;
         };
@@ -5660,6 +6784,899 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HolidayOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    task_types_api_v1_task_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTypeOut"][];
+                };
+            };
+        };
+    };
+    all_task_types_api_v1_admin_task_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTypeOut"][];
+                };
+            };
+        };
+    };
+    create_task_type_api_v1_admin_task_types_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTypeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTypeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_task_type_api_v1_admin_task_types__type_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTypePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTypeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tasks_api_v1_tasks_get: {
+        parameters: {
+            query?: {
+                view?: ("assigned_by_me" | "team" | "all") | null;
+                status?: string[] | null;
+                assignee?: number | null;
+                from?: string | null;
+                to?: string | null;
+                type_id?: number | null;
+                q?: string | null;
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_task_api_v1_tasks_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    candidates_api_v1_tasks_candidates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CandidatePage"];
+                };
+            };
+        };
+    };
+    my_tasks_api_v1_me_tasks_get: {
+        parameters: {
+            query?: {
+                state?: "active" | "done";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTaskPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    task_detail_api_v1_tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_task_api_v1_tasks__task_id__patch: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_api_v1_tasks__task_id__assignees_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unassign_api_v1_tasks__task_id__assignees__user_id__delete: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_task_api_v1_tasks__task_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_task_api_v1_tasks__task_id__close_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reopen_task_api_v1_tasks__task_id__reopen_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReopenIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_reached_api_v1_tasks__task_id__assignees__user_id__reach_review_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReachReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_attachment_api_v1_tasks__task_id__attachments_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_attachment_api_v1_tasks__task_id__attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_comment_api_v1_tasks__task_id__comments_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_comment_api_v1_tasks__task_id__comments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_api_v1_tasks__task_id__accept_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_accept_api_v1_tasks__task_id__accept_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_api_v1_tasks__task_id__decline_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_decline_api_v1_tasks__task_id__decline_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_api_v1_tasks__task_id__start_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_start_api_v1_tasks__task_id__start_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hold_api_v1_tasks__task_id__hold_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_hold_api_v1_tasks__task_id__hold_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_api_v1_tasks__task_id__resume_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["Body_resume_api_v1_tasks__task_id__resume_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_note_api_v1_tasks__task_id__notes_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_note_api_v1_tasks__task_id__notes_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_api_v1_tasks__task_id__complete_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_complete_api_v1_tasks__task_id__complete_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reached_api_v1_tasks__task_id__reached_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_reached_api_v1_tasks__task_id__reached_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionOut"];
                 };
             };
             /** @description Validation Error */
