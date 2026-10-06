@@ -12,6 +12,8 @@ FACE_REVIEW = "face.review"
 ATTENDANCE_VIEW_ALL = "attendance.view_all"
 ATTENDANCE_OVERRIDE = "attendance.override"
 PUNCHOUT_APPROVE = "punchout.approve"
+TASKS_CREATE = "tasks.create"
+TASKS_VIEW_ALL = "tasks.view_all"
 
 ALL_PERMISSIONS = frozenset(
     {
@@ -27,6 +29,8 @@ ALL_PERMISSIONS = frozenset(
         ATTENDANCE_VIEW_ALL,
         ATTENDANCE_OVERRIDE,
         PUNCHOUT_APPROVE,
+        TASKS_CREATE,
+        TASKS_VIEW_ALL,
     }
 )
 

@@ -41,3 +41,8 @@ class OrgSettings(BaseModel):
     punch_max_speed_kmh: int = Field(150, ge=20, le=1000)
     # An offline punch older than this when it reaches the server is refused.
     offline_punch_max_age_hours: int = Field(12, ge=1, le=24)
+
+    # Field tasks (SRS 4.7). The site radius a new task starts with, and how long a task may sit
+    # unaccepted before the assigner is told.
+    task_default_site_radius_m: int = Field(200, ge=RADIUS_MIN_M, le=RADIUS_MAX_M)
+    task_accept_escalation_minutes: int = Field(30, ge=5, le=1440)

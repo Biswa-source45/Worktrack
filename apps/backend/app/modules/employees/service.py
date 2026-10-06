@@ -50,6 +50,7 @@ def snapshot(user: User) -> dict[str, Any]:
         "department_id": user.department_id,
         "manager_id": user.manager_id,
         "field_eligible": user.field_eligible,
+        "field_punch_in_allowed": user.field_punch_in_allowed,
         "home_branch_id": user.home_branch_id,
         "shift_id": user.shift_id,
         "restrict_to_home_branch": user.restrict_to_home_branch,

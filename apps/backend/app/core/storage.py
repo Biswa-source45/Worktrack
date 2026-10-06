@@ -29,9 +29,11 @@ def make_client(settings: Settings) -> "S3Client":
     )
 
 
-async def put(s3: "S3Client", bucket: str, key: str, data: bytes) -> None:
+async def put(
+    s3: "S3Client", bucket: str, key: str, data: bytes, content_type: str = "image/jpeg"
+) -> None:
     await run_in_threadpool(
-        s3.put_object, Bucket=bucket, Key=key, Body=data, ContentType="image/jpeg"
+        s3.put_object, Bucket=bucket, Key=key, Body=data, ContentType=content_type
     )
 
 

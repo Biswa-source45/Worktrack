@@ -44,15 +44,18 @@ async def nearest_geofences(
     lng: float,
     accuracy_m: float,
     branch_id: int | None = None,
-    extra: Candidates | None = None,
+    extra: Candidates | Sequence[Candidates] | None = None,
+    only_extra: bool = False,
 ) -> Sequence[Row[str, int, str, int, float, bool]]:
     """Every candidate fence with its `distance_m` and whether the point is `inside`, nearest first.
 
     Inside means distance(centre, point) <= radius + min(accuracy, buffer cap). The candidates
-    are the active branches (or only `branch_id`) plus those of `extra`, all in one query.
+    are the active branches (or only `branch_id`) plus those of `extra` (one source or several),
+    all in one query; with `only_extra` just those of `extra` (a task's site on its own).
     """
-    branches = branch_candidates(branch_id)
-    fence = (branches if extra is None else union_all(branches, extra)).subquery("fence")
+    extras = [] if extra is None else [extra] if isinstance(extra, Select) else list(extra)
+    sources = ([] if only_extra else [branch_candidates(branch_id)]) + extras
+    fence = (sources[0] if len(sources) == 1 else union_all(*sources)).subquery("fence")
     point = cast(func.ST_SetSRID(func.ST_MakePoint(lng, lat), 4326), Geography)
     reach = fence.c.radius_m + func.least(accuracy_m, settings.geofence_accuracy_buffer_cap_m)
     # The verdict uses the very distance that is reported, so the two can never disagree.

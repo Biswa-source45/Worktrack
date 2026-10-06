@@ -170,7 +170,12 @@ async def test_the_day_detail_shows_every_punch_with_a_working_selfie_link(
     detail = (await client.get(f"{REGISTER}/{day_id}", headers=scene.admin)).json()
     assert [p["type"] for p in detail["punches"]] == ["in", "out"]
     punch = detail["punches"][0]
-    assert punch["place"] == {"type": "branch", "branch": scene.branch.name, "distance_m": 5}
+    assert punch["place"] == {
+        "type": "branch",
+        "branch": scene.branch.name,
+        "task": None,
+        "distance_m": 5,
+    }
     assert (await client.get(punch["selfie_url"])).status_code == 200
     assert len(await audit_rows(db, "attendance_day.view")) == 1
 
@@ -201,6 +206,7 @@ async def test_a_home_location_never_appears_in_the_register_or_a_day(
     assert json.loads(detail.text)["punches"][0]["place"] == {
         "type": "home",
         "branch": None,
+        "task": None,
         "distance_m": None,
     }
     for response in (listed, detail):

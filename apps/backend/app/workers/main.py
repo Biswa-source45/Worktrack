@@ -11,6 +11,7 @@ from app.modules.attendance.jobs import housekeeping
 from app.modules.audit.service import AuditCtx
 from app.modules.face.service import purge_departed, sweep_orphans
 from app.modules.sessions.service import purge_ended
+from app.modules.tasks.escalation import escalate_unaccepted
 
 
 async def ping(ctx: dict[str, Any]) -> str:
@@ -53,13 +54,32 @@ async def attendance_housekeeping(ctx: dict[str, Any]) -> dict[str, int]:
         await engine.dispose()
 
 
+async def task_escalation(ctx: dict[str, Any]) -> int:
+    """Tell the assigner about tasks nobody accepted in time."""
+    settings = get_settings()
+    engine = create_async_engine(settings.database_url)
+    try:
+        async with AsyncSession(engine) as session:
+            return await escalate_unaccepted(session, utcnow())
+    finally:
+        await engine.dispose()
+
+
 class WorkerSettings:
-    functions: ClassVar[list[Any]] = [ping, purge_sessions, purge_faces, attendance_housekeeping]
+    functions: ClassVar[list[Any]] = [
+        ping,
+        purge_sessions,
+        purge_faces,
+        attendance_housekeeping,
+        task_escalation,
+    ]
     # 21:30 UTC is 03:00 IST, when nobody is signing in.
     cron_jobs: ClassVar[list[Any]] = [
         cron(purge_sessions, hour=21, minute=30),
         cron(purge_faces, hour=21, minute=35),
         # Every ten minutes: the cut-off and the reminders are wall-clock times from Settings.
         cron(attendance_housekeeping, minute={0, 10, 20, 30, 40, 50}),
+        # Every five minutes: the wait before escalating is a setting, in minutes.
+        cron(task_escalation, minute=set(range(0, 60, 5))),
     ]
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)

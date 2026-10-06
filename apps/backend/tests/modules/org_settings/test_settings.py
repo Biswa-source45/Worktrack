@@ -34,6 +34,8 @@ DEFAULTS: dict[str, Any] = {
     "punch_out_request_expiry_hours": 48,
     "punch_max_speed_kmh": 150,
     "offline_punch_max_age_hours": 12,
+    "task_default_site_radius_m": 200,
+    "task_accept_escalation_minutes": 30,
 }
 
 
@@ -129,6 +131,9 @@ async def test_an_update_that_changes_nothing_writes_nothing(
         ("punch_out_request_expiry_hours", 0),
         ("punch_max_speed_kmh", 10),
         ("offline_punch_max_age_hours", 25),
+        ("task_default_site_radius_m", 29),
+        ("task_default_site_radius_m", 501),
+        ("task_accept_escalation_minutes", 4),
     ],
 )
 async def test_out_of_range_values_are_rejected(

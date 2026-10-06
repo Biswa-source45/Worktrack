@@ -26,6 +26,7 @@ from app.modules.org_settings.router import router as settings_router
 from app.modules.schedule.router import router as schedule_router
 from app.modules.sessions.router import router as sessions_router
 from app.modules.shifts.router import router as shifts_router
+from app.modules.tasks.router import router as tasks_router
 
 
 @lru_cache
@@ -76,6 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sessions_router,
         settings_router,
         shifts_router,
+        tasks_router,
     ):
         app.include_router(router, prefix="/api/v1")
     return app

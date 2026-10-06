@@ -17,6 +17,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
+from app.modules.tasks import models as _tasks  # noqa: F401 (the task_id foreign key's target)
 
 # Day status (BR-03 plus the states a day passes through).
 WORKING = "working"
@@ -41,10 +42,13 @@ OVERRIDE_KINDS = (LEAVE, WORK_FROM_HOME, ON_DUTY)
 IN = "in"
 OUT = "out"
 
-# Where a punch was accepted. "outside" only exists for out-of-office punch-out requests.
+# Where a punch was accepted. "outside" only exists for out-of-office punch-out requests; "task"
+# is a field punch-in at a task site (FR-ATT-10).
 AT_BRANCH = "branch"
 AT_HOME = "home"
 OUTSIDE = "outside"
+AT_TASK = "task"
+LOCATION_TYPES = (AT_BRANCH, AT_HOME, OUTSIDE, AT_TASK)
 
 # review_status of a punch: verified = nothing to review, pending = waits for an admin (or, for an
 # out-of-office request, for the approver), approved / rejected = the decision. Rejected does
@@ -132,9 +136,7 @@ class PunchEvent(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "request_id", name="uq_punch_events_user_id_request_id"),
         CheckConstraint(_in_list("type", (IN, OUT)), name="type"),
-        CheckConstraint(
-            _in_list("location_type", (AT_BRANCH, AT_HOME, OUTSIDE)), name="location_type"
-        ),
+        CheckConstraint(_in_list("location_type", LOCATION_TYPES), name="location_type"),
         CheckConstraint(_in_list("review_status", REVIEW_STATUSES), name="review_status"),
         CheckConstraint(
             _in_list("face_decision", ("VERIFIED", "PENDING_REVIEW", "MISMATCH")),
@@ -165,6 +167,8 @@ class PunchEvent(Base):
     accuracy_m: Mapped[float]
     location_type: Mapped[str] = mapped_column(String(8))
     branch_id: Mapped[int | None] = mapped_column(ForeignKey("branches.id"))
+    # The task whose site accepted a field punch-in.
+    task_id: Mapped[int | None] = mapped_column(ForeignKey("tasks.id"))
     # An "outside" punch has no branch, but the approver is told which one was nearest.
     nearest_branch_id: Mapped[int | None] = mapped_column(ForeignKey("branches.id"))
     distance_m: Mapped[float | None]

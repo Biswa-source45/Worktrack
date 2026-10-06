@@ -62,11 +62,23 @@ class OverrideOut(BaseModel):
     created_at: dt.datetime
 
 
+class DayTask(BaseModel):
+    """A task the person had for this day (scheduled on it), with their own status on it."""
+
+    id: int
+    code: str
+    title: str
+    status: str
+    reached_at: dt.datetime | None
+    completed_at: dt.datetime | None
+
+
 class DayDetail(BaseModel):
     employee: EmployeeBrief
     day: DayOut
     punches: list[PunchDetail]
     overrides: list[OverrideOut]
+    tasks: list[DayTask]
 
 
 class OverrideIn(BaseModel):

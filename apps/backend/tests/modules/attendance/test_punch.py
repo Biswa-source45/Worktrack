@@ -546,6 +546,7 @@ async def test_hours_stay_at_zero_until_the_out_of_office_request_is_approved(
     assert body["punch"]["place"] == {
         "type": "outside",
         "branch": scene.branch.name,
+        "task": None,
         "distance_m": 3000,
     }
     assert (body["day"]["status"], body["day"]["worked_minutes"]) == ("pending", 0)
@@ -584,7 +585,12 @@ async def test_a_home_punch_is_stored_but_the_place_is_never_shown(
     await add_home(db, scene.user)
     response = await send(client, scene.headers, "punch-in", HOME)
     assert response.status_code == 201, response.text
-    assert response.json()["punch"]["place"] == {"type": "home", "branch": None, "distance_m": None}
+    assert response.json()["punch"]["place"] == {
+        "type": "home",
+        "branch": None,
+        "task": None,
+        "distance_m": None,
+    }
     [event] = await events(db, scene.user.id)
     assert (event.location_type, event.branch_id) == ("home", None)
     today = (await client.get(f"{A}/today", headers=scene.headers)).text
@@ -747,7 +753,7 @@ async def test_precheck_says_how_far_before_the_camera_opens(
     assert near.json() | {"details": None} == {
         "allowed": True,
         "action": "punch_in",
-        "place": {"type": "branch", "branch": scene.branch.name, "distance_m": 40},
+        "place": {"type": "branch", "branch": scene.branch.name, "task": None, "distance_m": 40},
         "nearest_branch": scene.branch.name,
         "distance_m": 40,
         "code": None,
@@ -787,7 +793,12 @@ async def test_precheck_turns_a_punch_out_from_outside_into_a_request(
         )
     ).json()
     assert (outside["allowed"], outside["action"]) == (True, "request_punch_out")
-    assert outside["place"] == {"type": "outside", "branch": scene.branch.name, "distance_m": 900}
+    assert outside["place"] == {
+        "type": "outside",
+        "branch": scene.branch.name,
+        "task": None,
+        "distance_m": 900,
+    }
 
 
 async def test_precheck_on_a_poor_fix_and_on_a_day_off(
@@ -821,5 +832,5 @@ async def test_precheck_on_a_home_day_names_no_place(
         await client.post(f"{A}/precheck", json={**HOME, "accuracy_m": 5}, headers=scene.headers)
     ).json()
     assert body["allowed"] is True
-    assert body["place"] == {"type": "home", "branch": None, "distance_m": None}
+    assert body["place"] == {"type": "home", "branch": None, "task": None, "distance_m": None}
     assert body["nearest_branch"] is None and body["distance_m"] is None
