@@ -33,4 +33,19 @@ function Select({ className, invalid, ...props }: React.ComponentProps<'select'>
   );
 }
 
-export { Input, Select };
+function Textarea({
+  className,
+  invalid,
+  ...props
+}: React.ComponentProps<'textarea'> & ControlProps) {
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(controlClass, 'h-auto min-h-20 py-2', className)}
+      {...describe(props.id, invalid)}
+      {...props}
+    />
+  );
+}
+
+export { Input, Select, Textarea };

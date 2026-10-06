@@ -48,7 +48,7 @@ describe('AppShell', () => {
       within(screen.getByRole('navigation'))
         .getAllByRole('link')
         .map((a) => a.textContent),
-    ).toEqual(['Employees', 'Devices', 'Sessions']);
+    ).toEqual(['Employees', 'Attendance', 'Devices', 'Sessions']);
     cleanup();
 
     shell(makeMe({ permissions: ['web.access', 'employees.manage'] }));
@@ -62,6 +62,7 @@ describe('AppShell', () => {
     const links = within(screen.getByRole('navigation')).getAllByRole('link');
     expect(links.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
       ['Employees', '/employees'],
+      ['Attendance', '/attendance'],
       ['Branches', '/branches'],
       ['Shifts', '/shifts'],
       ['Devices', '/devices'],
@@ -83,8 +84,29 @@ describe('AppShell', () => {
     expect(screen.queryByRole('link', { name: 'Settings' })).not.toBeInTheDocument();
   });
 
+  it.each([['team.view'], ['attendance.view_all'], ['punchout.approve'], ['face.review']])(
+    'shows Attendance to anyone holding %s, and to no one else',
+    async (permission) => {
+      shell(makeMe({ permissions: ['web.access', permission] }));
+      const link = await screen.findByRole('link', { name: 'Attendance' });
+      expect(link).toHaveAttribute('href', '/attendance');
+      expect(screen.queryByRole('link', { name: 'Employees' })).not.toBeInTheDocument();
+      cleanup();
+
+      shell(makeMe({ permissions: ['web.access', 'devices.manage'] }));
+      expect(await screen.findByRole('link', { name: 'Devices' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Attendance' })).not.toBeInTheDocument();
+    },
+  );
+
+  it('has the seven links of a full admin', async () => {
+    shell(makeMe({ permissions: [...ADMIN, 'attendance.view_all'] }));
+    await screen.findByRole('link', { name: 'Attendance' });
+    expect(within(screen.getByRole('navigation')).getAllByRole('link')).toHaveLength(7);
+  });
+
   it('tells a user with neither permission that there is no access', async () => {
-    shell(makeMe({ permissions: ['web.access', 'team.view'] }));
+    shell(makeMe({ permissions: ['web.access', 'tasks.view'] }));
     expect(await screen.findByText(/do not have access/)).toBeInTheDocument();
     expect(screen.queryByRole('navigation')?.children).toHaveLength(0);
     expect(screen.queryByText('page content')).not.toBeInTheDocument();

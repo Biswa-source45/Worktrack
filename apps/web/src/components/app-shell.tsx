@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { HealthIndicator } from '@/components/health-status';
-import { NoAccess } from '@/components/require-permission';
+import { hasPermission, NoAccess } from '@/components/require-permission';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,14 @@ import { errorMessage } from '@/lib/api-client';
 import { useMe } from '@/lib/me';
 import { cn } from '@/lib/utils';
 
+// A list means "any of these": Attendance serves several roles, each with its own tabs.
 const NAV = [
   { href: '/employees', permission: 'employees.manage', label: 'nav.employees' },
+  {
+    href: '/attendance',
+    permission: ['team.view', 'attendance.view_all', 'punchout.approve', 'face.review'],
+    label: 'nav.attendance',
+  },
   { href: '/branches', permission: 'branches.manage', label: 'nav.branches' },
   { href: '/shifts', permission: 'branches.manage', label: 'nav.shifts' },
   { href: '/devices', permission: 'devices.manage', label: 'nav.devices' },
@@ -68,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
-  const items = NAV.filter((item) => me.permissions.includes(item.permission));
+  const items = NAV.filter((item) => hasPermission(me.permissions, item.permission));
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b bg-surface shadow-sm">
@@ -99,10 +105,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
           <HealthIndicator />
-          <ThemeToggle />
-          <span className="flex items-center gap-2 text-small font-medium">
+          <ThemeToggle compact />
+          {/* Seven nav links leave no room for the name next to the avatar: it stays for screen
+              readers and as a tooltip. */}
+          <span title={me.name} className="flex items-center gap-2 text-small font-medium">
             <Avatar name={me.name} />
-            <span className="max-w-40 truncate">{me.name}</span>
+            <span className="sr-only">{me.name}</span>
           </span>
           <Button
             variant="outline"
@@ -111,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             disabled={logout.isPending}
           >
             <LogOut aria-hidden="true" />
-            {/* Six nav links fill a 1280 px header: the label stays for screen readers only there. */}
+            {/* Seven nav links fill a 1280 px header: the label stays for screen readers only there. */}
             <span className="sr-only 2xl:not-sr-only">{t('nav.logout')}</span>
           </Button>
         </div>

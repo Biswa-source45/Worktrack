@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { ADMIN, SETTINGS, makeMe } from '@/test/fixtures';
@@ -55,6 +55,98 @@ describe('SettingsPage', () => {
     expect(within(face).getByLabelText('Keep face data after exit (days)')).toHaveValue('30');
     expect(within(face).getByLabelText('Verify threshold')).toHaveAttribute('inputmode', 'decimal');
     expect(within(face).getByText(/accepted automatically/)).toBeVisible();
+  });
+
+  it('shows the attendance settings with their current values', async () => {
+    setup();
+    const attendance = await screen.findByRole('group', { name: 'Attendance' });
+    const cutoff = within(attendance).getByLabelText('Attendance cut-off time (IST)');
+    expect(cutoff).toHaveValue('23:59');
+    expect(cutoff).toHaveAttribute('type', 'time');
+    expect(
+      within(attendance).getByLabelText('Punch-out reminder after shift end (min)'),
+    ).toHaveValue('30');
+    expect(within(attendance).getByLabelText('Punch-out request expiry (hours)')).toHaveValue('48');
+    expect(within(attendance).getByLabelText('Maximum travel speed (km/h)')).toHaveValue('150');
+    expect(within(attendance).getByLabelText('Offline punch maximum age (hours)')).toHaveValue(
+      '12',
+    );
+    expect(within(attendance).getByText(/After this time a day is closed/)).toBeVisible();
+    // It sits after Face matching, as its own card.
+    const groups = screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'));
+    expect(groups.indexOf('Attendance')).toBe(groups.indexOf('Face matching') + 1);
+  });
+
+  it('saves the attendance settings, sending only what changed', async () => {
+    const { calls, user } = setup({
+      routes: { 'PATCH /admin/settings': (call: Call) => ({ ...SETTINGS, ...jsonBody(call) }) },
+    });
+    const speed = await screen.findByLabelText('Maximum travel speed (km/h)');
+    await user.clear(speed);
+    await user.type(speed, '120');
+    fireEvent.change(screen.getByLabelText('Attendance cut-off time (IST)'), {
+      target: { value: '22:30' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Settings saved.')).toBeVisible();
+    expect(jsonBody(patches(calls)[0])).toEqual({
+      punch_max_speed_kmh: 120,
+      attendance_cutoff_time: '22:30',
+    });
+  });
+
+  it.each([
+    ['Punch-out reminder after shift end (min)', '241'],
+    ['Punch-out request expiry (hours)', '0'],
+    ['Punch-out request expiry (hours)', '241'],
+    ['Maximum travel speed (km/h)', '19'],
+    ['Maximum travel speed (km/h)', '1001'],
+    ['Offline punch maximum age (hours)', '0'],
+    ['Offline punch maximum age (hours)', '25'],
+    ['Offline punch maximum age (hours)', '2.5'],
+  ])('rejects %s = %s', async (label, value) => {
+    const { calls, user } = setup();
+    const input = await screen.findByLabelText(label);
+    await user.clear(input);
+    await user.type(input, value);
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Enter a whole number within the allowed range.')).toBeVisible();
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(patches(calls)).toHaveLength(0);
+  });
+
+  it('accepts the edges of the allowed ranges', async () => {
+    const { calls, user } = setup({
+      routes: { 'PATCH /admin/settings': (call: Call) => ({ ...SETTINGS, ...jsonBody(call) }) },
+    });
+    for (const [label, value] of [
+      ['Punch-out reminder after shift end (min)', '0'],
+      ['Punch-out request expiry (hours)', '240'],
+      ['Maximum travel speed (km/h)', '20'],
+      ['Offline punch maximum age (hours)', '24'],
+    ]) {
+      const input = await screen.findByLabelText(label);
+      await user.clear(input);
+      await user.type(input, value);
+    }
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Settings saved.')).toBeVisible();
+    expect(jsonBody(patches(calls)[0])).toEqual({
+      punch_reminder_after_shift_end_min: 0,
+      punch_out_request_expiry_hours: 240,
+      punch_max_speed_kmh: 20,
+      offline_punch_max_age_hours: 24,
+    });
+  });
+
+  it('rejects an empty cut-off time', async () => {
+    const { calls, user } = setup();
+    const cutoff = await screen.findByLabelText('Attendance cut-off time (IST)');
+    fireEvent.change(cutoff, { target: { value: '' } });
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Enter a time as HH:MM, for example 23:59.')).toBeVisible();
+    expect(cutoff).toHaveAttribute('aria-invalid', 'true');
+    expect(patches(calls)).toHaveLength(0);
   });
 
   it('saves a pair of thresholds with decimals', async () => {
@@ -206,6 +298,8 @@ describe('SettingsPage', () => {
     expect(await branchRadius()).toBeDisabled();
     expect(screen.getByLabelText('Punch-out approval levels')).toBeDisabled();
     expect(screen.getByLabelText('Minimum app version')).toBeDisabled();
+    expect(screen.getByLabelText('Maximum travel speed (km/h)')).toBeDisabled();
+    expect(screen.getByLabelText('Attendance cut-off time (IST)')).toBeDisabled();
     expect(screen.getByText(/Only a Super Admin can change settings/)).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
     await waitFor(() => expect(patches(calls)).toHaveLength(0));

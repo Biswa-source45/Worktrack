@@ -156,6 +156,11 @@ export const SETTINGS: Schemas['OrgSettings'] = {
   face_min_brightness: 50,
   face_max_brightness: 200,
   face_retention_days_after_exit: 30,
+  attendance_cutoff_time: '23:59',
+  punch_reminder_after_shift_end_min: 30,
+  punch_out_request_expiry_hours: 48,
+  punch_max_speed_kmh: 150,
+  offline_punch_max_age_hours: 12,
 };
 
 export function makeEnrollment(
@@ -201,6 +206,186 @@ export function makeHomeRequest(
     status: 'pending',
     accuracy_m: 12,
     created_at: '2026-02-01T04:30:00Z',
+    ...overrides,
+  };
+}
+
+// Everything the attendance screens use: the three permissions of M4 on top of the admin set.
+export const ATTENDANCE_ADMIN = [
+  ...ADMIN,
+  'attendance.view_all',
+  'attendance.override',
+  'punchout.approve',
+  'face.review',
+];
+
+const ASHA = { id: 2, emp_code: 'EMP-001', name: 'Asha Rao' };
+const RAVI = { id: 3, emp_code: 'EMP-002', name: 'Ravi Kumar' };
+export const PEOPLE = { ASHA, RAVI };
+
+export function makeRegisterRow(
+  overrides: Partial<Schemas['RegisterRow']> = {},
+): Schemas['RegisterRow'] {
+  return {
+    employee: ASHA,
+    status: 'present',
+    day_id: 81,
+    branch: 'Head Office',
+    first_in_at: '2026-02-03T04:05:00Z',
+    last_out_at: '2026-02-03T12:40:00Z',
+    worked_minutes: 515,
+    late_minutes: 0,
+    flags: [],
+    ...overrides,
+  };
+}
+
+export function makePunchDetail(
+  overrides: Partial<Schemas['PunchDetail']> = {},
+): Schemas['PunchDetail'] {
+  return {
+    id: 501,
+    type: 'in',
+    time: '2026-02-03T04:05:00Z',
+    server_time: '2026-02-03T04:05:00Z',
+    device_time: '2026-02-03T04:04:30Z',
+    review_status: 'verified',
+    review_reasons: [],
+    face_decision: 'VERIFIED',
+    face_score: 0.71,
+    place: { type: 'branch', branch: 'Head Office', distance_m: 12 },
+    accuracy_m: 9,
+    offline: false,
+    integrity_flags: [],
+    selfie_url: '/api/v1/files/tok.in',
+    reviewed_by: null,
+    review_remarks: null,
+    ...overrides,
+  };
+}
+
+export function makeDayDetail(overrides: Partial<Schemas['DayDetail']> = {}): Schemas['DayDetail'] {
+  return {
+    employee: ASHA,
+    day: {
+      id: 81,
+      date: '2026-02-03',
+      status: 'present',
+      first_in_at: '2026-02-03T04:05:00Z',
+      last_out_at: '2026-02-03T12:40:00Z',
+      worked_minutes: 515,
+      late_minutes: 0,
+      overtime_minutes: 35,
+      flags: [],
+    },
+    punches: [
+      makePunchDetail(),
+      makePunchDetail({
+        id: 502,
+        type: 'out',
+        time: '2026-02-03T12:40:00Z',
+        server_time: '2026-02-03T12:40:00Z',
+        face_score: 0.66,
+        selfie_url: '/api/v1/files/tok.out',
+      }),
+    ],
+    overrides: [],
+    ...overrides,
+  };
+}
+
+export function makeRequest(
+  overrides: Partial<Schemas['RequestItem']> = {},
+): Schemas['RequestItem'] {
+  return {
+    id: 71,
+    employee: ASHA,
+    date: '2026-02-03',
+    status: 'pending',
+    requested_time: '2026-02-03T11:30:00Z',
+    reason: 'Client site visit',
+    created_at: '2026-02-03T11:31:00Z',
+    expires_at: '2026-02-05T11:31:00Z',
+    ...overrides,
+  };
+}
+
+export function makeRequestDetail(
+  overrides: Partial<Schemas['RequestDetail']> = {},
+): Schemas['RequestDetail'] {
+  return {
+    ...makeRequest(),
+    note: 'Visited the Cuttack depot',
+    punched_in_at: '2026-02-03T04:05:00Z',
+    lat: 20.4625,
+    lng: 85.883,
+    nearest_branch: 'Head Office',
+    distance_m: 24500,
+    accuracy_m: 14,
+    face_decision: 'VERIFIED',
+    face_score: 0.69,
+    offline: false,
+    review_reasons: [],
+    selfie_url: '/api/v1/files/tok.request',
+    first_approver: null,
+    approver: null,
+    approved_time: null,
+    remarks: null,
+    decided_at: null,
+    can_decide: true,
+    final_by_admin: false,
+    ...overrides,
+  };
+}
+
+export function makeReview(overrides: Partial<Schemas['ReviewItem']> = {}): Schemas['ReviewItem'] {
+  return {
+    id: 91,
+    employee: ASHA,
+    date: '2026-02-03',
+    type: 'in',
+    time: '2026-02-03T04:05:00Z',
+    review_status: 'pending',
+    review_reasons: ['face_mismatch'],
+    face_decision: 'MISMATCH',
+    face_score: 0.12,
+    offline: false,
+    ...overrides,
+  };
+}
+
+export function makeReviewDetail(
+  overrides: Partial<Schemas['ReviewDetail']> = {},
+): Schemas['ReviewDetail'] {
+  return {
+    ...makeReview(),
+    server_time: '2026-02-03T04:05:00Z',
+    device_time: '2026-02-03T04:04:30Z',
+    place: { type: 'branch', branch: 'Head Office', distance_m: 18 },
+    accuracy_m: 11,
+    integrity_flags: [],
+    thresholds: { verify: 0.4, review: 0.3 },
+    model_version: 'yunet-2023mar+sface-2021dec',
+    selfie_url: '/api/v1/files/tok.review',
+    reviewed_by: null,
+    review_remarks: null,
+    can_decide: true,
+    ...overrides,
+  };
+}
+
+export function makeException(
+  overrides: Partial<Schemas['ExceptionItem']> = {},
+): Schemas['ExceptionItem'] {
+  return {
+    id: 301,
+    at: '2026-02-03T04:10:00Z',
+    employee: ASHA,
+    kind: 'OUTSIDE_GEOFENCE',
+    nearest_branch: 'Head Office',
+    distance_m: 1830,
+    punch_event_id: null,
+    details: null,
     ...overrides,
   };
 }

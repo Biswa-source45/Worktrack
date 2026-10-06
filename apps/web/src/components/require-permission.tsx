@@ -15,16 +15,20 @@ export function NoAccess() {
   );
 }
 
+/** True when `held` has the permission, or any of them when a list is given. */
+export const hasPermission = (held: readonly string[], needed: string | readonly string[]) =>
+  (typeof needed === 'string' ? [needed] : needed).some((p) => held.includes(p));
+
 // The server enforces every permission; this only keeps people off screens they cannot use.
 export function RequirePermission({
   permission,
   children,
 }: {
-  permission: string;
+  permission: string | readonly string[];
   children: ReactNode;
 }) {
   const { data } = useMe();
   if (!data) return null;
-  if (!data.permissions.includes(permission)) return <NoAccess />;
+  if (!hasPermission(data.permissions, permission)) return <NoAccess />;
   return children;
 }
