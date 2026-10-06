@@ -99,7 +99,7 @@ async def test_the_approver_sees_where_who_and_the_face_result(
     assert (body["status"], body["can_decide"], body["final_by_admin"]) == ("pending", True, False)
     assert body["nearest_branch"] == scene.branch.name and body["distance_m"] == 3000
     assert (body["face_decision"], body["offline"]) == ("VERIFIED", False)
-    assert 0.3 < body["face_score"] <= 1
+    assert 0.3 < body["face_score"] <= 1.001  # float32 rounding: 1.0000001 on Linux
     # The map pin: the only place coordinates are returned.
     assert abs(body["lat"] - 20.2961) < 0.1 and abs(body["lng"] - 85.8245) < 0.1
     assert dt.datetime.fromisoformat(body["punched_in_at"]) == ist(10, 5)

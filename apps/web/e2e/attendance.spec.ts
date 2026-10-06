@@ -28,6 +28,9 @@ async function openRegister(page: Page, search: string) {
   await uiLoginAsReadyAdmin(page);
   await page.getByRole('link', { name: 'Attendance' }).click();
   await page.getByRole('textbox', { name: 'Search by name or code' }).fill(search);
+  // The search is debounced: wait for the filtered list (header plus one row) before touching a
+  // row, or the list refreshes under the click and closes the menu it opened.
+  await expect(page.getByRole('table').getByRole('row')).toHaveCount(2);
 }
 
 const rowOf = (page: Page, name: string) =>
