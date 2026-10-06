@@ -119,7 +119,7 @@ export function SidebarNav({ groups, pathname, collapsed = false, onNavigate }: 
                 aria-current={active ? 'page' : undefined}
                 onClick={onNavigate}
                 className={cn(
-                  'relative flex h-10 items-center gap-3 rounded-full px-3 text-small font-medium transition-transform active:scale-(--wt-press-scale)',
+                  'relative flex h-11 items-center gap-3 rounded-full px-3 text-small font-medium transition-transform active:scale-(--wt-press-scale)',
                   collapsed && 'justify-center px-0',
                   active
                     ? 'font-semibold text-primary-foreground'

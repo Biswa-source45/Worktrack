@@ -178,7 +178,9 @@ describe('TasksPage filters', () => {
       expect(last?.search.get('to')).toBe('2026-02-07');
     });
     // One chosen status shows one column, and the closed toggle has nothing left to do.
-    expect(screen.getAllByRole('region')).toHaveLength(1);
+    const board = screen.getByRole('region', { name: 'Board' });
+    expect(board).toHaveAttribute('tabindex', '0');
+    expect(within(board).getAllByRole('region')).toHaveLength(1);
     expect(
       screen.queryByRole('checkbox', { name: 'Show closed and cancelled' }),
     ).not.toBeInTheDocument();

@@ -78,7 +78,13 @@ function TaskCard({ task, index }: { task: Task; index: number }) {
 export function TaskBoard({ tasks, statuses }: { tasks: Task[]; statuses: readonly string[] }) {
   const { t } = useTranslation();
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2">
+    // A scrolling strip must be reachable by keyboard too: focusable, and named for screen readers.
+    <div
+      role="region"
+      tabIndex={0}
+      aria-label={t('tasks.board')}
+      className="flex gap-3 overflow-x-auto rounded-md pb-2"
+    >
       {statuses.map((status) => {
         const inColumn = tasks.filter((task) => task.status === status);
         return (

@@ -158,6 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Button
             variant="ghost"
             size="icon"
+            className="size-11"
             aria-label={t('nav.openMenu')}
             onClick={() => setDrawerOpen(true)}
           >
@@ -182,7 +183,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               {brand}
               <DialogPrimitive.Title className="sr-only">{t('nav.menu')}</DialogPrimitive.Title>
               <DialogPrimitive.Close asChild>
-                <Button variant="ghost" size="icon" aria-label={t('nav.closeMenu')}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-11"
+                  aria-label={t('nav.closeMenu')}
+                >
                   <X aria-hidden="true" />
                 </Button>
               </DialogPrimitive.Close>
