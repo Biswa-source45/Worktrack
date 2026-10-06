@@ -5,6 +5,23 @@ import { openSqliteStore } from '@/lib/punch-sqlite';
 import { open, seal } from '@/lib/queue-seal';
 
 export type QueueKind = 'in' | 'out' | 'request';
+export const TASK_ACTIONS = [
+  'accept',
+  'decline',
+  'start',
+  'hold',
+  'resume',
+  'notes',
+  'complete',
+  'reached',
+  'comments',
+] as const;
+export type TaskAction = (typeof TASK_ACTIONS)[number];
+/** A task action saved for later: `task_accept`, `task_complete` and so on (no ":" because i18n keys). */
+export type TaskKind = `task_${TaskAction}`;
+/** What a saved row is: a punch or a task action. */
+export type RowKind = QueueKind | TaskKind;
+export const isTaskKind = (kind: RowKind): kind is TaskKind => kind.startsWith('task_');
 export type QueueStatus = 'queued' | 'syncing' | 'synced' | 'failed';
 
 /** What the list shows: everything but the sealed payload, which is large and secret. */
@@ -13,7 +30,7 @@ export type QueueRow = {
   id: string;
   seq: number;
   user_id: number;
-  kind: QueueKind;
+  kind: RowKind;
   status: QueueStatus;
   attempts: number;
   error_code: string | null;
@@ -135,4 +152,72 @@ export async function retryRow(id: string): Promise<void> {
 export async function discardRow(id: string): Promise<void> {
   await (await getStore()).remove(id);
   notifyQueueChange();
+}
+
+// A task action is sealed the same way: one AES-GCM blob with the form fields and the photos
+// (as base64: the cache file is deleted at once, only the sealed copy waits for the connection).
+const taskPayloadSchema = z.object({
+  task_id: z.number().int(),
+  action: z.enum(TASK_ACTIONS),
+  /** The text parts of the form (lat, lng, accuracy_m, reason, remarks, note ...). */
+  fields: z.record(z.string(), z.string()),
+  device_time: z.string(),
+  photos: z.array(z.object({ part: z.string(), data: z.string() })),
+});
+export type QueuedTaskPayload = z.infer<typeof taskPayloadSchema>;
+
+/** One task action, from the moment the employee pressed the button. */
+export type TaskAttempt = {
+  /** Also the Idempotency-Key of every send. */
+  id: string;
+  userId: number;
+  taskId: number;
+  action: TaskAction;
+  fields: Record<string, string>;
+  /** Photos in this phone's cache, each as the form part it is sent in (`photo`, `photos`, `selfie`). */
+  photos: { part: string; uri: string }[];
+  deviceTime: string;
+};
+
+// Bounds the sealed blob (and the SQLite row) at 5 x 3 MB of photos, about 20 MB as base64. The
+// camera's 4:3 HD photos are a few hundred KB; the server re-encodes every photo anyway.
+export const MAX_QUEUED_PHOTOS = 5;
+export const MAX_QUEUED_PHOTO_BYTES = 3_000_000;
+
+/** Seals the task action into the queue and deletes its cache photos: only the sealed copy remains. */
+export async function enqueueTask(attempt: TaskAttempt): Promise<void> {
+  if (attempt.photos.length > MAX_QUEUED_PHOTOS) {
+    throw new Error(`a saved task action holds at most ${MAX_QUEUED_PHOTOS} photos`);
+  }
+  for (const { uri } of attempt.photos) {
+    if (new File(uri).size > MAX_QUEUED_PHOTO_BYTES) {
+      throw new Error('a photo is too large to save on this phone');
+    }
+  }
+  const payload: QueuedTaskPayload = {
+    task_id: attempt.taskId,
+    action: attempt.action,
+    fields: attempt.fields,
+    device_time: attempt.deviceTime,
+    photos: await Promise.all(
+      attempt.photos.map(async ({ part, uri }) => ({ part, data: await new File(uri).base64() })),
+    ),
+  };
+  const sealed = await seal(encoder.encode(JSON.stringify(payload)));
+  const store = await getStore();
+  await store.insert(
+    {
+      id: attempt.id,
+      user_id: attempt.userId,
+      kind: `task_${attempt.action}`,
+      created_at: attempt.deviceTime,
+    },
+    sealed,
+  );
+  deletePhotos(attempt.photos.map((photo) => photo.uri));
+  notifyQueueChange();
+}
+
+export async function openTaskPayload(blob: Uint8Array): Promise<QueuedTaskPayload> {
+  return taskPayloadSchema.parse(JSON.parse(decoder.decode(await open(blob))));
 }

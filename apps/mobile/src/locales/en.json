@@ -486,6 +486,19 @@
     },
     "worked": "Worked today"
   },
+  "tasks": {
+    "site": {
+      "mapA11y": "Map of the task site: {{address}}"
+    }
+  },
+  "photo": {
+    "devBuild": "The camera is not available in Expo Go. Open the WorkTrack development build on an Android phone to take photos.",
+    "permissionBody": "WorkTrack uses the camera to take photos for your tasks. Nothing is read from your gallery.",
+    "noBackCamera": "This phone has no back camera that WorkTrack can use.",
+    "take": "Take photo",
+    "hint": "Frame the subject, then press the button.",
+    "captureFailed": "Could not take the photo. Please try again."
+  },
   "queue": {
     "title": "Saved punches",
     "cardBody_one": "{{count}} punch is waiting to be sent.",
@@ -505,7 +518,16 @@
     "kind": {
       "in": "Punch in",
       "out": "Punch out",
-      "request": "Punch-out request"
+      "request": "Punch-out request",
+      "task_accept": "Accept task",
+      "task_decline": "Decline task",
+      "task_start": "Start work",
+      "task_hold": "Put task on hold",
+      "task_resume": "Resume task",
+      "task_notes": "Task note",
+      "task_complete": "Complete task",
+      "task_reached": "I have reached",
+      "task_comments": "Task comment"
     },
     "status": {
       "queued": "Waiting to send",

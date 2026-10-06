@@ -5,6 +5,7 @@ import { AppText } from '@/components/ui/app-text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
+import { isTaskKind } from '@/lib/punch-queue';
 import { usePunchQueue } from '@/lib/punch-sync';
 
 /** Punches saved on this phone; nothing is shown while there are none. */
@@ -12,7 +13,9 @@ export function PunchQueueCard() {
   const { t } = useTranslation();
   const router = useRouter();
   const { me } = useAuth();
-  const { rows } = usePunchQueue(me?.id);
+  const { rows: saved } = usePunchQueue(me?.id);
+  // Saved task actions are shown on the task screens, not counted as punches.
+  const rows = saved?.filter((row) => !isTaskKind(row.kind));
   if (!rows || rows.length === 0) return null;
 
   const waiting = rows.filter((row) => row.status === 'queued' || row.status === 'syncing').length;
