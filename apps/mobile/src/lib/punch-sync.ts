@@ -11,7 +11,13 @@ import {
   openPayload,
   openTaskPayload,
 } from '@/lib/punch-queue';
-import type { QueueRow, QueueStore, QueuedPayload, QueuedTaskPayload } from '@/lib/punch-queue';
+import type {
+  QueueRow,
+  QueueStore,
+  QueuedPayload,
+  QueuedTaskPayload,
+  TaskAction,
+} from '@/lib/punch-queue';
 import { postTaskAction } from '@/lib/task-actions';
 
 /** A punch the server keeps answering 5xx for is given up on after this many sends. */
@@ -90,6 +96,27 @@ export const sendQueuedTask: SendTask = async (row, payload) => {
   }
 };
 
+// Where each saved action leaves the person on the task. A refusal that says the person is
+// already there (a double tap, or an action that did go out before) is the goal reached.
+const LEAVES_AT: Partial<Record<TaskAction, string>> = {
+  accept: 'accepted',
+  decline: 'declined',
+  start: 'in_progress',
+  hold: 'on_hold',
+  resume: 'in_progress',
+  complete: 'completed',
+  reached: 'reached',
+};
+
+/** True when the server refused this saved task action only because it is already in effect. */
+export function alreadyInEffect(row: QueueRow, error: unknown): boolean {
+  if (!(error instanceof ApiError) || error.code !== 'INVALID_TRANSITION') return false;
+  if (!isTaskKind(row.kind)) return false;
+  const action = row.kind.slice('task_'.length) as TaskAction;
+  const details = (error.details ?? {}) as { from?: unknown; action?: unknown };
+  return details.action === action && details.from === LEAVES_AT[action];
+}
+
 const failedWith = (error: unknown): { error_code: string; error_message: string | null } =>
   error instanceof ApiError
     ? { error_code: error.code, error_message: error.message || null }
@@ -152,7 +179,14 @@ export async function syncQueue(store: QueueStore, userId: number, deps: Deps) {
       });
     } catch (error) {
       const kind = classify(error);
-      if (kind === 'business') {
+      if (kind === 'business' && alreadyInEffect(row, error)) {
+        await store.update(row.id, {
+          status: 'synced',
+          error_code: null,
+          error_message: null,
+          wipe: true,
+        });
+      } else if (kind === 'business') {
         await store.update(row.id, { status: 'failed', ...failedWith(error) });
       } else if (kind === 'server') {
         const attempts = row.attempts + 1;

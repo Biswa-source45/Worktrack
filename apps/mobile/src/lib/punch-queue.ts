@@ -184,14 +184,62 @@ export type TaskAttempt = {
 export const MAX_QUEUED_PHOTOS = 5;
 export const MAX_QUEUED_PHOTO_BYTES = 3_000_000;
 
-/** Seals the task action into the queue and deletes its cache photos: only the sealed copy remains. */
-export async function enqueueTask(attempt: TaskAttempt): Promise<void> {
+// A note or a comment is new content every time; every other action moves the task once.
+const WRITTEN_AGAIN: readonly TaskAction[] = ['notes', 'comments'];
+const WAITING: readonly QueueStatus[] = ['queued', 'syncing'];
+
+/**
+ * The saved action of this employee that is still waiting to be sent for this task and action, or
+ * null. A task is told at most once to accept, start, hold and so on, so a second tap while the
+ * first is still saved would only be refused when both arrive.
+ */
+export async function findWaitingTaskAction(
+  userId: number,
+  taskId: number,
+  action: TaskAction,
+): Promise<string | null> {
+  const store = await getStore();
+  for (const row of await store.list(userId)) {
+    if (row.kind !== `task_${action}` || !WAITING.includes(row.status)) continue;
+    const blob = await store.payload(row.id);
+    if (!blob) continue;
+    try {
+      if ((await openTaskPayload(blob)).task_id === taskId) return row.id;
+    } catch {
+      // An unreadable row is reported by the sync run; it is not this action's copy.
+    }
+  }
+  return null;
+}
+
+// One at a time: two quick taps must not both find nothing waiting and both save.
+let saving: Promise<unknown> = Promise.resolve();
+
+/**
+ * Seals the task action into the queue and deletes its cache photos: only the sealed copy remains.
+ * Returns the id of the saved row. An action that is already waiting for the same task and person
+ * is not saved again (its id is returned and the new photos are deleted).
+ */
+export function enqueueTask(attempt: TaskAttempt): Promise<string> {
+  const run = saving.then(() => saveTask(attempt));
+  saving = run.catch(() => undefined);
+  return run;
+}
+
+async function saveTask(attempt: TaskAttempt): Promise<string> {
   if (attempt.photos.length > MAX_QUEUED_PHOTOS) {
     throw new Error(`a saved task action holds at most ${MAX_QUEUED_PHOTOS} photos`);
   }
   for (const { uri } of attempt.photos) {
     if (new File(uri).size > MAX_QUEUED_PHOTO_BYTES) {
       throw new Error('a photo is too large to save on this phone');
+    }
+  }
+  if (!WRITTEN_AGAIN.includes(attempt.action)) {
+    const waiting = await findWaitingTaskAction(attempt.userId, attempt.taskId, attempt.action);
+    if (waiting) {
+      deletePhotos(attempt.photos.map((photo) => photo.uri));
+      return waiting;
     }
   }
   const payload: QueuedTaskPayload = {
@@ -216,6 +264,7 @@ export async function enqueueTask(attempt: TaskAttempt): Promise<void> {
   );
   deletePhotos(attempt.photos.map((photo) => photo.uri));
   notifyQueueChange();
+  return attempt.id;
 }
 
 export async function openTaskPayload(blob: Uint8Array): Promise<QueuedTaskPayload> {

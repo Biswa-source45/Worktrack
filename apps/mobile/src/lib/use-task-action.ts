@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { useAuth } from '@/lib/auth';
+import { findWaitingTaskAction } from '@/lib/punch-queue';
 import type { TaskAction } from '@/lib/punch-queue';
 import { newTaskRequestId, submitTaskAction } from '@/lib/task-actions';
 import { TASKS_KEY, taskKey } from '@/lib/tasks';
@@ -8,7 +9,8 @@ import type { ActionOut, TaskDetail } from '@/lib/tasks';
 
 export type TaskPhoto = { part: string; uri: string };
 /** `sent`: the server's answer. `queued`: saved on this phone, sent when it is back online. */
-export type Delivery = { type: 'queued' } | { type: 'sent'; task: TaskDetail };
+export type Delivery =
+  { type: 'queued'; rowId: string | null } | { type: 'sent'; task: TaskDetail };
 
 /**
  * Sends one action of one task as the signed-in employee. A retry of the same action with the same
@@ -42,7 +44,9 @@ export function useTaskAction(taskId: number) {
       deviceTime: new Date().toISOString(),
     });
     last.current = null;
-    if (sent.type === 'queued') return { type: 'queued' };
+    if (sent.type === 'queued') {
+      return { type: 'queued', rowId: await findWaitingTaskAction(me.id, taskId, action) };
+    }
     queryClient.setQueryData(taskKey(taskId), sent.result.task);
     // The lists change with the status; the detail was just replaced by the server's answer.
     void queryClient.invalidateQueries({

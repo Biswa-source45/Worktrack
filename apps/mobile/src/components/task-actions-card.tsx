@@ -19,8 +19,10 @@ import { AppText } from '@/components/ui/app-text';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/lib/auth';
 import { getIntegrity } from '@/lib/integrity';
 import { LocationError, getCurrentFix } from '@/lib/location';
+import { usePunchQueue } from '@/lib/punch-sync';
 import { startReach } from '@/lib/task-flow';
 import { stepsFor, taskErrorDetail, taskErrorText } from '@/lib/tasks';
 import type { AssigneeOut, Step, TaskDetail } from '@/lib/tasks';
@@ -43,10 +45,16 @@ type Problem = { message: string; detail?: string };
 export function TaskActionsCard({ task, mine }: { task: TaskDetail; mine: AssigneeOut }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { me } = useAuth();
   const run = useTaskAction(task.id);
   const [busy, setBusy] = useState<Step | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
-  const [saved, setSaved] = useState(false);
+  // The saved row this screen is waiting on: the message shows only while it still waits.
+  const [savedRow, setSavedRow] = useState<string | null>(null);
+  const { rows } = usePunchQueue(me?.id);
+  const saved = rows?.some(
+    (row) => row.id === savedRow && (row.status === 'queued' || row.status === 'syncing'),
+  );
   const [asking, setAsking] = useState<'decline' | 'hold' | null>(null);
   const steps = stepsFor(mine.status);
   if (steps.length === 0) return null;
@@ -55,7 +63,8 @@ export function TaskActionsCard({ task, mine }: { task: TaskDetail; mine: Assign
     setBusy(step);
     setProblem(null);
     try {
-      if ((await run(step)).type === 'queued') setSaved(true);
+      const delivery = await run(step);
+      if (delivery.type === 'queued') setSavedRow(delivery.rowId);
     } catch (error) {
       setProblem({ message: taskErrorText(t, error), detail: taskErrorDetail(error) });
     } finally {
@@ -84,7 +93,8 @@ export function TaskActionsCard({ task, mine }: { task: TaskDetail; mine: Assign
 
   async function withReason(action: 'decline' | 'hold', reason: string) {
     // A failure is thrown to the dialog, which shows it and stays open.
-    if ((await run(action, { reason })).type === 'queued') setSaved(true);
+    const delivery = await run(action, { reason });
+    if (delivery.type === 'queued') setSavedRow(delivery.rowId);
   }
 
   function press(step: Step) {
