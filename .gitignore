@@ -27,3 +27,5 @@ apps/backend/models/*
 # real places and home coordinates for the local seed, never committed
 apps/backend/seed.local.json
 google-services.json
+
+*.jks
