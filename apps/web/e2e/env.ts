@@ -1,6 +1,7 @@
 import path from 'node:path';
 
-export const E2E_DATABASE = 'worktrack_e2e';
+// E2E_DATABASE lets a run start from an empty database (CI does) without touching the usual one.
+export const E2E_DATABASE = process.env.E2E_DATABASE ?? 'worktrack_e2e';
 
 // The e2e stack runs against its own database (next to the test one), never the dev data, and
 // never the backend test database whose tests expect an empty system. Redis and S3 come from the

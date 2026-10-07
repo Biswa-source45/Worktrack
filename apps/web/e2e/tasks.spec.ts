@@ -255,6 +255,9 @@ test('with the switch on, a field punch-in at an accepted task site shows in the
   await page
     .getByRole('textbox', { name: 'Search by name, code or mobile' })
     .fill(worker.employee.code);
+  // The search is debounced: wait for the filtered table (header and the one match) before
+  // touching a row, or the list refreshes under the click and closes the menu it opened.
+  await expect(page.getByRole('row')).toHaveCount(2);
   await page.getByRole('button', { name: `Actions for ${worker.employee.name}` }).click();
   await page.getByRole('menuitem', { name: 'Edit' }).click();
   const edit = page.getByRole('dialog', { name: 'Edit employee' });
@@ -267,6 +270,7 @@ test('with the switch on, a field punch-in at an accepted task site shows in the
 
   await goTo(page, 'Attendance');
   await page.getByRole('textbox', { name: 'Search by name or code' }).fill(worker.employee.code);
+  await expect(page.getByRole('table').getByRole('row')).toHaveCount(2);
   const row = page.getByRole('row', { name: new RegExp(worker.employee.name) });
   await expect(row.getByRole('img', { name: 'Field punch-in at a task site' })).toBeVisible();
   await page.getByRole('button', { name: `Actions for ${worker.employee.name}` }).click();
