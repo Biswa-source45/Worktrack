@@ -15,6 +15,8 @@ const ALLOWED = [
   /^me$/,
   /^admin(\/|$)/,
   /^employees\/team$/,
+  /^tasks(\/|$)/,
+  /^task-types$/,
   /^(branches|shifts)$/,
   /^files\/[\w.-]+$/,
 ];

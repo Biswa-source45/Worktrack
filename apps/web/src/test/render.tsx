@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
+import { MotionProvider } from '@/components/motion-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import '@/lib/i18n';
 
@@ -11,7 +12,9 @@ export function renderWithClient(ui: ReactElement) {
     client,
     ...render(
       <ThemeProvider>
-        <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+        <QueryClientProvider client={client}>
+          <MotionProvider>{ui}</MotionProvider>
+        </QueryClientProvider>
       </ThemeProvider>,
     ),
   };
@@ -22,6 +25,7 @@ export type Call = {
   path: string;
   search: URLSearchParams;
   body: string | FormData | null;
+  headers: Headers;
 };
 type Handler = (call: Call) => unknown;
 
@@ -42,7 +46,8 @@ export function mockApi(routes: Record<string, Handler | unknown>) {
     if (request) body = (await request.clone().text()) || null;
     else if (init?.body instanceof FormData) body = init.body;
     else if (typeof init?.body === 'string') body = init.body;
-    const call = { method, path: url.pathname, search: url.searchParams, body };
+    const headers = new Headers(request?.headers ?? init?.headers);
+    const call = { method, path: url.pathname, search: url.searchParams, body, headers };
     calls.push(call);
 
     const key = Object.keys(routes).find((k) => {

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Ellipsis, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
 import { Button } from '@/components/ui/button';
@@ -166,7 +167,7 @@ export function RegisterTab() {
   );
 
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <Field id="register-date" label={t('attendance.date')}>
           <Input
@@ -257,6 +258,6 @@ export function RegisterTab() {
           onClose={() => setDialog(null)}
         />
       )}
-    </div>
+    </TabPanel>
   );
 }

@@ -59,6 +59,8 @@ from app.modules.org_settings.schemas import OrgSettings
 from app.modules.org_settings.service import get_org_settings
 from app.modules.schedule.punch import PunchPlace, check_punch_location
 from app.modules.schedule.service import resolve_day
+from app.modules.tasks.models import Task
+from app.modules.tasks.sites import field_punch_sites
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
@@ -67,7 +69,7 @@ logger = logging.getLogger(__name__)
 
 OUTSIDE_FENCE = "OUTSIDE_GEOFENCE"
 # Exception kind for each thing the phone can report about itself.
-_INTEGRITY = {"mock": "MOCK_LOCATION", "emulator": "EMULATOR", "rooted": "ROOTED_DEVICE"}
+INTEGRITY_KINDS = {"mock": "MOCK_LOCATION", "emulator": "EMULATOR", "rooted": "ROOTED_DEVICE"}
 # What the person is told when the selfie cannot be used (SRS 9.7.3: RETAKE, nothing is stored).
 RETAKE_TEXT = {
     Issue.UNREADABLE_IMAGE: "The photo could not be read. Take it again.",
@@ -90,7 +92,7 @@ def mock_location_allowed(settings: Settings) -> bool:
     return settings.allow_mock_location and settings.app_env == "development"
 
 
-def _exception(
+def record_exception(
     session: AsyncSession,
     user_id: int,
     kind: str,
@@ -113,7 +115,7 @@ def _exception(
     )
 
 
-async def _refuse(session: AsyncSession, error: AppError) -> AppError:
+async def refuse(session: AsyncSession, error: AppError) -> AppError:
     """Save the exception rows added so far (they must outlive the failed request), then hand
     back the error to raise."""
     await session.commit()
@@ -123,12 +125,13 @@ async def _refuse(session: AsyncSession, error: AppError) -> AppError:
 # --- reading -----------------------------------------------------------------------------------
 
 
-def _place(event: PunchEvent, branch_name: str | None) -> PlaceOut:
+def _place(event: PunchEvent, branch_name: str | None, task_code: str | None) -> PlaceOut:
     if event.location_type == AT_HOME:
         return PlaceOut(type="home")
     return PlaceOut(
         type=event.location_type,
         branch=branch_name,
+        task=task_code,
         distance_m=None if event.distance_m is None else round(event.distance_m),
     )
 
@@ -138,6 +141,10 @@ async def _brief(session: AsyncSession, event: PunchEvent) -> PunchBrief:
     if (branch_id := event.branch_id or event.nearest_branch_id) is not None:
         branch = await session.get(Branch, branch_id)
         name = branch.name if branch else None
+    task_code = None
+    if event.task_id is not None:
+        task = await session.get(Task, event.task_id)
+        task_code = task.code if task else None
     return PunchBrief(
         id=event.id,
         type=event.type,
@@ -146,7 +153,7 @@ async def _brief(session: AsyncSession, event: PunchEvent) -> PunchBrief:
         in_review=event.review_status == REVIEW_PENDING,
         out_of_office=OUT_OF_OFFICE in event.review_reasons,
         offline=event.offline,
-        place=_place(event, name),
+        place=_place(event, name, task_code),
     )
 
 
@@ -203,6 +210,11 @@ async def _locate(
             lng=form.lng,
             accuracy_m=form.accuracy_m,
             punching_out=punching_out,
+            # A field punch-in: only for people allowed to, at the site of a task they accepted
+            # for today.
+            task_sites=None
+            if punching_out or not user.field_punch_in_allowed
+            else field_punch_sites(user.id, day),
         )
     except AppError as error:
         if error.code == OUTSIDE_FENCE:
@@ -222,6 +234,13 @@ def _outside_details(error: AppError) -> tuple[str | None, float | None]:
     return details.get("branch"), details.get("distance_m")
 
 
+def too_fast(metres: float, last: dt.datetime, now: dt.datetime, settings: OrgSettings) -> bool:
+    """SRS 7: more than 200 m from the last known point, reached faster than the configured
+    speed. Shared by punches and Reached."""
+    hours = max((now - last).total_seconds(), 1.0) / 3600
+    return metres > 200 and metres / 1000 / hours > settings.punch_max_speed_kmh
+
+
 async def _jumped(
     session: AsyncSession, user_id: int, form: Fix, now: dt.datetime, settings: OrgSettings
 ) -> bool:
@@ -237,9 +256,7 @@ async def _jumped(
     ).first()
     if last is None:
         return False
-    metres = float(last[1])
-    hours = max((now - last[0]).total_seconds(), 1.0) / 3600
-    return metres > 200 and metres / 1000 / hours > settings.punch_max_speed_kmh
+    return too_fast(float(last[1]), last[0], now, settings)
 
 
 def _check_offline(form: PunchForm, now: dt.datetime, settings: OrgSettings) -> None:
@@ -290,9 +307,9 @@ async def punch(
     raised = [name for name, on in flags.items() if on]
     if raised and not mock_location_allowed(app_settings):
         for name in raised:
-            _exception(session, user.id, _INTEGRITY[name])
+            record_exception(session, user.id, INTEGRITY_KINDS[name])
         mock = "mock" in raised
-        raise await _refuse(
+        raise await refuse(
             session,
             AppError(
                 "MOCK_LOCATION" if mock else "DEVICE_NOT_TRUSTED",
@@ -314,8 +331,8 @@ async def punch(
         located = await _locate(session, user, today, form, punching_out=wants == OUT)
     except AppError as error:
         if error.code == "GPS_ACCURACY_POOR":
-            _exception(session, user.id, error.code, details={"accuracy_m": form.accuracy_m})
-            raise await _refuse(session, error) from None
+            record_exception(session, user.id, error.code, details={"accuracy_m": form.accuracy_m})
+            raise await refuse(session, error) from None
         raise
     place: PunchPlace | None = None
     nearest: str | None = None
@@ -323,8 +340,8 @@ async def punch(
     if isinstance(located, AppError):
         nearest, distance = _outside_details(located)
         if kind != "request":
-            _exception(session, user.id, OUTSIDE_FENCE, nearest=nearest, distance_m=distance)
-            raise await _refuse(session, located)
+            record_exception(session, user.id, OUTSIDE_FENCE, nearest=nearest, distance_m=distance)
+            raise await refuse(session, located)
     else:
         place = located
         if kind == "request":
@@ -370,6 +387,7 @@ async def punch(
         accuracy_m=form.accuracy_m,
         location_type=OUTSIDE if place is None else place.type,
         branch_id=None if place is None else place.branch_id,
+        task_id=None if place is None else place.task_id,
         nearest_branch_id=await _branch_id(session, nearest) if place is None else None,
         distance_m=distance if place is None else place.distance_m,
         selfie_key=key,
@@ -403,11 +421,11 @@ async def punch(
     await days.recompute(session, day, days.shift_rules(shift), now, org)
 
     for name in raised:  # only reachable with the development switch on
-        _exception(session, user.id, _INTEGRITY[name], event=event)
+        record_exception(session, user.id, INTEGRITY_KINDS[name], event=event)
     if jumped:
-        _exception(session, user.id, "IMPOSSIBLE_JUMP", event=event)
+        record_exception(session, user.id, "IMPOSSIBLE_JUMP", event=event)
     if check.decision == Decision.MISMATCH:
-        _exception(session, user.id, "FACE_MISMATCH", event=event)
+        record_exception(session, user.id, "FACE_MISMATCH", event=event)
     audit.record(
         session,
         ctx,
@@ -581,11 +599,15 @@ async def precheck(session: AsyncSession, user: User, fix: Fix) -> PrecheckOut:
         if place.branch_id is not None:
             branch = await session.get(Branch, place.branch_id)
             name = branch.name if branch else None
+        code = None
+        if place.task_id is not None:
+            task = await session.get(Task, place.task_id)
+            code = task.code if task else None
         metres = None if place.type == AT_HOME else round(place.distance_m)
         return PrecheckOut(
             allowed=True,
             action=action,
-            place=PlaceOut(type=place.type, branch=name, distance_m=metres),
+            place=PlaceOut(type=place.type, branch=name, task=code, distance_m=metres),
             nearest_branch=name,
             distance_m=metres,
         )

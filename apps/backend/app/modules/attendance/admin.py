@@ -17,6 +17,7 @@ from app.core.security import create_file_token, utcnow
 from app.modules.attendance import days
 from app.modules.attendance.admin_schemas import (
     DayDetail,
+    DayTask,
     ExceptionItem,
     ExceptionPage,
     OverrideIn,
@@ -70,6 +71,7 @@ from app.modules.employees.service import (
 from app.modules.files.router import file_url
 from app.modules.org_settings.service import get_org_settings
 from app.modules.schedule.schemas import EmployeeBrief
+from app.modules.tasks.models import Task, TaskAssignee
 
 FINAL_STATUSES = (REQUEST_APPROVED, REQUEST_REJECTED)
 
@@ -97,15 +99,26 @@ async def _branch_names(session: AsyncSession, ids: set[int | None]) -> dict[int
     return {row.id: row.name for row in rows}
 
 
-def _place(event: PunchEvent, names: dict[int, str]) -> PlaceOut:
+def _place(
+    event: PunchEvent, names: dict[int, str], task_codes: dict[int, str] | None = None
+) -> PlaceOut:
     if event.location_type == AT_HOME:
         return PlaceOut(type="home")
     branch = event.branch_id or event.nearest_branch_id
     return PlaceOut(
         type=event.location_type,
         branch=None if branch is None else names.get(branch),
+        task=None if event.task_id is None or task_codes is None else task_codes.get(event.task_id),
         distance_m=None if event.distance_m is None else round(event.distance_m),
     )
+
+
+async def _task_codes(session: AsyncSession, ids: set[int | None]) -> dict[int, str]:
+    wanted = {i for i in ids if i is not None}
+    if not wanted:
+        return {}
+    rows = await session.execute(select(Task.id, Task.code).where(Task.id.in_(wanted)))
+    return {row.id: row.code for row in rows}
 
 
 def _tz_aware(value: dt.datetime) -> dt.datetime:
@@ -203,6 +216,28 @@ async def day_detail(
             .order_by(AttendanceOverride.id)
         )
     ).scalars()
+    # The person's tasks scheduled on this IST day, in one query.
+    start = dt.datetime.combine(day.date, dt.time(), tzinfo=IST)
+    tasks = (
+        await session.execute(
+            select(
+                Task.id,
+                Task.code,
+                Task.title,
+                TaskAssignee.status,
+                TaskAssignee.reached_at,
+                TaskAssignee.completed_at,
+            )
+            .join(TaskAssignee, TaskAssignee.task_id == Task.id)
+            .where(
+                TaskAssignee.user_id == day.user_id,
+                Task.scheduled_at >= start,
+                Task.scheduled_at < start + dt.timedelta(days=1),
+            )
+            .order_by(Task.scheduled_at, Task.id)
+        )
+    ).all()
+    task_codes = {t.id: t.code for t in tasks}
     if events:
         audit.record(
             session,
@@ -227,7 +262,7 @@ async def day_detail(
                 review_reasons=list(e.review_reasons),
                 face_decision=e.face_decision,
                 face_score=e.face_score,
-                place=_place(e, names),
+                place=_place(e, names, task_codes),
                 accuracy_m=e.accuracy_m,
                 offline=e.offline,
                 integrity_flags=list(e.integrity_flags),
@@ -242,6 +277,17 @@ async def day_detail(
                 kind=o.kind, reason=o.reason, created_by=o.created_by, created_at=o.created_at
             )
             for o in overrides
+        ],
+        tasks=[
+            DayTask(
+                id=t.id,
+                code=t.code,
+                title=t.title,
+                status=t.status,
+                reached_at=t.reached_at,
+                completed_at=t.completed_at,
+            )
+            for t in tasks
         ],
     )
 
@@ -634,7 +680,7 @@ async def review_detail(
         **_review_item(event, day, user).model_dump(),
         server_time=event.server_time,
         device_time=event.device_time,
-        place=_place(event, names),
+        place=_place(event, names, await _task_codes(session, {event.task_id})),
         accuracy_m=event.accuracy_m,
         integrity_flags=list(event.integrity_flags),
         thresholds=event.thresholds_used,

@@ -27,8 +27,9 @@ async def get_file(request: Request, token: Annotated[str, Path(max_length=2048)
         data = await storage.get(state.s3, state.settings.s3_bucket, key)
     except storage.ObjectMissing:
         raise AppError("FILE_LINK_INVALID", "This file no longer exists.", 404) from None
+    # Photos are JPEGs; task briefs may be PDFs (checked by magic bytes before they are stored).
     return Response(
         data,
-        media_type="image/jpeg",
+        media_type="application/pdf" if key.endswith(".pdf") else "image/jpeg",
         headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
     )

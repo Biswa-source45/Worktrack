@@ -1,3 +1,5 @@
+import { useId } from 'react';
+import { ActiveIndicator } from '@/components/active-indicator';
 import { cn } from '@/lib/utils';
 
 type Tab<T extends string> = { id: T; label: string; count?: number };
@@ -11,6 +13,7 @@ type Props<T extends string> = {
 
 /** The pill tab strip of the Devices page, for screens that switch between two lists. */
 export function Tabs<T extends string>({ label, tabs, value, onChange }: Props<T>) {
+  const group = useId();
   return (
     <div
       role="tablist"
@@ -27,18 +30,19 @@ export function Tabs<T extends string>({ label, tabs, value, onChange }: Props<T
             aria-selected={selected}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'inline-flex h-8 items-center gap-1 rounded-full px-3 text-small font-medium transition-transform active:scale-(--wt-press-scale)',
+              'relative inline-flex h-8 items-center gap-1 rounded-full px-3 text-small font-medium transition-transform active:scale-(--wt-press-scale)',
               selected
-                ? 'bg-primary font-semibold text-primary-foreground'
+                ? 'font-semibold text-primary-foreground'
                 : 'text-muted-foreground hover:bg-raised hover:text-foreground',
             )}
           >
-            {tab.label}
+            {selected && <ActiveIndicator id={group} className="bg-primary" />}
+            <span className="relative">{tab.label}</span>
             {tab.count !== undefined && (
               <span
                 data-testid={`count-${tab.id}`}
                 className={cn(
-                  'rounded-full px-1.5 text-caption tabular-nums',
+                  'relative rounded-full px-1.5 text-caption tabular-nums',
                   !selected && 'bg-raised text-foreground',
                 )}
               >

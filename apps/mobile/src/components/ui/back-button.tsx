@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Pressable } from 'react-native';
 import { useTheme } from '@/lib/theme';
 
-export function BackButton() {
+/** Goes back one screen; a screen that must do something else first passes its own `onPress`. */
+export function BackButton({ onPress }: { onPress?: () => void }) {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors, space, minTouchTarget } = useTheme();
@@ -13,7 +14,7 @@ export function BackButton() {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t('common.back')}
-      onPress={() => router.back()}
+      onPress={onPress ?? (() => router.back())}
       style={{
         width: minTouchTarget,
         height: minTouchTarget,

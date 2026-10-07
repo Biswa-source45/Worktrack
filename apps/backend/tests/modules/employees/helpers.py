@@ -44,7 +44,8 @@ async def post_employee(
 
 
 async def audit_rows(db: AsyncSession, action: str) -> list[AuditLog]:
-    return list((await db.execute(select(AuditLog).where(AuditLog.action == action))).scalars())
+    rows = await db.execute(select(AuditLog).where(AuditLog.action == action).order_by(AuditLog.id))
+    return list(rows.scalars())
 
 
 def error_code(response: httpx.Response) -> str:

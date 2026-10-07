@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
+import { TabPanel } from '@/components/animated';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
@@ -233,7 +234,7 @@ export function HolidaysTab() {
 
   const close = () => setOpen(null);
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
         <Select
           aria-label={t('holidays.year')}
@@ -297,6 +298,6 @@ export function HolidaysTab() {
           onClose={close}
         />
       )}
-    </div>
+    </TabPanel>
   );
 }

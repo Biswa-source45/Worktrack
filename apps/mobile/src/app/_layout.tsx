@@ -45,6 +45,9 @@ function Gate({ fontsSettled }: { fontsSettled: boolean }) {
         <Stack.Screen name="punch/capture" />
         <Stack.Screen name="punch/result" />
         <Stack.Screen name="punch/queue" />
+        <Stack.Screen name="tasks/[id]/index" />
+        <Stack.Screen name="tasks/[id]/reach" />
+        <Stack.Screen name="tasks/[id]/compose" />
       </Stack.Protected>
       <Stack.Screen name="health" />
     </Stack>

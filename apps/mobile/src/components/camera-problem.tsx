@@ -10,14 +10,16 @@ type Props = {
   /** What the camera library reported, so a failure can be told to someone who can fix it. */
   detail: string;
   onRetry: () => void;
+  /** What the back arrow does when it is not just leaving the screen. */
+  onBack?: () => void;
 };
 
 /** Shown instead of a black camera when the camera does not start or stops with an error. */
-export function CameraProblem({ detail, onRetry }: Props) {
+export function CameraProblem({ detail, onRetry, onBack }: Props) {
   const { t } = useTranslation();
   return (
     <Screen>
-      <BackButton />
+      <BackButton onPress={onBack} />
       <Banner status="danger" icon={TriangleAlert} message={t('face.camera.problemTitle')} />
       <AppText color="muted">{t('face.camera.problemBody')}</AppText>
       {detail ? (

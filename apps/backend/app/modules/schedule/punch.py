@@ -7,7 +7,7 @@ from typing import Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
-from app.modules.branches.geofence import ensure_accuracy, nearest_geofences
+from app.modules.branches.geofence import Candidates, ensure_accuracy, nearest_geofences
 from app.modules.employees.models import User
 from app.modules.org_settings.service import get_org_settings
 from app.modules.schedule.home import home_candidate
@@ -19,11 +19,13 @@ BRANCH = "branch"
 
 @dataclass(frozen=True)
 class PunchPlace:
-    type: Literal["branch", "home"]
-    # None when the punch is accepted at the home location.
+    type: Literal["branch", "home", "task"]
+    # None when the punch is accepted at the home location or at a task site.
     branch_id: int | None
     distance_m: float
     day_kind: DayKind
+    # The task whose site accepted a field punch-in (FR-ATT-10).
+    task_id: int | None = None
 
 
 async def check_punch_location(
@@ -35,13 +37,15 @@ async def check_punch_location(
     lng: float,
     accuracy_m: float,
     punching_out: bool = False,
+    task_sites: Candidates | None = None,
 ) -> PunchPlace:
     """Accept or refuse a punch position for `day`, and say which fence accepted it.
 
     Office day: inside a branch fence. Home day: inside the approved home fence or a branch
     fence. An employee restricted to their home branch has only that branch as a candidate.
     A punch-out is never refused for the day type: the person punched in earlier, and a holiday
-    added since must not trap them (an off day then has branch fences only).
+    added since must not trap them (an off day then has branch fences only). `task_sites` are the
+    sites of today's accepted tasks, for a field punch-in: they count as fences too.
     """
     plan = await resolve_day(session, user, day)
     if plan.kind == "off" and not punching_out:
@@ -58,7 +62,10 @@ async def check_punch_location(
         lng=lng,
         accuracy_m=accuracy_m,
         branch_id=user.home_branch_id if user.restrict_to_home_branch else None,
-        extra=home_candidate(user.id) if plan.kind == "home" else None,
+        extra=[
+            *([home_candidate(user.id)] if plan.kind == "home" else []),
+            *([task_sites] if task_sites is not None else []),
+        ],
     )
     branches = [fence for fence in fences if fence.kind == BRANCH]
     # At a branch and at home at once, the branch is the more informative record.
@@ -68,10 +75,11 @@ async def check_punch_location(
     if hit is not None:
         at_branch = hit.kind == BRANCH
         return PunchPlace(
-            type="branch" if at_branch else "home",
+            type="branch" if at_branch else "task" if hit.kind == "task" else "home",
             branch_id=hit.id if at_branch else None,
             distance_m=hit.distance_m,
             day_kind=plan.kind,
+            task_id=hit.id if hit.kind == "task" else None,
         )
     if user.restrict_to_home_branch and (
         user.home_branch is None or not user.home_branch.is_active

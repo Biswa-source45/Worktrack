@@ -267,3 +267,32 @@ describe('Face review dialog: changed photos and expired links', () => {
     expect(within(dialog).getAllByRole('img')).toHaveLength(2);
   });
 });
+
+describe('Face enrollments tab: more than one page', () => {
+  const paged = (call: Call) =>
+    call.search.get('cursor') === '51'
+      ? { items: [ravi], next_cursor: null }
+      : { items: [asha], next_cursor: '51' };
+
+  it('offers Load more when the server has another page, and appends it with the cursor', async () => {
+    const { calls, user } = setup({ routes: { 'GET /admin/face-enrollments': paged } });
+    await openTab(user);
+    const table = await screen.findByRole('table');
+    expect(within(table).getByText('Asha Rao (EMP-001)')).toBeVisible();
+    expect(within(table).queryByText('Ravi Kumar (EMP-002)')).not.toBeInTheDocument();
+
+    await user.click(await screen.findByRole('button', { name: 'Load more' }));
+
+    expect(await within(table).findByText('Ravi Kumar (EMP-002)')).toBeVisible();
+    expect(within(table).getByText('Asha Rao (EMP-001)')).toBeVisible();
+    expect(faceLists(calls).at(-1)?.search.get('cursor')).toBe('51');
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
+  });
+
+  it('offers no Load more when everything fits one page', async () => {
+    const { user } = setup();
+    await openTab(user);
+    await screen.findByText('Asha Rao (EMP-001)');
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument();
+  });
+});

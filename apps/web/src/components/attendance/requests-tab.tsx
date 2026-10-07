@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
 import { GeofenceMap } from '@/components/map/pin-picker';
@@ -286,7 +287,7 @@ export function RequestsTab() {
   );
 
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="max-w-56">
         <Field id="request-status" label={t('attendance.filter')}>
           <Select
@@ -322,6 +323,6 @@ export function RequestsTab() {
         </Button>
       )}
       {open !== null && <RequestDialog requestId={open} onClose={() => setOpen(null)} />}
-    </div>
+    </TabPanel>
   );
 }

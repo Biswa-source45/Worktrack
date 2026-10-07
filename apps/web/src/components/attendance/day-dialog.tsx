@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,8 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TaskStatusBadge } from '@/components/tasks/task-status';
 import { errorMessage, proxyApi, unwrap, type Schemas } from '@/lib/api-client';
-import { formatDate, formatIst } from '@/lib/ist';
+import { formatClock, formatDate, formatIst } from '@/lib/ist';
 import {
   DayStatusBadge,
   FaceBadge,
@@ -150,6 +152,31 @@ export function DayDialog({ dayId, onClose }: { dayId: number; onClose: () => vo
                 </ul>
               )}
             </section>
+            {data.tasks.length > 0 && (
+              <section aria-label={t('attendance.tasks')} className="grid gap-2">
+                <h3 className="text-large font-semibold">{t('attendance.tasks')}</h3>
+                <ul className="grid gap-1 text-small">
+                  {data.tasks.map((task) => (
+                    <li key={task.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <Link href={`/tasks/${task.id}`} className="font-medium hover:underline">
+                        {task.code} {task.title}
+                      </Link>
+                      <TaskStatusBadge status={task.status} />
+                      <span className="text-muted-foreground">
+                        {[
+                          task.reached_at &&
+                            t('attendance.taskReached', { time: formatClock(task.reached_at) }),
+                          task.completed_at &&
+                            t('attendance.taskCompleted', { time: formatClock(task.completed_at) }),
+                        ]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             {data.overrides.length > 0 && (
               <section aria-label={t('attendance.overrides')} className="grid gap-2">
                 <h3 className="text-large font-semibold">{t('attendance.overrides')}</h3>

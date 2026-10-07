@@ -42,8 +42,10 @@ class RequestForm(PunchForm):
 class PlaceOut(BaseModel):
     """Where a punch was made. A home punch names no place at all (privacy)."""
 
-    type: Literal["branch", "home", "outside"]
+    type: Literal["branch", "home", "outside", "task"]
     branch: str | None = None
+    # The code of the task whose site accepted a field punch-in (FR-ATT-10).
+    task: str | None = None
     distance_m: int | None = None
 
 

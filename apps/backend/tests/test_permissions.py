@@ -24,6 +24,8 @@ from app.modules.auth.permissions import (
     ROLES_MANAGE,
     SETTINGS_MANAGE,
     SETTINGS_VIEW,
+    TASKS_CREATE,
+    TASKS_VIEW_ALL,
     TEAM_VIEW,
     WEB_ACCESS,
 )
@@ -42,7 +44,7 @@ from tests.factories import (
 P = "/api/v1"
 MISSING = 999_999_999
 
-# What migrations 0002, 0006, 0009 and 0010 seed; this catches an accidental role change.
+# What migrations 0002, 0006, 0009, 0010 and 0011 seed; this catches an accidental role change.
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     SUPER_ADMIN: {
         WEB_ACCESS,
@@ -57,6 +59,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         ATTENDANCE_VIEW_ALL,
         ATTENDANCE_OVERRIDE,
         PUNCHOUT_APPROVE,
+        TASKS_CREATE,
+        TASKS_VIEW_ALL,
     },
     ADMIN: {
         WEB_ACCESS,
@@ -69,8 +73,10 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         ATTENDANCE_VIEW_ALL,
         ATTENDANCE_OVERRIDE,
         PUNCHOUT_APPROVE,
+        TASKS_CREATE,
+        TASKS_VIEW_ALL,
     },
-    ASSIGNER: {WEB_ACCESS, TEAM_VIEW, PUNCHOUT_APPROVE},
+    ASSIGNER: {WEB_ACCESS, TEAM_VIEW, PUNCHOUT_APPROVE, TASKS_CREATE},
     FIELD: set(),
     OFFICE: set(),
 }
@@ -155,9 +161,10 @@ MATRIX: list[tuple[str, str, str, str]] = [
         f"{P}/admin/branches/{MISSING}",
         BRANCHES_MANAGE,
     ),
-    # Either branches.manage or employees.manage; the seeded roles hold both or neither.
-    ("POST", f"{P}/admin/geo/resolve-link", f"{P}/admin/geo/resolve-link", BRANCHES_MANAGE),
-    ("GET", f"{P}/admin/geo/search", f"{P}/admin/geo/search", BRANCHES_MANAGE),
+    # Any of branches.manage, employees.manage or tasks.create (a task's site pin); every seeded
+    # role holds all three or none, except Task Assigner, which holds only tasks.create.
+    ("POST", f"{P}/admin/geo/resolve-link", f"{P}/admin/geo/resolve-link", TASKS_CREATE),
+    ("GET", f"{P}/admin/geo/search", f"{P}/admin/geo/search", TASKS_CREATE),
     ("GET", f"{P}/admin/shifts", f"{P}/admin/shifts", BRANCHES_MANAGE),
     ("POST", f"{P}/admin/shifts", f"{P}/admin/shifts", BRANCHES_MANAGE),
     ("PATCH", f"{P}/admin/shifts/{{shift_id}}", f"{P}/admin/shifts/{MISSING}", BRANCHES_MANAGE),
@@ -235,12 +242,41 @@ MATRIX += [
     ]
 ]
 
+MATRIX += [
+    (
+        method,
+        f"{P}/{pattern}",
+        f"{P}/{pattern.format(task_id=MISSING, user_id=MISSING, type_id=MISSING)}",
+        needed,
+    )
+    for method, pattern, needed in [
+        # The lists decide by `view`; with no permission at all there is nothing to see.
+        ("GET", "tasks", TASKS_CREATE),
+        ("POST", "tasks", TASKS_CREATE),
+        ("GET", "tasks/candidates", TASKS_CREATE),
+        ("PATCH", "tasks/{task_id}", TASKS_CREATE),
+        ("POST", "tasks/{task_id}/assignees", TASKS_CREATE),
+        ("DELETE", "tasks/{task_id}/assignees/{user_id}", TASKS_CREATE),
+        ("POST", "tasks/{task_id}/assignees/{user_id}/reach-review", TASKS_CREATE),
+        ("POST", "tasks/{task_id}/cancel", TASKS_CREATE),
+        ("POST", "tasks/{task_id}/close", TASKS_CREATE),
+        ("POST", "tasks/{task_id}/reopen", TASKS_CREATE),
+        ("POST", "tasks/{task_id}/attachments", TASKS_CREATE),
+        ("GET", "admin/task-types", SETTINGS_VIEW),
+        ("POST", "admin/task-types", SETTINGS_MANAGE),
+        ("PATCH", "admin/task-types/{type_id}", SETTINGS_MANAGE),
+    ]
+]
+
 # Signed-in users of any role, scoped to themselves.
 SELF_ONLY = [
     ("GET", f"{P}/me"),
     ("POST", f"{P}/auth/change-password"),
     ("GET", f"{P}/me/sessions"),
     ("POST", f"{P}/me/sessions/revoke-others"),
+    # What a person sees or says depends on their place on the task (404 / 403 inside).
+    ("GET", f"{P}/tasks/{{task_id}}"),
+    ("POST", f"{P}/tasks/{{task_id}}/comments"),
 ]
 # Signed-in users of any role, once the temporary password is changed: names for pickers.
 ANY_ROLE = [
@@ -251,6 +287,8 @@ ANY_ROLE = [
     ("GET", f"{P}/attendance/today"),
     ("GET", f"{P}/attendance/me"),
     ("GET", f"{P}/notifications"),
+    ("GET", f"{P}/me/tasks"),
+    ("GET", f"{P}/task-types"),
 ]
 # Any role, but only from the employee's own approved phone.
 OWN_PHONE = [
@@ -261,6 +299,14 @@ OWN_PHONE = [
     ("POST", f"{P}/attendance/punch-in"),
     ("POST", f"{P}/attendance/punch-out"),
     ("POST", f"{P}/attendance/punch-out-requests"),
+    ("POST", f"{P}/tasks/{{task_id}}/accept"),
+    ("POST", f"{P}/tasks/{{task_id}}/decline"),
+    ("POST", f"{P}/tasks/{{task_id}}/start"),
+    ("POST", f"{P}/tasks/{{task_id}}/hold"),
+    ("POST", f"{P}/tasks/{{task_id}}/resume"),
+    ("POST", f"{P}/tasks/{{task_id}}/notes"),
+    ("POST", f"{P}/tasks/{{task_id}}/complete"),
+    ("POST", f"{P}/tasks/{{task_id}}/reached"),
 ]
 # Authenticated by the credential in the request itself, or open by design.
 PUBLIC = [

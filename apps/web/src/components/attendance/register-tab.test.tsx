@@ -124,6 +124,20 @@ describe('Register tab', () => {
     expect(kiran.getByText('25')).toBeVisible();
   });
 
+  it('marks a day that began with a field punch-in at a task site', async () => {
+    setup({
+      routes: {
+        'GET /admin/attendance': {
+          items: [{ ...present, flags: ['field_punch'] }],
+          next_cursor: null,
+        },
+      },
+    });
+    const rows = await table();
+    const asha = within((await rows.findByText('Asha Rao')).closest('tr') as HTMLElement);
+    expect(asha.getByRole('img', { name: 'Field punch-in at a task site' })).toBeVisible();
+  });
+
   it('sends the chosen filters, searching after a pause', async () => {
     const { calls, user } = setup();
     await screen.findByText('Asha Rao');
@@ -233,6 +247,50 @@ describe('Day details dialog', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Attendance day' });
     expect(await within(dialog).findByText(/Sent to the depot/)).toBeVisible();
     expect(within(dialog).getByText('On duty')).toBeVisible();
+  });
+
+  it('lists the tasks of the day after the punches, and a punch made at a task site', async () => {
+    const detail = makeDayDetail();
+    const { user } = setup({
+      routes: {
+        'GET /admin/attendance/81': makeDayDetail({
+          punches: [
+            { ...detail.punches[0], place: { type: 'task', task: 'T-00007', distance_m: 42 } },
+          ],
+          tasks: [
+            {
+              id: 7,
+              code: 'T-00007',
+              title: 'Collect the contract',
+              status: 'completed',
+              reached_at: '2026-02-03T05:10:00Z',
+              completed_at: '2026-02-03T06:30:00Z',
+            },
+          ],
+        }),
+      },
+    });
+    await openMenu(user, 'Asha Rao');
+    await user.click(await screen.findByRole('menuitem', { name: 'Details' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Attendance day' });
+    const tasks = await within(dialog).findByRole('region', { name: 'Tasks that day' });
+    expect(
+      within(tasks).getByRole('link', { name: /T-00007 Collect the contract/ }),
+    ).toHaveAttribute('href', '/tasks/7');
+    expect(within(tasks).getByTestId('task-status-completed')).toBeInTheDocument();
+    expect(within(tasks).getByText(/Reached 10:40.*, Completed 12:00/i)).toBeVisible();
+    expect(within(dialog).getByText('At the site of T-00007, 42 m from the pin')).toBeVisible();
+  });
+
+  it('has no Tasks section on a day without tasks', async () => {
+    const { user } = setup();
+    await openMenu(user, 'Asha Rao');
+    await user.click(await screen.findByRole('menuitem', { name: 'Details' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Attendance day' });
+    await within(dialog).findByText(/recorded in the audit log/);
+    expect(
+      within(dialog).queryByRole('region', { name: 'Tasks that day' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows review reasons, integrity flags and offline punches', async () => {

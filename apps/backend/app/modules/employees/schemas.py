@@ -109,6 +109,8 @@ class EmployeeUpdate(BaseModel):
     manager_id: int | None = None
     joined_on: date | None = None
     field_eligible: bool | None = None
+    # FR-ATT-10: may punch in at the site of today's accepted task.
+    field_punch_in_allowed: bool | None = None
     home_branch_id: int | None = None
     shift_id: int | None = None
     restrict_to_home_branch: bool | None = None
@@ -117,7 +119,7 @@ class EmployeeUpdate(BaseModel):
     @model_validator(mode="after")
     def _required_fields_not_null(self) -> "EmployeeUpdate":
         required = ("name", "mobile", "designation_id", "role_id", "joined_on", "field_eligible")
-        for field in (*required, "restrict_to_home_branch", "status"):
+        for field in (*required, "restrict_to_home_branch", "status", "field_punch_in_allowed"):
             if field in self.model_fields_set and getattr(self, field) is None:
                 raise ValueError(f"{field} cannot be null")
         return self
@@ -136,6 +138,7 @@ class EmployeeOut(BaseModel):
     department: Ref | None
     manager_id: int | None
     field_eligible: bool
+    field_punch_in_allowed: bool
     home_branch: Ref | None
     shift: Ref | None
     restrict_to_home_branch: bool

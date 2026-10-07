@@ -1,10 +1,15 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
+import { MotionGlobalConfig } from 'motion/react';
 import { afterEach, vi } from 'vitest';
 
 // findBy* and waitFor wait up to 1 s by default. The 2-vCPU CI runner is several times slower than
 // a laptop (lazy-loaded map, dialogs), so they wait longer; a passing test is not slower for it.
 configure({ asyncUtilTimeout: 5000 });
+
+// Nothing animates under test: entrances start at their final state (lib/motion.ts), so content
+// is visible on the first render and no test waits for an animation frame.
+MotionGlobalConfig.skipAnimations = true;
 
 // The network boundary is the only thing mocked; openapi-fetch captures this reference at import.
 vi.stubGlobal('fetch', vi.fn());

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { m } from 'motion/react';
 import { cn } from '@/lib/utils';
 
 // Dense admin table (docs/DESIGN.md section 6): 13/20 text and 40px rows inside a rounded card.
@@ -16,8 +17,9 @@ export const TableHeader = (props: React.ComponentProps<'thead'>) => (
 
 export const TableBody = (props: React.ComponentProps<'tbody'>) => <tbody {...props} />;
 
-export function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
-  return <tr className={cn('h-10 border-t', className)} {...props} />;
+// A motion row, so a list can stagger its rows in (DataTable); without motion props it is a plain tr.
+export function TableRow({ className, ...props }: React.ComponentProps<typeof m.tr>) {
+  return <m.tr className={cn('h-10 border-t', className)} {...props} />;
 }
 
 export function TableHead({ className, ...props }: React.ComponentProps<'th'>) {

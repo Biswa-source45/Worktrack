@@ -61,6 +61,8 @@ class User(Base):
     restrict_to_home_branch: Mapped[bool] = mapped_column(default=False, server_default=false())
     manager_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
     field_eligible: Mapped[bool] = mapped_column(default=False, server_default=false())
+    # FR-ATT-10: may punch in at the site of today's accepted task (default off).
+    field_punch_in_allowed: Mapped[bool] = mapped_column(default=False, server_default=false())
     status: Mapped[str] = mapped_column(String(16), default=STATUS_ACTIVE, server_default="active")
     joined_on: Mapped[date]
     must_change_password: Mapped[bool] = mapped_column(default=True, server_default="true")

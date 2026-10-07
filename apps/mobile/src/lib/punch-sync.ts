@@ -3,8 +3,22 @@ import { useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import { ApiError } from '@/lib/api-error';
 import { postPunch } from '@/lib/punch';
-import { getStore, notifyQueueChange, onQueueChange, openPayload } from '@/lib/punch-queue';
-import type { QueueRow, QueueStore, QueuedPayload } from '@/lib/punch-queue';
+import {
+  getStore,
+  isTaskKind,
+  notifyQueueChange,
+  onQueueChange,
+  openPayload,
+  openTaskPayload,
+} from '@/lib/punch-queue';
+import type {
+  QueueRow,
+  QueueStore,
+  QueuedPayload,
+  QueuedTaskPayload,
+  TaskAction,
+} from '@/lib/punch-queue';
+import { postTaskAction } from '@/lib/task-actions';
 
 /** A punch the server keeps answering 5xx for is given up on after this many sends. */
 export const MAX_ATTEMPTS = 5;
@@ -34,10 +48,18 @@ export function classify(error: unknown): Failure {
 }
 
 export type Send = (row: QueueRow, payload: QueuedPayload) => Promise<unknown>;
-type Deps = { send: Send; open?: typeof openPayload };
+export type SendTask = (row: QueueRow, payload: QueuedTaskPayload) => Promise<unknown>;
+type Deps = {
+  send: Send;
+  open?: typeof openPayload;
+  /** Task rows only; the real sender when left out. */
+  sendTask?: SendTask;
+  openTask?: typeof openTaskPayload;
+};
 
 /** Sends one queued punch: the photo is written to the cache for the request and deleted after. */
 export const sendQueued: Send = async (row, payload) => {
+  if (isTaskKind(row.kind)) throw new Error('a task action is sent by sendQueuedTask');
   const photo = new File(Paths.cache, `queued-${row.id}.jpg`);
   photo.create({ overwrite: true });
   try {
@@ -48,6 +70,52 @@ export const sendQueued: Send = async (row, payload) => {
     photo.delete();
   }
 };
+
+/** Sends one queued task action, its photos written to the cache for the request only. */
+export const sendQueuedTask: SendTask = async (row, payload) => {
+  const files = payload.photos.map(({ part, data }, index) => ({
+    part,
+    file: new File(Paths.cache, `queued-${row.id}-${index}.jpg`),
+    data,
+  }));
+  try {
+    for (const { file, data } of files) {
+      file.create({ overwrite: true });
+      file.write(data, { encoding: 'base64' });
+    }
+    // The server stamps its own receipt time and judges the phone's clock against the allowed age.
+    return await postTaskAction(
+      payload.task_id,
+      payload.action,
+      row.id,
+      { ...payload.fields, device_time: payload.device_time, offline: 'true' },
+      files,
+    );
+  } finally {
+    for (const { file } of files) if (file.exists) file.delete();
+  }
+};
+
+// Where each saved action leaves the person on the task. A refusal that says the person is
+// already there (a double tap, or an action that did go out before) is the goal reached.
+const LEAVES_AT: Partial<Record<TaskAction, string>> = {
+  accept: 'accepted',
+  decline: 'declined',
+  start: 'in_progress',
+  hold: 'on_hold',
+  resume: 'in_progress',
+  complete: 'completed',
+  reached: 'reached',
+};
+
+/** True when the server refused this saved task action only because it is already in effect. */
+export function alreadyInEffect(row: QueueRow, error: unknown): boolean {
+  if (!(error instanceof ApiError) || error.code !== 'INVALID_TRANSITION') return false;
+  if (!isTaskKind(row.kind)) return false;
+  const action = row.kind.slice('task_'.length) as TaskAction;
+  const details = (error.details ?? {}) as { from?: unknown; action?: unknown };
+  return details.action === action && details.from === LEAVES_AT[action];
+}
 
 const failedWith = (error: unknown): { error_code: string; error_message: string | null } =>
   error instanceof ApiError
@@ -77,11 +145,17 @@ export async function syncQueue(store: QueueStore, userId: number, deps: Deps) {
     await store.update(row.id, { status: 'syncing' });
     notifyQueueChange();
 
-    let payload: QueuedPayload;
+    let deliver: () => Promise<unknown>;
     try {
       const blob = await store.payload(row.id);
       if (!blob) throw new Error('the sealed punch is missing');
-      payload = await open(blob);
+      if (isTaskKind(row.kind)) {
+        const task = await (deps.openTask ?? openTaskPayload)(blob);
+        deliver = () => (deps.sendTask ?? sendQueuedTask)(row, task);
+      } else {
+        const punch = await open(blob);
+        deliver = () => deps.send(row, punch);
+      }
     } catch {
       // The key or the blob is gone (the app's data was cleared): said, never dropped silently.
       await store.update(row.id, {
@@ -96,7 +170,7 @@ export async function syncQueue(store: QueueStore, userId: number, deps: Deps) {
 
     let stop = false;
     try {
-      await deps.send(row, payload);
+      await deliver();
       await store.update(row.id, {
         status: 'synced',
         error_code: null,
@@ -105,7 +179,14 @@ export async function syncQueue(store: QueueStore, userId: number, deps: Deps) {
       });
     } catch (error) {
       const kind = classify(error);
-      if (kind === 'business') {
+      if (kind === 'business' && alreadyInEffect(row, error)) {
+        await store.update(row.id, {
+          status: 'synced',
+          error_code: null,
+          error_message: null,
+          wipe: true,
+        });
+      } else if (kind === 'business') {
         await store.update(row.id, { status: 'failed', ...failedWith(error) });
       } else if (kind === 'server') {
         const attempts = row.attempts + 1;

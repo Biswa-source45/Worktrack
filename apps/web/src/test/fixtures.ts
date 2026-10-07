@@ -41,6 +41,7 @@ export function makeEmployee(
     home_branch: null,
     shift: null,
     restrict_to_home_branch: false,
+    field_punch_in_allowed: false,
     status: 'active',
     joined_on: '2026-01-15',
     must_change_password: false,
@@ -161,6 +162,8 @@ export const SETTINGS: Schemas['OrgSettings'] = {
   punch_out_request_expiry_hours: 48,
   punch_max_speed_kmh: 150,
   offline_punch_max_age_hours: 12,
+  task_default_site_radius_m: 200,
+  task_accept_escalation_minutes: 30,
 };
 
 export function makeEnrollment(
@@ -290,6 +293,7 @@ export function makeDayDetail(overrides: Partial<Schemas['DayDetail']> = {}): Sc
       }),
     ],
     overrides: [],
+    tasks: [],
     ...overrides,
   };
 }
@@ -386,6 +390,113 @@ export function makeException(
     distance_m: 1830,
     punch_event_id: null,
     details: null,
+    ...overrides,
+  };
+}
+
+// --- Field tasks -----------------------------------------------------------------------------
+
+export const TASK_TYPES: Schemas['TaskTypeOut'][] = [
+  { id: 1, name: 'Site Visit', is_active: true, proof_photo_required: true, proof_kind: 'photo' },
+  {
+    id: 2,
+    name: 'Document Submission',
+    is_active: true,
+    proof_photo_required: true,
+    proof_kind: 'receipt',
+  },
+];
+
+export const CANDIDATES: Schemas['Candidate'][] = [
+  { id: 2, name: 'Asha Rao', emp_code: 'EMP-001', status: 'in_office' },
+  { id: 3, name: 'Ravi Kumar', emp_code: 'EMP-002', status: 'not_punched_in' },
+  { id: 4, name: 'Meera Das', emp_code: 'EMP-003', status: 'on_task' },
+];
+
+const BOSS = { id: 1, name: 'Demo Admin', emp_code: 'ADMIN-1' };
+const SITE = { address: 'MG Road, Bengaluru', lat: 12.9756, lng: 77.6066, radius_m: 200 };
+
+export function makeTaskBrief(overrides: Partial<Schemas['TaskBrief']> = {}): Schemas['TaskBrief'] {
+  return {
+    id: 7,
+    code: 'T-00007',
+    title: 'Collect the signed contract',
+    type: TASK_TYPES[0],
+    client_name: 'Acme Traders',
+    site: SITE,
+    priority: 'normal',
+    scheduled_at: '2026-02-03T05:00:00Z',
+    status: 'assigned',
+    created_by: BOSS,
+    assignees: [{ user: ASHA, status: 'assigned', escalated: false, reach_review: 'none' }],
+    ...overrides,
+  };
+}
+
+export function makeTaskAssignee(
+  overrides: Partial<Schemas['AssigneeOut']> = {},
+): Schemas['AssigneeOut'] {
+  return {
+    user: { id: 2, name: 'Asha Rao', emp_code: 'EMP-001' },
+    status: 'assigned',
+    assigned_at: '2026-02-03T04:00:00Z',
+    accepted_at: null,
+    escalated_at: null,
+    started_at: null,
+    completed_at: null,
+    declined_reason: null,
+    completion_remarks: null,
+    reach: null,
+    metrics: {
+      time_to_accept_min: null,
+      accept_to_reached_min: null,
+      time_on_site_min: null,
+      straight_line_m: null,
+    },
+    ...overrides,
+  };
+}
+
+export function makeTaskDetail(
+  overrides: Partial<Schemas['TaskDetail']> = {},
+): Schemas['TaskDetail'] {
+  return {
+    id: 7,
+    code: 'T-00007',
+    title: 'Collect the signed contract',
+    type: TASK_TYPES[0],
+    client_name: 'Acme Traders',
+    site: SITE,
+    contact_name: 'Mr Gupta',
+    contact_phone: '+919876500000',
+    priority: 'normal',
+    scheduled_at: '2026-02-03T05:00:00Z',
+    expected_minutes: 45,
+    description: 'Bring two copies.',
+    status: 'assigned',
+    created_by: BOSS,
+    created_at: '2026-02-03T04:00:00Z',
+    closed_by: null,
+    closed_at: null,
+    close_remarks: null,
+    cancelled_by: null,
+    cancelled_at: null,
+    cancel_reason: null,
+    can_manage: true,
+    assignees: [makeTaskAssignee()],
+    events: [
+      {
+        id: 1,
+        event: 'created',
+        at: '2026-02-03T04:00:00Z',
+        actor: BOSS,
+        subject: null,
+        note: null,
+        offline: false,
+      },
+    ],
+    attachments: [],
+    comments: [],
     ...overrides,
   };
 }

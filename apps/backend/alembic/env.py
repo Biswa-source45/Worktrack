@@ -25,6 +25,7 @@ from app.modules.notifications import models as _notifications  # noqa: E402, F4
 from app.modules.org_settings import models as _org_settings  # noqa: E402, F401
 from app.modules.schedule import models as _schedule  # noqa: E402, F401
 from app.modules.shifts import models as _shifts  # noqa: E402, F401
+from app.modules.tasks import models as _tasks  # noqa: E402, F401
 
 target_metadata = Base.metadata
 database_url = get_settings().database_url

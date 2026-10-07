@@ -11,7 +11,7 @@ from app.modules.auth.deps import (
     require_any_permission,
     require_permission,
 )
-from app.modules.auth.permissions import BRANCHES_MANAGE, EMPLOYEES_MANAGE
+from app.modules.auth.permissions import BRANCHES_MANAGE, EMPLOYEES_MANAGE, TASKS_CREATE
 from app.modules.branches import geo, service
 from app.modules.branches.schemas import (
     BranchCreate,
@@ -29,9 +29,10 @@ router = APIRouter(tags=["branches"])
 Session = Annotated[AsyncSession, Depends(get_session)]
 Manager = Annotated[AuthContext, Depends(require_permission(BRANCHES_MANAGE))]
 SignedIn = Annotated[AuthContext, Depends(authenticated)]
-# A pin is placed on the branch form and on an employee's home-location form.
+# A pin is placed on the branch form, on an employee's home-location form and on a task's site.
 PinPlacer = Annotated[
-    AuthContext, Depends(require_any_permission(BRANCHES_MANAGE, EMPLOYEES_MANAGE))
+    AuthContext,
+    Depends(require_any_permission(BRANCHES_MANAGE, EMPLOYEES_MANAGE, TASKS_CREATE)),
 ]
 SearchText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=120)]
 

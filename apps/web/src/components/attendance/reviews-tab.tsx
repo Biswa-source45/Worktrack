@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { TabPanel } from '@/components/animated';
 import { columnHelper, DataTable } from '@/components/data-table';
 import { Field } from '@/components/field';
 import { Badge } from '@/components/ui/badge';
@@ -235,7 +236,7 @@ export function ReviewsTab() {
   );
 
   return (
-    <div role="tabpanel" className="space-y-4">
+    <TabPanel className="space-y-4">
       <div className="flex flex-wrap gap-3">
         <div className="w-56">
           <Field id="review-status" label={t('attendance.filter')}>
@@ -289,6 +290,6 @@ export function ReviewsTab() {
         </Button>
       )}
       {open !== null && <ReviewDialog eventId={open} onClose={() => setOpen(null)} />}
-    </div>
+    </TabPanel>
   );
 }

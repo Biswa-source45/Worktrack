@@ -25,6 +25,7 @@ import {
 } from '@/lib/form';
 import { useMe } from '@/lib/me';
 import { useSettings } from './use-settings';
+import { TaskTypesCard } from './task-types-card';
 
 type Settings = Schemas['OrgSettings'];
 type Name = keyof Settings;
@@ -50,6 +51,8 @@ const NUMBERS = {
   punch_out_request_expiry_hours: [1, 240],
   punch_max_speed_kmh: [20, 1000],
   offline_punch_max_age_hours: [1, 24],
+  task_default_site_radius_m: [RADIUS_MIN_M, RADIUS_MAX_M],
+  task_accept_escalation_minutes: [5, 1440],
 } as const satisfies Partial<Record<Name, readonly [number, number, 'decimal'?]>>;
 type NumberName = keyof typeof NUMBERS;
 const NUMBER_NAMES = Object.keys(NUMBERS) as NumberName[];
@@ -89,6 +92,7 @@ const GROUPS: { id: string; fields: Name[] }[] = [
       'offline_punch_max_age_hours',
     ],
   },
+  { id: 'tasks', fields: ['task_default_site_radius_m', 'task_accept_escalation_minutes'] },
 ];
 // Cards that hold many fields run the full width, in a grid of their own.
 const WIDE: Record<string, string> = {
@@ -125,6 +129,8 @@ const schema = z
     punch_out_request_expiry_hours: numberField('punch_out_request_expiry_hours'),
     punch_max_speed_kmh: numberField('punch_max_speed_kmh'),
     offline_punch_max_age_hours: numberField('offline_punch_max_age_hours'),
+    task_default_site_radius_m: numberField('task_default_site_radius_m'),
+    task_accept_escalation_minutes: numberField('task_accept_escalation_minutes'),
     min_app_version: z
       .string()
       .trim()
@@ -312,6 +318,7 @@ function SettingsView() {
           canManage={me?.permissions.includes('settings.manage') ?? false}
         />
       )}
+      <TaskTypesCard canManage={me?.permissions.includes('settings.manage') ?? false} />
     </Page>
   );
 }

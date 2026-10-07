@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { screen, waitFor, within } from '@testing-library/react';
+import { cleanup, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { apiError, jsonBody, mockApi, renderWithClient, type Call } from '@/test/render';
 import { PinPicker, toCenter } from './pin-picker';
 
@@ -122,6 +122,57 @@ describe('PinPicker', () => {
       'No location could be read from that link.',
     );
     expect(lat()).toHaveValue(null);
+  });
+});
+
+describe('PinPicker: use my current location', () => {
+  // jsdom has no geolocation at all; a test gives the browser one, or leaves it without.
+  function locationIs(geolocation: Partial<Geolocation> | undefined) {
+    if (geolocation) {
+      Object.defineProperty(navigator, 'geolocation', { value: geolocation, configurable: true });
+    } else {
+      Reflect.deleteProperty(navigator, 'geolocation');
+    }
+  }
+  afterEach(() => locationIs(undefined));
+
+  it('puts the pin where the browser says the person is, to six decimals', async () => {
+    locationIs({
+      getCurrentPosition: (ok) =>
+        ok({ coords: { latitude: 20.2961234567, longitude: 85.8245 } } as GeolocationPosition),
+    });
+    const { user } = setup({});
+    await user.click(screen.getByRole('button', { name: 'Use my current location' }));
+    expect(lat()).toHaveValue(20.296123);
+    expect(lng()).toHaveValue(85.8245);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('says so when the browser location is blocked', async () => {
+    locationIs({
+      getCurrentPosition: (_, fail) =>
+        fail?.({ code: 1, PERMISSION_DENIED: 1 } as GeolocationPositionError),
+    });
+    const { user } = setup({});
+    await user.click(screen.getByRole('button', { name: 'Use my current location' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Location is blocked');
+    expect(lat()).toHaveValue(null);
+  });
+
+  it('says so when the location cannot be read, or the browser has none', async () => {
+    locationIs({
+      getCurrentPosition: (_, fail) =>
+        fail?.({ code: 2, PERMISSION_DENIED: 1 } as GeolocationPositionError),
+    });
+    const { user } = setup({});
+    await user.click(screen.getByRole('button', { name: 'Use my current location' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('could not be read');
+    cleanup();
+
+    locationIs(undefined);
+    const second = setup({});
+    await second.user.click(screen.getByRole('button', { name: 'Use my current location' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('could not be read');
   });
 });
 

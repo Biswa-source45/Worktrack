@@ -107,6 +107,7 @@ export const employeeBody = (
   department: { id: 4, name: 'Service' },
   manager_id: null,
   field_eligible: true,
+  field_punch_in_allowed: false,
   home_branch: { id: 7, name: 'Head Office' },
   shift: { id: 8, name: 'General' },
   restrict_to_home_branch: false,
@@ -229,3 +230,89 @@ export function recordForms() {
     restore: () => spy.mockRestore(),
   };
 }
+
+const TASK_TYPE: Schemas['TaskTypeOut'] = {
+  id: 1,
+  name: 'Site Visit',
+  is_active: true,
+  proof_photo_required: true,
+  proof_kind: 'photo',
+};
+const ASSIGNER: Schemas['UserBrief'] = { id: 5, name: 'Meera Nair', emp_code: 'EMP-2' };
+
+/** One of my tasks as GET /me/tasks lists it; `status` is my own status. */
+export const myTaskBody = (
+  over: Partial<Schemas['MyTask']> = {},
+  status = 'assigned',
+): Schemas['MyTask'] => ({
+  id: 41,
+  code: 'T-00041',
+  title: 'Inspect the pump house',
+  type: TASK_TYPE,
+  client_name: 'Acme Water',
+  site: { address: 'Plot 4, Patia, Bhubaneswar', lat: 20.3547, lng: 85.8197, radius_m: 200 },
+  contact_name: 'Ravi Kumar',
+  contact_phone: '+919876543210',
+  priority: 'normal',
+  scheduled_at: '2026-10-06T05:30:00Z',
+  expected_minutes: 90,
+  description: 'Check the valves and photograph the meter.',
+  status,
+  created_by: ASSIGNER,
+  my: {
+    status,
+    assigned_at: '2026-10-05T10:00:00Z',
+    accepted_at: null,
+    started_at: null,
+    completed_at: null,
+    reached_at: null,
+    declined_reason: null,
+    reach_flags: [],
+    reach_review: 'none',
+  },
+  ...over,
+});
+
+/** The same task as GET /tasks/{id} (and every action) answers it, with me as the one assignee. */
+export const taskDetailBody = (
+  over: Partial<Schemas['TaskDetail']> = {},
+  status = 'assigned',
+  reach: Schemas['ReachOut'] | null = null,
+): Schemas['TaskDetail'] => {
+  const { my: _my, ...task } = myTaskBody({}, status);
+  return {
+    ...task,
+    created_at: '2026-10-05T10:00:00Z',
+    closed_by: null,
+    closed_at: null,
+    close_remarks: null,
+    cancelled_by: null,
+    cancelled_at: null,
+    cancel_reason: null,
+    can_manage: false,
+    assignees: [
+      {
+        user: { id: 1, name: 'Asha Rao', emp_code: 'EMP-7' },
+        status,
+        assigned_at: '2026-10-05T10:00:00Z',
+        accepted_at: null,
+        escalated_at: null,
+        started_at: null,
+        completed_at: null,
+        declined_reason: null,
+        completion_remarks: null,
+        reach,
+        metrics: {
+          time_to_accept_min: null,
+          accept_to_reached_min: null,
+          time_on_site_min: null,
+          straight_line_m: null,
+        },
+      },
+    ],
+    events: [],
+    attachments: [],
+    comments: [],
+    ...over,
+  };
+};

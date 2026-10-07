@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
-import { ADMIN, SETTINGS, makeMe } from '@/test/fixtures';
+import { ADMIN, SETTINGS, TASK_TYPES, makeMe } from '@/test/fixtures';
 import { apiError, jsonBody, mockApi, renderWithClient, type Call } from '@/test/render';
 import { SettingsPage } from './settings-page';
 
@@ -11,6 +11,10 @@ function setup({ permissions = ADMIN, routes = {} }: Options = {}) {
   const calls = mockApi({
     'GET /me': makeMe({ permissions }),
     'GET /admin/settings': SETTINGS,
+    'GET /admin/task-types': [
+      ...TASK_TYPES,
+      { ...TASK_TYPES[0], id: 3, name: 'Old Type', is_active: false },
+    ],
     ...routes,
   });
   renderWithClient(<SettingsPage />);
@@ -309,5 +313,114 @@ describe('SettingsPage', () => {
     const { calls } = setup({ permissions: ['web.access', 'branches.manage'] });
     expect(await screen.findByText(/do not have access/)).toBeInTheDocument();
     expect(calls.some((c) => c.path.endsWith('/admin/settings'))).toBe(false);
+  });
+});
+
+describe('SettingsPage: field tasks', () => {
+  it('shows the task defaults and saves a changed radius', async () => {
+    const { calls, user } = setup({ routes: { 'PATCH /admin/settings': SETTINGS } });
+    const card = await screen.findByRole('group', { name: 'Field tasks' });
+    expect(within(card).getByLabelText('Default site radius (m)')).toHaveValue('200');
+    expect(within(card).getByLabelText('Not-accepted alert after (min)')).toHaveValue('30');
+    const radius = within(card).getByLabelText('Default site radius (m)');
+    await user.clear(radius);
+    await user.type(radius, '250');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(patches(calls)).toHaveLength(1));
+    expect(jsonBody(patches(calls)[0])).toEqual({ task_default_site_radius_m: 250 });
+  });
+
+  it('refuses an alert time the server would refuse', async () => {
+    const { calls, user } = setup();
+    const alert = await screen.findByLabelText('Not-accepted alert after (min)');
+    await user.clear(alert);
+    await user.type(alert, '2');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(
+      await screen.findByText('Enter a whole number within the allowed range.'),
+    ).toBeInTheDocument();
+    expect(patches(calls)).toHaveLength(0);
+  });
+});
+
+describe('SettingsPage: task types', () => {
+  it('lists every type with its proof rule, and marks a switched-off one', async () => {
+    setup();
+    const card = await screen.findByRole('group', { name: 'Task types' });
+    const site = (await within(card).findByText('Site Visit')).closest('li') as HTMLElement;
+    expect(within(site).getByText('Photo')).toBeInTheDocument();
+    const documents = within(card).getByText('Document Submission').closest('li') as HTMLElement;
+    expect(within(documents).getByText('Receipt photo')).toBeInTheDocument();
+    const old = within(card).getByText('Old Type').closest('li') as HTMLElement;
+    expect(within(old).getByText('Inactive')).toBeInTheDocument();
+  });
+
+  it('adds a type, and needs a name first', async () => {
+    const { calls, user } = setup({
+      routes: { 'POST /admin/task-types': { ...TASK_TYPES[0], id: 9, name: 'Survey' } },
+    });
+    const card = await screen.findByRole('group', { name: 'Task types' });
+    await user.click(await within(card).findByRole('button', { name: 'Add type' }));
+    await user.click(within(card).getByRole('button', { name: 'Save' }));
+    expect(await within(card).findByText('This field is required.')).toBeInTheDocument();
+    expect(calls.some((c) => c.method === 'POST')).toBe(false);
+
+    await user.type(within(card).getByLabelText('Name'), '  Survey  ');
+    await user.selectOptions(within(card).getByLabelText('Proof is a'), 'receipt');
+    await user.click(within(card).getByRole('checkbox', { name: /proof photo is required/ }));
+    await user.click(within(card).getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'POST')).toBe(true));
+    expect(jsonBody(calls.find((c) => c.method === 'POST') as Call)).toEqual({
+      name: 'Survey',
+      proof_photo_required: false,
+      proof_kind: 'receipt',
+    });
+  });
+
+  it('renames a type and can switch it off', async () => {
+    const { calls, user } = setup({
+      routes: { 'PATCH /admin/task-types/1': { ...TASK_TYPES[0], name: 'Visit' } },
+    });
+    await user.click(await screen.findByRole('button', { name: 'Edit Site Visit' }));
+    const name = screen.getByLabelText('Name');
+    expect(name).toHaveValue('Site Visit');
+    await user.clear(name);
+    await user.type(name, 'Visit');
+    await user.click(screen.getByRole('checkbox', { name: /Active/ }));
+    await user.click(
+      within(screen.getByRole('group', { name: 'Task types' })).getByRole('button', {
+        name: 'Save',
+      }),
+    );
+    await waitFor(() => expect(patches(calls)).toHaveLength(1));
+    expect(jsonBody(patches(calls)[0])).toEqual({
+      name: 'Visit',
+      proof_photo_required: true,
+      proof_kind: 'photo',
+      is_active: false,
+    });
+  });
+
+  it('says so when the name is taken', async () => {
+    const { user } = setup({
+      routes: { 'PATCH /admin/task-types/1': () => apiError(409, 'DUPLICATE') },
+    });
+    await user.click(await screen.findByRole('button', { name: 'Edit Site Visit' }));
+    await user.click(
+      within(screen.getByRole('group', { name: 'Task types' })).getByRole('button', {
+        name: 'Save',
+      }),
+    );
+    expect(
+      await screen.findByText('A task type with this name already exists.'),
+    ).toBeInTheDocument();
+  });
+
+  it('is read-only without settings.manage', async () => {
+    setup({ permissions: ['web.access', 'settings.view'] });
+    const card = await screen.findByRole('group', { name: 'Task types' });
+    expect(await within(card).findByText('Site Visit')).toBeInTheDocument();
+    expect(within(card).queryByRole('button', { name: 'Add type' })).not.toBeInTheDocument();
+    expect(within(card).queryByRole('button', { name: /^Edit/ })).not.toBeInTheDocument();
   });
 });

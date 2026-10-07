@@ -1,11 +1,15 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import { m } from 'motion/react';
+import { pageEnter } from '@/lib/motion';
 
 /** One screen inside the shell: its content fades up 8px on arrival. */
 export function Page({ children }: { children: ReactNode }) {
   return (
-    <section className="animate-in space-y-4 duration-250 ease-out fade-in slide-in-from-bottom-2">
+    <m.section {...pageEnter()} className="space-y-4">
       {children}
-    </section>
+    </m.section>
   );
 }
 

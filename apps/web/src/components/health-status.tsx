@@ -33,7 +33,7 @@ const STATE = {
   unreachable: { Icon: CircleX, tone: 'text-danger' },
 } as const;
 
-export function HealthIndicator() {
+export function HealthIndicator({ iconOnly = false }: { iconOnly?: boolean }) {
   const { t } = useTranslation();
   const { data, isPending } = useHealth();
   const state = isPending
@@ -50,10 +50,11 @@ export function HealthIndicator() {
       role="status"
       data-testid="health-indicator"
       data-state={state}
+      title={iconOnly ? t(`health.${state}`) : undefined}
       className={cn('inline-flex items-center gap-1 text-caption font-medium', tone)}
     >
       <Icon aria-hidden="true" className="size-3.5 shrink-0" />
-      {t(`health.${state}`)}
+      <span className={iconOnly ? 'sr-only' : undefined}>{t(`health.${state}`)}</span>
     </span>
   );
 }

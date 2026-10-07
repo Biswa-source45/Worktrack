@@ -163,6 +163,8 @@ def _flags(events: list[PunchEvent]) -> set[str]:
             flags.add("offline")
         if e.integrity_flags:
             flags.add("mock")
+        if e.location_type == "task":
+            flags.add("field_punch")
         if e.review_status == REVIEW_PENDING:
             if FACE_REASONS & set(e.review_reasons):
                 flags.add("face_review")
