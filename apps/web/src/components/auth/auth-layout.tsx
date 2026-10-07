@@ -16,10 +16,12 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <CurvedEdge className="absolute inset-x-0 bottom-0 h-2/5 w-full text-raised" />
       <ThemeToggle className="absolute top-4 right-4" />
       <div className="relative w-full max-w-sm animate-in duration-250 ease-out fade-in slide-in-from-bottom-2">
-        <div className="mb-6 flex justify-center">
-          <BrandLogo variant="full" label={t('app.name')} className="w-72" />
+        <div className="rounded-xl border bg-card p-8 shadow-lg">
+          <div className="mb-6 flex justify-center">
+            <BrandLogo variant="full" label={t('app.name')} className="w-64" />
+          </div>
+          {children}
         </div>
-        <div className="rounded-xl border bg-card p-8 shadow-lg">{children}</div>
       </div>
     </main>
   );

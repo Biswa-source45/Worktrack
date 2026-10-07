@@ -81,3 +81,50 @@ describe('where the logo is placed', () => {
     localStorage.clear();
   });
 });
+
+describe('the sign-in card and the collapsed rail', () => {
+  it('has the logo inside the form card, above the form', () => {
+    renderWithClient(
+      <AuthLayout>
+        <p>the form</p>
+      </AuthLayout>,
+    );
+    const card = screen.getByText('the form').parentElement as HTMLElement;
+    const logo = within(card).getByRole('img', { name: 'WorkTrack' });
+    expect(logo.compareDocumentPosition(screen.getByText('the form'))).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
+  it('makes every collapsed link a 44 px circle centred in the rail, so a background is round', async () => {
+    localStorage.setItem('wt-sidebar-collapsed', '1');
+    mockApi({ 'GET /me': makeMe({ permissions: ADMIN }) });
+    renderWithClient(
+      <AppShell>
+        <p>page content</p>
+      </AppShell>,
+    );
+    const link = await screen.findByRole('link', { name: 'Employees' });
+    expect(link).toHaveClass('h-11', 'w-11', 'mx-auto', 'rounded-full');
+    expect(link.closest('nav')).toHaveClass('px-2');
+    localStorage.clear();
+  });
+});
+
+describe('the collapsed rail keeps the icon centred', () => {
+  it('hides the label with sr-only alone, so it takes no room beside the icon', async () => {
+    localStorage.setItem('wt-sidebar-collapsed', '1');
+    mockApi({ 'GET /me': makeMe({ permissions: ADMIN }) });
+    renderWithClient(
+      <AppShell>
+        <p>page content</p>
+      </AppShell>,
+    );
+    const link = await screen.findByRole('link', { name: 'Employees' });
+    const label = within(link).getByText('Employees');
+    // sr-only is position: absolute; a `relative` next to it would win and keep the label in the flow.
+    expect(label).toHaveClass('sr-only');
+    expect(label).not.toHaveClass('relative');
+    localStorage.clear();
+  });
+});

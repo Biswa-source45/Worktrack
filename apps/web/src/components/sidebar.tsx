@@ -97,7 +97,10 @@ export function SidebarNav({ groups, pathname, collapsed = false, onNavigate }: 
   const { t } = useTranslation();
   const indicator = useId();
   return (
-    <nav aria-label={t('nav.label')} className="flex-1 space-y-4 overflow-y-auto px-3 py-2">
+    <nav
+      aria-label={t('nav.label')}
+      className={cn('flex-1 space-y-4 overflow-y-auto py-2', collapsed ? 'px-2' : 'px-3')}
+    >
       {groups.map((group) => (
         <div key={group.label} role="group" aria-label={t(group.label)} className="space-y-1">
           <p
@@ -120,7 +123,7 @@ export function SidebarNav({ groups, pathname, collapsed = false, onNavigate }: 
                 onClick={onNavigate}
                 className={cn(
                   'relative flex h-11 items-center gap-3 rounded-full px-3 text-small font-medium transition-transform active:scale-(--wt-press-scale)',
-                  collapsed && 'justify-center px-0',
+                  collapsed && 'mx-auto w-11 justify-center px-0',
                   active
                     ? 'font-semibold text-primary-foreground'
                     : 'text-muted-foreground hover:bg-raised hover:text-foreground',
@@ -128,9 +131,9 @@ export function SidebarNav({ groups, pathname, collapsed = false, onNavigate }: 
               >
                 {active && <ActiveIndicator id={indicator} className="bg-primary" />}
                 <item.icon aria-hidden="true" className="relative size-5 shrink-0" />
-                <span className={cn('relative truncate', collapsed && 'sr-only')}>
-                  {t(item.label)}
-                </span>
+                {/* `relative` would override sr-only's absolute position and keep the hidden label in
+                    the flow, pushing the icon off the centre of the rail. */}
+                <span className={collapsed ? 'sr-only' : 'relative truncate'}>{t(item.label)}</span>
               </Link>
             );
           })}
