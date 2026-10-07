@@ -276,17 +276,28 @@ def _item(row: Any) -> EnrollmentItem:
 async def list_enrollments(
     session: AsyncSession, actor: AuthContext, *, status: str, limit: int, cursor: str | None
 ) -> tuple[list[EnrollmentItem], str | None]:
-    """Only employees the actor may manage (the same rule as ensure_can_manage), decided in SQL."""
+    """Only employees the actor may manage (the same rule as ensure_can_manage), decided in SQL.
+
+    What waits for a decision is listed first come first served; what was decided is listed newest
+    first, so the latest decision is on the first page however long the history grows.
+    """
+    after = parse_cursor(cursor)
+    newest_first = status != "pending"
+    if newest_first:
+        # No cursor yet: start from the newest row.
+        position = FaceEnrollment.id < after if cursor else FaceEnrollment.id > 0
+    else:
+        position = FaceEnrollment.id > after
     stmt = (
         select(*_ITEM_COLUMNS)
         .join(User, User.id == FaceEnrollment.user_id)
         .join(Role, Role.id == User.role_id)
         .where(
             FaceEnrollment.status == status,
-            FaceEnrollment.id > parse_cursor(cursor),
+            position,
             Role.__table__.c.permissions.contained_by(sorted(actor.permissions)),
         )
-        .order_by(FaceEnrollment.id)
+        .order_by(FaceEnrollment.id.desc() if newest_first else FaceEnrollment.id)
         .limit(limit + 1)
     )
     rows = (await session.execute(stmt)).all()

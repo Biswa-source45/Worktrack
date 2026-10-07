@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CircleCheck, CircleX, Clock, RotateCcw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -30,19 +30,22 @@ type Detail = Schemas['EnrollmentDetail'];
 export type FaceStatus = 'pending' | 'approved' | 'rejected';
 const STATUSES: FaceStatus[] = ['pending', 'approved', 'rejected'];
 
-// The list says who and when, never the face. One page of 200 covers ~35 employees.
+// The list says who and when, never the face. What waits is oldest first, what was decided is
+// newest first; more pages load on request.
+const PAGE_SIZE = 50;
 export const useFaceEnrollments = (status: FaceStatus, enabled = true) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: ['face-enrollments', status],
     enabled,
-    queryFn: async () =>
-      (
-        await unwrap(
-          proxyApi().GET('/api/v1/admin/face-enrollments', {
-            params: { query: { status, limit: 200 } },
-          }),
-        )
-      ).items,
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
+      unwrap(
+        proxyApi().GET('/api/v1/admin/face-enrollments', {
+          params: { query: { status, limit: PAGE_SIZE, cursor: pageParam } },
+        }),
+      ),
+    getNextPageParam: (page) => page.next_cursor ?? undefined,
+    select: (data) => data.pages.flatMap((page) => page.items),
   });
 
 const STATUS_LOOK: Record<string, { tone: Tone; icon: typeof Clock }> = {
@@ -369,6 +372,15 @@ export function FaceEnrollmentsTab() {
           // There is no status column: the list is already filtered by status.
           columnClass={{ consent: 'hidden lg:table-cell' }}
         />
+      )}
+      {list.hasNextPage && (
+        <Button
+          variant="outline"
+          onClick={() => void list.fetchNextPage()}
+          disabled={list.isFetchingNextPage}
+        >
+          {t('common.loadMore')}
+        </Button>
       )}
       {reviewing !== null && (
         <FaceReviewDialog enrollmentId={reviewing} onClose={() => setReviewing(null)} />
