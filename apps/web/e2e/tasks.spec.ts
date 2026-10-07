@@ -181,7 +181,9 @@ test('a Task Assigner sees only their own tasks, and no other admin screens', as
 
   await stubMapTiles(page);
   await uiLogin(page, assigner.code, assigner.password);
-  await expect(page.getByRole('link', { name: 'Tasks' })).toBeVisible();
+  await expect(
+    page.getByRole('navigation').getByRole('link', { name: 'Tasks', exact: true }),
+  ).toBeVisible();
   for (const name of ['Employees', 'Branches', 'Settings', 'Devices']) {
     await expect(page.getByRole('navigation').getByRole('link', { name })).toBeHidden();
   }
