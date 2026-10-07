@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, View } from 'react-native';
 import {
+  CircleCheck,
+  CircleX,
   FileText,
   Flag,
   MessageSquare,
@@ -39,7 +41,10 @@ import { useRefetchOnFocus } from '@/lib/use-refetch-on-focus';
 function ReachSummary({ reach }: { reach: NonNullable<AssigneeOut['reach']> }) {
   const { t } = useTranslation();
   const { space } = useTheme();
-  const flagged = reach.flags.length > 0 || reach.review === 'pending';
+  const decided = reach.review === 'approved' || reach.review === 'rejected';
+  // "Sent for review" only while nobody has decided: after a decision the result replaces it.
+  const waiting = !decided && (reach.flags.length > 0 || reach.review === 'pending');
+  const approved = reach.review === 'approved';
   return (
     <View style={{ gap: space[1] }}>
       <AppText variant="small" color="muted">
@@ -47,12 +52,26 @@ function ReachSummary({ reach }: { reach: NonNullable<AssigneeOut['reach']> }) {
       </AppText>
       <AppText weight={500}>
         {t('tasks.reached.at', { time: formatIst(reach.at) })}
-        {flagged && reach.review !== 'approved' ? ` · ${t('tasks.reached.review')}` : ''}
+        {waiting ? ` · ${t('tasks.reached.review')}` : ''}
       </AppText>
-      {reach.review === 'rejected' && reach.review_remarks ? (
-        <AppText variant="small" color="dangerFg">
-          {reach.review_remarks}
-        </AppText>
+      {decided ? (
+        <>
+          <Badge
+            status={approved ? 'success' : 'danger'}
+            icon={approved ? CircleCheck : CircleX}
+            label={t(approved ? 'tasks.reached.approved' : 'tasks.reached.rejected')}
+          />
+          {reach.reviewed_by ? (
+            <AppText variant="small" color="muted">
+              {t('tasks.reached.by', { name: reach.reviewed_by.name })}
+            </AppText>
+          ) : null}
+          {reach.review_remarks ? (
+            <AppText variant="small" color={approved ? undefined : 'dangerFg'}>
+              {reach.review_remarks}
+            </AppText>
+          ) : null}
+        </>
       ) : null}
     </View>
   );

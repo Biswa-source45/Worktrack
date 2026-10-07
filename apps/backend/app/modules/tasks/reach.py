@@ -267,7 +267,7 @@ async def review(
     row.reach_review = "approved" if body.decision == "approve" else "rejected"
     row.reach_reviewed_by, row.reach_reviewed_at = actor.user.id, now
     row.reach_review_remarks = body.remarks
-    service.add_event(
+    event = service.add_event(
         session,
         task,
         "reach_reviewed",
@@ -276,6 +276,18 @@ async def review(
         subject_id=user_id,
         note=f"{row.reach_review}" + (f": {body.remarks}" if body.remarks else ""),
         key=key,
+    )
+    # The employee is told the result (in-app record; M8 sends the push).
+    await service.notify(
+        session,
+        actor.user.id,
+        user_id,
+        "task_reach_reviewed",
+        f"Your arrival at {task.code} was {row.reach_review}",
+        f"{actor.user.name} {row.reach_review} your arrival at {task.title}."
+        + (f" Note: {body.remarks}" if body.remarks else ""),
+        task,
+        event,
     )
     audit.record(
         session,

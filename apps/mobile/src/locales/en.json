@@ -594,7 +594,10 @@
     "reached": {
       "title": "You reached the site",
       "at": "at {{time}}",
-      "review": "sent for review"
+      "review": "sent for review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "by": "Reviewed by {{name}}"
     },
     "reach": {
       "devBuild": "The camera is not available in Expo Go. Open the WorkTrack development build on an Android phone to mark that you have reached the site.",
