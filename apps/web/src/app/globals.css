@@ -119,6 +119,15 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+  /* Thin scrollbars that stay out of the way: the muted text colour at low opacity, a little
+     stronger over the area being scrolled. Both themes, since the colour is a token. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 30%, transparent) transparent;
+  }
+  *:hover {
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 55%, transparent) transparent;
+  }
 }
 
 /* Set for one cross-fade while the theme changes (ThemeProvider); never on first paint. */

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BrandLogo } from '@/components/brand-logo';
 import { Blob, CurvedEdge, DotPattern } from '@/components/decor/decor';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 
@@ -15,11 +16,12 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <CurvedEdge className="absolute inset-x-0 bottom-0 h-2/5 w-full text-raised" />
       <ThemeToggle className="absolute top-4 right-4" />
       <div className="relative w-full max-w-sm animate-in duration-250 ease-out fade-in slide-in-from-bottom-2">
-        <div className="mb-6 text-center">
-          <p className="text-h2">{t('app.name')}</p>
-          <p className="text-muted-foreground">{t('app.tagline')}</p>
+        <div className="rounded-xl border bg-card p-8 shadow-lg">
+          <div className="mb-6 flex justify-center">
+            <BrandLogo variant="full" label={t('app.name')} className="w-64" />
+          </div>
+          {children}
         </div>
-        <div className="rounded-xl border bg-card p-8 shadow-lg">{children}</div>
       </div>
     </main>
   );
