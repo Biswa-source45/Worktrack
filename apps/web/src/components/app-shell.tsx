@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 import { useTranslation } from 'react-i18next';
+import { BrandLogo } from '@/components/brand-logo';
 import { HealthIndicator } from '@/components/health-status';
 import { NoAccess } from '@/components/require-permission';
 import { SidebarNav, visibleGroups } from '@/components/sidebar';
@@ -112,8 +113,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     </div>
   );
   const brand = (
-    <Link href="/" className="truncate rounded-sm text-large font-bold">
-      {t('app.title')}
+    <Link href="/" className="inline-flex min-h-11 items-center rounded-sm">
+      <BrandLogo variant="compact" label={t('app.title')} className="w-36" />
+    </Link>
+  );
+  // The collapsed rail is 64 px wide: the W alone, with the toggle under it.
+  const mark = (
+    <Link href="/" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm">
+      <BrandLogo variant="mark" label={t('app.title')} className="w-9" />
     </Link>
   );
 
@@ -127,11 +134,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div
           className={cn(
-            'flex h-14 items-center gap-2 px-3',
-            collapsed ? 'justify-center' : 'justify-between pl-6',
+            'flex items-center gap-2 px-3',
+            collapsed ? 'flex-col py-3' : 'h-14 justify-between pl-6',
           )}
         >
-          {!collapsed && brand}
+          {collapsed ? mark : brand}
           <Button
             variant="ghost"
             size="icon"

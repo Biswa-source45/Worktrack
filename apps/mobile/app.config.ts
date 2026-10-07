@@ -1,5 +1,6 @@
 import { withInfoPlist, type ConfigPlugin } from 'expo/config-plugins';
 import type { ConfigContext, ExpoConfig } from 'expo/config';
+import { colors } from 'design-tokens';
 
 // expo-task-manager's plugin adds the iOS "fetch" background mode. Nothing here uses background
 // fetch (tracking needs only "location"), and an unused mode can hold up an App Store review.
@@ -24,6 +25,8 @@ export default ({ config }: ConfigContext): ExpoConfig =>
     version: '0.1.0',
     orientation: 'portrait',
     userInterfaceStyle: 'automatic',
+    // The launcher icon is the glossy mark on black (DESIGN.md section 11).
+    icon: './assets/brand/icon.png',
     ios: {
       bundleIdentifier: 'com.biswabhusan.worktrack',
       infoPlist: {
@@ -38,6 +41,12 @@ export default ({ config }: ConfigContext): ExpoConfig =>
     },
     android: {
       package: 'com.biswabhusan.worktrack',
+      adaptiveIcon: {
+        foregroundImage: './assets/brand/adaptive-icon-foreground.png',
+        monochromeImage: './assets/brand/adaptive-icon-monochrome.png',
+        // The same black as the icon art: the mark is not lit by any theme colour.
+        backgroundColor: '#000000',
+      },
       // Set only in .env / EAS (never committed). Without a key the map shows its address-only
       // fallback; without the Firebase file push stays off until M8 supplies it.
       ...(process.env.GOOGLE_SERVICES_JSON
@@ -63,8 +72,26 @@ export default ({ config }: ConfigContext): ExpoConfig =>
       // strings it finds and only adds the fine and coarse location permissions already listed.
       // The two keys it would add on its own (the old "always" string, motion) are switched off.
       ['expo-location', { locationAlwaysPermission: false, motionUsagePermission: false }],
-      // M8 push; M6 also asks for the Android 13+ notification permission for its tracking notice.
-      'expo-notifications',
+      // The small icon of every notification, M6's tracking notice included, tinted copper.
+      // M8 sends push; M6 also asks for the Android 13+ notification permission.
+      [
+        'expo-notifications',
+        { icon: './assets/brand/notification-icon.png', color: colors.dark.primary },
+      ],
+      // The splash shows the mark alone (Android 12+ shows only the icon) on the theme's colour.
+      [
+        'expo-splash-screen',
+        {
+          image: './assets/brand/splash-icon.png',
+          imageWidth: 200,
+          resizeMode: 'contain',
+          backgroundColor: colors.light.background,
+          dark: {
+            image: './assets/brand/splash-icon.png',
+            backgroundColor: colors.dark.background,
+          },
+        },
+      ],
     ],
     experiments: { typedRoutes: true },
   });

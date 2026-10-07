@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BrandLogo } from '@/components/brand-logo';
 import { CurvedEdge } from '@/components/decor/curved-edge';
 import { HeroDecor } from '@/components/decor/hero-decor';
 import { AppText } from '@/components/ui/app-text';
@@ -16,7 +17,7 @@ type Props = {
   footer: ReactNode;
 };
 
-/** Signed-out layout: a decorated hero with the product name over a curved panel with a form. */
+/** Signed-out layout: a decorated hero with the logo over a curved panel with a form. */
 export function AuthShell({ title, intro, children, footer }: Props) {
   const { t } = useTranslation();
   const { colors, space } = useTheme();
@@ -43,7 +44,7 @@ export function AuthShell({ title, intro, children, footer }: Props) {
               paddingBottom: space[12],
             }}
           >
-            <AppText variant="h1">{t('app.title')}</AppText>
+            <BrandLogo width={240} />
             <AppText color="muted">{t('app.tagline')}</AppText>
           </View>
           <CurvedEdge />

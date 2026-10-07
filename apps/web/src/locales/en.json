@@ -1,8 +1,7 @@
 {
   "app": {
     "title": "WorkTrack Admin",
-    "name": "WorkTrack",
-    "tagline": "Attendance and field tasks for your team."
+    "name": "WorkTrack"
   },
   "common": {
     "cancel": "Cancel",
